@@ -1,0 +1,5 @@
+{
+  "name": "practicapp",
+  "displayName": "practicapp",
+  "plugins": ["@react-native-google-signin/google-signin"]
+}
