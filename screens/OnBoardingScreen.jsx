@@ -1,8 +1,12 @@
-import {View, Text, Image} from 'react-native';
+import {Image} from 'react-native';
 import Onboarding from 'react-native-onboarding-swiper';
 const OnBoardingScreen = ({navigation}) => {
   return (
     <Onboarding
+      containerStyles={{padding: 30}}
+      imageContainerStyles={{
+        padding: 0,
+      }}
       onSkip={() => navigation.navigate('Login')}
       onDone={() => navigation.navigate('Login')}
       pages={[
