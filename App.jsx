@@ -7,6 +7,7 @@ import OnBoardingScreen from './screens/OnBoardingScreen';
 import Home from './screens/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
+import TabNavigation from './TabNavigation/TabNavigation';
 
 const AppStack = createStackNavigator();
 
@@ -36,20 +37,28 @@ const App = () => {
           screenOptions={{
             headerShown: false,
           }}>
-          {firstLaunch && (
-            <AppStack.Screen name="OnBoarding" component={OnBoardingScreen} />
-          )}
-
-          {UserLogin === false ? (
+          {UserLogin ? (
             <>
+              <AppStack.Screen
+                name="Main"
+                component={TabNavigation}
+                options={{headerShown: false}}
+              />
+            </>
+          ) : (
+            <>
+              {firstLaunch && (
+                <AppStack.Screen
+                  name="OnBoarding"
+                  component={OnBoardingScreen}
+                />
+              )}
               <AppStack.Screen name="Login" component={LoginScreen} />
               <AppStack.Screen
                 name="RegisterScreen"
                 component={RegisterScreen}
               />
             </>
-          ) : (
-            <AppStack.Screen name="Home" component={Home} />
           )}
         </AppStack.Navigator>
       </NavigationContainer>

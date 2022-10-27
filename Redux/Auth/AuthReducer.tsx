@@ -6,7 +6,8 @@ const AuthSlice = createSlice({
         isLoggedIn: false,
         email: null,
         userName: null,
-        uid: null
+        uid: null,
+        photoURL: null
     },
     reducers: {
         setSignIn: (state, action) => {
@@ -14,12 +15,16 @@ const AuthSlice = createSlice({
             state.isLoggedIn = action.payload.isLoggedIn;
             state.userName = action.payload.userName;
             state.uid = action.payload.uid;
+            state.photoURL = action.payload.photoURL;
+
         },
         setSignOut: (state) => {
             state.email = null;
             state.userName = null;
             state.isLoggedIn = false;
             state.uid = null;
+            state.photoURL = null;
+
         }
     }
 })

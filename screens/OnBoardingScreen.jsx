@@ -11,13 +11,13 @@ const OnBoardingScreen = ({navigation}) => {
       onDone={() => navigation.navigate('Login')}
       pages={[
         {
-          backgroundColor: 'green',
+          backgroundColor: '#a6e4d0',
           image: <Image source={require('../images/onBoarding1.jpeg')} />,
           title: 'Welcome to Tech App',
           subtitle: 'The World of Technology',
         },
         {
-          backgroundColor: 'red',
+          backgroundColor: '#e9bcbe',
           image: <Image source={require('../images/onBoarding1.jpeg')} />,
           title: 'Welcome to Tech App',
           subtitle: 'The World of Technology',

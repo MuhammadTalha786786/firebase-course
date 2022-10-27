@@ -1,129 +1,290 @@
-import {View, Text, Alert, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  Image,
+} from 'react-native';
 import React, {useState} from 'react';
-import {TextInput, Button} from 'react-native-paper';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-// import auth from '@react-native-firebase/auth';
+import ButtonComponent from './components/ButtonComponent';
+import TextInputComponent from './components/TextInputComponent';
+import useGoogleSignIn from './components/GoogleSignIn';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {StyleGuide} from '../Utils/StyleGuide';
+import {Divider, Avatar} from 'react-native-paper';
+import ImagePicker from 'react-native-image-crop-picker';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import storage from '@react-native-firebase/storage';
+import * as Progress from 'react-native-progress';
 
 const RegisterScreen = ({navigation}) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [Password, setPassword] = useState('');
+  const {onGoogleButtonPress} = useGoogleSignIn();
+  const [image, setImage] = useState();
+  const [uploading, setUploading] = useState(false);
+  const [transferred, setTransferred] = useState(0);
+  const [error, setError] = useState();
+  const [showPassword, setShowPassword] = useState(false);
 
-  const RegisterUser = () => {
+  const uploadImage = async () => {
+    console.log(image, 'uri....');
+    const filename = image.substring(image.lastIndexOf('/') + 1);
+    const uploadUri =
+      Platform.OS === 'ios' ? image.replace('file://', '') : image;
+    setTransferred(0);
+    const task = storage().ref(filename).putFile(uploadUri);
+    // set progress state
+    task.on('state_changed', snapshot => {
+      setTransferred(
+        Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
+      );
+    });
+    try {
+      await task;
+    } catch (e) {
+      console.error(e);
+    }
+    Alert.alert('Your data has been uploaded');
+    setImage();
+    setUploading(false);
+  };
+
+  const selectImage = () => {
+    ImagePicker.openPicker({
+      width: 300,
+      height: 400,
+      cropping: true,
+    }).then(image => {
+      setImage(image.path);
+      console.log(image.path);
+    });
+  };
+
+  const writeUserData = user => {
+    database()
+      .ref('users/' + user.uid)
+      .set(user)
+      .catch(error => {
+        console.log(error.message);
+      });
+    setEmail('');
+    setName('');
+    setPassword('');
+  };
+
+  const createNewAccount = async () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    let userName = /^(?:[A-Za-z]+|\d+)$/;
-    if (name === '') {
-      Alert.alert('please enter the name');
-    } else if (userName.test(name) === false) {
-      Alert.alert('Correct the user name');
-    } else if (reg.test(email) === false) {
-      Alert.alert('please enter correct email');
+    if (image === '' || image === undefined) {
+      setError('Please Select an Image');
+    } else if (email === '') {
+      setError('Please Enter the Email');
+    } else if (!reg.test(email)) {
+      setError('Please Enter the Valid Email');
+    } else if (name === '') {
+      setError('Please Enter the Name');
+    } else if (Password === '') {
+      setError('Please Enter the Password');
     } else {
-      database()
-        .ref('/users/')
-        .push()
-        .set({
-          name: name,
-          email: email,
-        })
-        .then(
-          auth()
-            .createUserWithEmailAndPassword(email, Password)
-            .then(res => {
-              if (res) {
-                console.warn('User registered successfully!');
-                Alert.alert('The user has been registered....');
-                setName('');
-                setEmail('');
-                setPassword('');
-              }
-            })
-            .catch(error => console.warn(error.message)),
+      try {
+        const userAuth = await auth().createUserWithEmailAndPassword(
+          email,
+          Password,
         );
+        console.log(userAuth, 'userAuth');
+        console.log(userAuth.email);
+        if (userAuth) {
+          setUploading(true);
+          uploadImage();
+        }
+        var user = {
+          name: name,
+          image: image,
+          uid: userAuth.user._user.uid,
+          email: userAuth.user._user.email,
+        };
+        writeUserData(user);
+      } catch (error) {
+        console.log(error.message);
+      }
     }
   };
 
   return (
-    <View
-      style={{
-        padding: 0,
-        marginVertical: 50,
-        textAlign: 'center',
-        justifyContent: 'center',
-        alignContent: 'center',
-      }}>
-      <View style={{padding: 10}}>
-        <TextInput
-          label="User Name"
-          value={name}
-          onChangeText={text => setName(text)}
-          mode="outlined"
-          placeholder="abcx`"
-        />
-      </View>
-      <View style={{padding: 10}}>
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={text => setEmail(text)}
-          mode="outlined"
-          placeholder="Please Enter the email"
-        />
-      </View>
-      <View style={{padding: 10}}>
-        <TextInput
-          label="Password"
-          value={Password}
-          onChangeText={text => setPassword(text)}
-          placeholder="Please Enter the Password"
-          secureTextEntry={true}
-          mode="outlined"
-        />
-      </View>
-      <View style={{padding: 10}}>
-        <Button
-          style={{
-            height: 50,
-            borderRadius: 4,
-            textAlign: 'center',
-          }}
-          mode="contained"
-          onPress={RegisterUser}>
-          Register
-        </Button>
+    <SafeAreaView style={styles.SafeAreaView}>
+      <View
+        style={{
+          padding: 0,
+          marginVertical: 100,
+          textAlign: 'center',
+          justifyContent: 'center',
+          alignContent: 'center',
+        }}>
+        <Text style={styles.loginText}>Register </Text>
 
-        <Text
-          style={{color: '#6A0DAD', padding: 10, marginLeft: 296}}
-          onPress={() => navigation.navigate('Login')}>
-          Login Here?
-        </Text>
-      </View>
-      <View>
-        <TouchableOpacity
-          style={[styles.buttonContainer, {backgroundColor: '#f5e7ea'}]}>
-          <View style={styles.iconWrapper}>
-            <FontAwesome
-              name="google"
-              style={styles.icon}
-              size={22}
-              color="#de4d41"
+        <View style={styles.cameraStyle}>
+          <View>
+            <Avatar.Image
+              size={100}
+              source={{
+                uri:
+                  image === undefined
+                    ? 'https://cdn.pixabay.com/photo/2013/07/13/12/07/avatar-159236_1280.png'
+                    : image,
+              }}
             />
           </View>
-          <View style={styles.btnTxtWrapper}>
-            <Text style={[styles.buttonText, {color: '#de4d41'}]}>
-              Sign In with Google
-            </Text>
+          <View style={styles.cameraIcon}>
+            <MaterialCommunityIcons
+              name="image-edit-outline"
+              size={20}
+              color="#6A0DAD"
+              onPress={selectImage}
+            />
           </View>
-        </TouchableOpacity>
+        </View>
+
+        <View style={{padding: 0, marginVertical: 15}}>
+          <TextInputComponent
+            value={name}
+            setValue={setName}
+            placeholder="Enter Name"
+            mode="outlined"
+            label="Name"
+            setError={setError}
+            name={'person'}
+          />
+        </View>
+        <View style={{padding: 0, marginVertical: 10}}>
+          <TextInputComponent
+            value={email}
+            setValue={setEmail}
+            placeholder="Enter Email"
+            mode="outlined"
+            label="Email"
+            setError={setError}
+            name={'email'}
+          />
+        </View>
+        <View style={{padding: 0}}>
+          <TextInputComponent
+            value={Password}
+            setValue={setPassword}
+            placeholder="Enter Password"
+            mode="outlined"
+            label="Password"
+            secureTextEntry={true}
+            setError={setError}
+            name={'visibility'}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            IsPassword={true}
+          />
+        </View>
+
+        <View style={{padding: 10}}>
+          {uploading && (
+            <Progress.Bar color="#6A0DAD" progress={transferred} width={390} />
+          )}
+          <Text style={styles.errorMessage}>{error}</Text>
+          <ButtonComponent
+            disabled={
+              uploading ||
+              name === '' ||
+              email === '' ||
+              Password === '' ||
+              image === '' ||
+              image === undefined
+            }
+            buttonTitle="Register"
+            btnType="sign-in"
+            color="#f5e7ea"
+            backgroundColor={
+              uploading ||
+              name === '' ||
+              email === '' ||
+              Password === '' ||
+              image === '' ||
+              image === undefined
+                ? 'grey'
+                : '#6A0DAD'
+            }
+            onPress={createNewAccount}
+          />
+        </View>
+        <View style={styles.GoogleSignInView}>
+          <Divider style={styles.DividerStyle} />
+          <Text style={styles.SignInText}>or sign in with</Text>
+          <Divider style={styles.DividerStyle} />
+        </View>
+
+        <View style={{padding: 10}}>
+          <ButtonComponent
+            buttonTitle="Sign In with Google"
+            btnType="google"
+            color="#de4d41"
+            backgroundColor="#f5e7ea"
+            onPress={onGoogleButtonPress}
+          />
+          <View style={styles.accountView}>
+            <Text style={styles.accountText}>Already have an account? </Text>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('Login');
+              }}>
+              <Text
+                style={{
+                  color: '#6A0DAD',
+                  fontFamily: StyleGuide.fontFamily.medium,
+                  fontSize: widthPercentageToDP('4%'),
+                }}>
+                Login
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  loginText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: StyleGuide.fontSize.medium,
+    textAlign: 'center',
+    alignItems: 'center',
+    color: StyleGuide.color.heading,
+  },
+  SafeAreaView: {
+    flex: 1,
+    backgroundColor: '#F5F5DC',
+  },
+  cameraIcon: {
+    borderRadius: 20,
+    borderColor: 'red',
+    width: 40,
+    height: 40,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: -10,
+  },
+  SignInText: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: StyleGuide.fontSize.small,
+    textAlign: 'center',
+    alignItems: 'center',
+    color: StyleGuide.color.paragraph,
+    paddingHorizontal: 6,
+  },
   buttonContainer: {
     marginTop: 10,
     width: '100%',
@@ -149,6 +310,45 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     fontFamily: 'Lato-Regular',
+  },
+  accountText: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: StyleGuide.fontSize.small,
+    color: StyleGuide.color.paragraph,
+  },
+  accountView: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingVertical: widthPercentageToDP('5%'),
+    flexDirection: 'row',
+  },
+  DividerStyle: {
+    flex: 1,
+    color: StyleGuide.color.light,
+    height: widthPercentageToDP('0.5%'),
+  },
+
+  GoogleSignInView: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    marginTop: widthPercentageToDP('12%'),
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: widthPercentageToDP('5%'),
+  },
+  cameraStyle: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorMessage: {
+    color: 'red',
+    fontSize: StyleGuide.fontSize.small,
+    fontFamily: StyleGuide.fontFamily.medium,
+  },
+  progressBarContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
