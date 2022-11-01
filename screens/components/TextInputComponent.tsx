@@ -14,6 +14,7 @@ const TextInputComponent = ({
     showPassword,
     name,
     setShowPassword,
+
     IsPassword,
     ...reset
 }) => {
@@ -26,7 +27,7 @@ const TextInputComponent = ({
 
                         value={value}
                         onChangeText={text => {
-                            setValue(text), setError('');
+                            setValue(text), setError('')
                         }}
                         type={showPassword ? 'text' : 'password'}
                         InputRightElement={

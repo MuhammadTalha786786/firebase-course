@@ -15,11 +15,16 @@ import TextInputComponent from './components/TextInputComponent';
 import useGoogleSignIn from './components/GoogleSignIn';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {StyleGuide} from '../Utils/StyleGuide';
-import {Divider, Avatar} from 'react-native-paper';
+import {Divider} from 'react-native-paper';
 import ImagePicker from 'react-native-image-crop-picker';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import storage from '@react-native-firebase/storage';
 import * as Progress from 'react-native-progress';
+import {Avatar} from 'native-base';
+import 'react-native-get-random-values';
+import {v4 as uuidv4} from 'uuid';
+import uuid from 'react-native-uuid';
+import firestore from '@react-native-firebase/firestore';
 
 const RegisterScreen = ({navigation}) => {
   const [name, setName] = useState('');
@@ -31,31 +36,11 @@ const RegisterScreen = ({navigation}) => {
   const [transferred, setTransferred] = useState(0);
   const [error, setError] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const [userProfieImage, setUserProfileImage] = useState('');
 
-  const uploadImage = async () => {
-    console.log(image, 'uri....');
-    const filename = image.substring(image.lastIndexOf('/') + 1);
-    const uploadUri =
-      Platform.OS === 'ios' ? image.replace('file://', '') : image;
-    setTransferred(0);
-    const task = storage().ref(filename).putFile(uploadUri);
-    // set progress state
-    task.on('state_changed', snapshot => {
-      setTransferred(
-        Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
-      );
-    });
-    try {
-      await task;
-    } catch (e) {
-      console.error(e);
-    }
-    Alert.alert('Your data has been uploaded');
-    setImage();
-    setUploading(false);
-  };
+  const uploadImage = async () => {};
 
-  const selectImage = () => {
+  const selectImage = async () => {
     ImagePicker.openPicker({
       width: 300,
       height: 400,
@@ -63,20 +48,51 @@ const RegisterScreen = ({navigation}) => {
     }).then(image => {
       setImage(image.path);
       console.log(image.path);
+      let fileName = `${uuidv4()}${image.path.substr(
+        image.path.lastIndexOf('.'),
+      )}`;
+      const ref = storage().ref(fileName);
+      ref.putFile(image.path).then(s => {
+        ref.getDownloadURL().then(x => {
+          console.log(x, 'x url');
+          setUserProfileImage(x);
+        });
+      });
     });
+
+    console.log(image, 'uri....');
+    // const filename = image.substring(image.lastIndexOf('/') + 1);
+    // const uploadUri =
+    //   Platform.OS === 'ios' ? image.replace('file://', '') : image;
+    // setTransferred(0);
+    // const task = storage().ref(filename).putFile(uploadUri);
+
+    // set progress state
+    // task.on('state_changed', snapshot => {
+    //   setUserProfileImage(filename);
+    //   setTransferred(
+    //     Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
+    //   );
+    // });
   };
 
   const writeUserData = user => {
-    database()
-      .ref('users/' + user.uid)
+    firestore()
+      .collection('users')
+      .doc(user.uid)
       .set(user)
-      .catch(error => {
-        console.log(error.message);
+      .then(() => {
+        console.log('user added!');
       });
+
+    Alert.alert('registered');
+    setImage('');
     setEmail('');
     setName('');
     setPassword('');
   };
+
+  console.log(userProfieImage, 'ksdfhdajs');
 
   const createNewAccount = async () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -99,12 +115,11 @@ const RegisterScreen = ({navigation}) => {
         console.log(userAuth, 'userAuth');
         console.log(userAuth.email);
         if (userAuth) {
-          setUploading(true);
           uploadImage();
         }
         var user = {
           name: name,
-          image: image,
+          image: userProfieImage,
           uid: userAuth.user._user.uid,
           email: userAuth.user._user.email,
         };
@@ -129,11 +144,13 @@ const RegisterScreen = ({navigation}) => {
 
         <View style={styles.cameraStyle}>
           <View>
-            <Avatar.Image
-              size={100}
+            <Avatar
+              bg="indigo.500"
+              alignSelf="center"
+              size="xl"
               source={{
                 uri:
-                  image === undefined
+                  image === undefined || image === ''
                     ? 'https://cdn.pixabay.com/photo/2013/07/13/12/07/avatar-159236_1280.png'
                     : image,
               }}
@@ -149,7 +166,7 @@ const RegisterScreen = ({navigation}) => {
           </View>
         </View>
 
-        <View style={{padding: 0, marginVertical: 15}}>
+        <View style={{padding: 0, marginVertical: 10, marginTop: 15}}>
           <TextInputComponent
             value={name}
             setValue={setName}
@@ -160,7 +177,7 @@ const RegisterScreen = ({navigation}) => {
             name={'person'}
           />
         </View>
-        <View style={{padding: 0, marginVertical: 10}}>
+        <View style={{padding: 0, marginVertical: 5}}>
           <TextInputComponent
             value={email}
             setValue={setEmail}
@@ -171,7 +188,7 @@ const RegisterScreen = ({navigation}) => {
             name={'email'}
           />
         </View>
-        <View style={{padding: 0}}>
+        <View style={{padding: 0, marginVertical: 5}}>
           <TextInputComponent
             value={Password}
             setValue={setPassword}
@@ -187,10 +204,7 @@ const RegisterScreen = ({navigation}) => {
           />
         </View>
 
-        <View style={{padding: 10}}>
-          {uploading && (
-            <Progress.Bar color="#6A0DAD" progress={transferred} width={390} />
-          )}
+        <View style={{padding: 10, marginVertical: 5}}>
           <Text style={styles.errorMessage}>{error}</Text>
           <ButtonComponent
             disabled={
@@ -260,6 +274,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignItems: 'center',
     color: StyleGuide.color.heading,
+    marginBottom: 15,
   },
   SafeAreaView: {
     flex: 1,
@@ -338,6 +353,7 @@ const styles = StyleSheet.create({
     marginBottom: widthPercentageToDP('5%'),
   },
   cameraStyle: {
+    marginTop: -10,
     justifyContent: 'center',
     alignItems: 'center',
   },

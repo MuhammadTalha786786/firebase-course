@@ -1,6 +1,7 @@
 import React from 'react'
 import Home from '../screens/Home';
 import Profile from '../screens/Profile';
+import Post from '../screens/Post/Post'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 const Tab = createBottomTabNavigator();
@@ -26,6 +27,13 @@ const TabNavigation = () => {
                             <AntDesign name='profile' size={20} color='black' />
                         );
                     }
+                    else if (route.name === 'Post') {
+                        return focused ? (
+                            <AntDesign name='plus' size={20} color='#8b6ed4' />
+                        ) : (
+                            <AntDesign name='plus' size={20} color='black' />
+                        );
+                    }
                 },
             })}
             // tabBarStyle={{paddingVertical: 5,borderTopLeftRadius:15,borderTopRightRadius:15,backgroundColor:'white',position:'absolute',height:50}}
@@ -49,6 +57,8 @@ const TabNavigation = () => {
             }}>
             <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
             <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+            <Tab.Screen name="Post" component={Post} options={{ headerShown: false }} />
+
 
 
 

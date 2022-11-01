@@ -1,4 +1,4 @@
-import {View, Text, Image, StyleSheet, Button, Alert} from 'react-native';
+import {View, Text, Image, StyleSheet, Alert, FlatList} from 'react-native';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSignOut} from '../Redux/Auth/AuthReducer';
@@ -12,80 +12,73 @@ import TextInputComponent from './components/TextInputComponent';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleGuide} from '../Utils/StyleGuide';
 import FeatherIcon from 'react-native-vector-icons/Feather';
+import {Box, TextArea} from 'native-base';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {Avatar} from 'native-base';
+import {Button, Card, Title, Paragraph} from 'react-native-paper';
+import CardUI from './Post/CardUI';
+import firestore from '@react-native-firebase/firestore';
 
-const Home = () => {
-
+const Home = ({navigation}) => {
   const [post, setPost] = useState();
   const dispatch = useDispatch();
   const authState = useSelector((state: AppState) => state);
   const [image, setImage] = useState();
+  const [data, setData] = useState();
+  const [getData, setGetData] = useState(false);
+  const [isPostLiked, setIsPostLiked] = useState(false);
 
   const logout = () => {
     dispatch(setSignOut());
   };
 
-  function getUserData(uid) {
-    const LoginUser = {
-      isLoggedIn: true,
-    };
-    database()
-      .ref('users/' + uid)
-      .once('value', snap => {
-        console.log(snap.val().name, 'snaps home');
+  function getPostData() {
+    setGetData(true);
+    firestore()
+      .collection('posts')
+      .get()
+      .then(snapshot => {
+        setGetData(false);
+        let postData = [];
+        snapshot.forEach(post => {
+          const data = post.data();
+          postData.unshift(data);
+        });
+        setData(postData);
       });
   }
   useEffect(() => {
-    auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log(user, 'login user');
-        getUserData(user.uid);
-      }
-    });
-  }, []);
+    getPostData();
+  }, [navigation, isPostLiked]);
 
-  console.log(authState.userAuthReducer, 'auth reducer');
+  let userProfileName = authState.userAuthReducer.userName;
+  let userProfileImaege = authState.userAuthReducer.photoURL;
+
   return (
-    <SafeAreaView style={styles.SafeAreaView}>
-      <View>
-        <Text style={styles.postHeading}>Create the Post...</Text>
-        <View style={{padding: 10}}>
-          <TextInputComponent
-            value={post}
-            setValue={setPost}
-            placeholder="Enter Text for Post"
-            mode="outlined"
-            label="Post"
-            multiline
-            numberOfLines={4}
-          />
-        </View>
-
-        <Text style={{color: 'black', fontSize: 20}}>
-          {authState.userAuthReducer.userName}
-        </Text>
-
-        <Image
-          style={styles.logo}
-          source={{
-            uri: authState.userAuthReducer.photoURL,
-          }}
+    <>
+      <SafeAreaView style={styles.SafeAreaView}>
+        <FlatList
+          data={data}
+          renderItem={({item}) => (
+            <CardUI
+              userName={item.userName}
+              userImage={{uri: item.userImage}}
+              postImage={{uri: item.postImage}}
+              title={item.postTitle}
+              subtitle={item.postDetail}
+              postID={item.postID}
+              arrayLikes={item.likes}
+              post={item}
+              setIsPostLiked={setIsPostLiked}
+              isPostLiked={isPostLiked}
+            />
+          )}
+          onRefresh={getPostData}
+          refreshing={getData}
+          keyExtractor={item => item.uid}
         />
-
-        <Button
-          onPress={()=>{}}
-          title="Sign Out"
-          color="#841584"
-          accessibilityLabel="Learn more about this purple button"
-        />
-
-        <Button
-          onPress={logout}
-          title="Sign Out"
-          color="#841584"
-          accessibilityLabel="Learn more about this purple button"
-        />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -95,7 +88,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     fontFamily: StyleGuide.fontFamily.medium,
     color: StyleGuide.color.heading,
-    fontSize: StyleGuide.fontSize.medium,
+    fontSize: widthPercentageToDP('3.5%'),
   },
   SafeAreaView: {
     flex: 1,
@@ -116,6 +109,11 @@ const styles = StyleSheet.create({
   logo: {
     width: 66,
     height: 58,
+  },
+  mainView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
   },
 });
 export default Home;

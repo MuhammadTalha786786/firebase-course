@@ -18,10 +18,12 @@ import {Divider} from 'react-native-paper';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import TextInputComponent from './components/TextInputComponent';
 import useGoogleSignIn from './components/GoogleSignIn';
+import ForgotModal from './components/ForgotModal';
+import firestore from '@react-native-firebase/firestore';
 
 const LoginScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('mtalha25800@gmail.com');
+  const [email, setEmail] = useState('user2@gmail.com');
   const [Password, setPassword] = useState('123456');
   const [userLoginName, setUserLoginName] = useState();
   const [confirm, setConfirm] = useState(null);
@@ -30,6 +32,9 @@ const LoginScreen = ({navigation}) => {
   const {onGoogleButtonPress} = useGoogleSignIn();
   const [photoUrl, setPhotoUrl] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState();
+  const [forgotEmailError, setForgotEmailError] = useState();
 
   async function signInWithPhoneNumber(phoneNumber) {
     const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
@@ -54,11 +59,15 @@ const LoginScreen = ({navigation}) => {
   };
   async function getUserData(uid) {
     console.log(uid, 'uid');
-    database()
-      .ref('users/' + uid)
-      .once('value', snap => {
-        LoginUser.userName = snap.val().name;
-        LoginUser.photoURL = snap.val().image;
+
+    firestore()
+      .collection('users')
+      .doc(uid)
+      .get()
+      .then(snapshot => {
+        console.log(snapshot.data().image, 'dasdad');
+        LoginUser.userName = snapshot.data().name;
+        LoginUser.photoURL = snapshot.data().image;
         dispatch(setSignIn(LoginUser));
       });
   }
@@ -91,15 +100,24 @@ const LoginScreen = ({navigation}) => {
   };
 
   const forgotPassword = () => {
-    auth()
-      .sendPasswordResetEmail(email)
-      .then(function (user) {
-        console.log(user, 'user');
-        alert('Please check your email...');
-      })
-      .catch(function (e) {
-        console.log(e);
-      });
+    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+    if (forgotEmail === '') {
+      setForgotEmailError('Please Enter the Email');
+    } else if (reg.test(forgotEmail) === false) {
+      setForgotEmailError('Please Enter the Valid Email');
+    } else {
+      auth()
+        .sendPasswordResetEmail(forgotEmail)
+        .then(function (user) {
+          console.log(user, 'user');
+          alert('Please check your email...');
+          setForgotEmailError('');
+          setForgotEmail('');
+        })
+        .catch(function (e) {
+          console.log(e);
+        });
+    }
   };
 
   async function confirmCode() {
@@ -164,7 +182,9 @@ const LoginScreen = ({navigation}) => {
                 backgroundColor="#6A0DAD"
                 onPress={login}
               />
-              <Text style={styles.forgotPassword} onPress={forgotPassword}>
+              <Text
+                style={styles.forgotPassword}
+                onPress={() => setModalVisible(true)}>
                 Forgot Password?
               </Text>
             </View>
@@ -174,6 +194,17 @@ const LoginScreen = ({navigation}) => {
               <Text style={styles.SignInText}>or sign in with</Text>
               <Divider style={styles.DividerStyle} />
             </View>
+
+            <ForgotModal
+              modalVisible={modalVisible}
+              setModalVisible={setModalVisible}
+              forgotEmail={forgotEmail}
+              setForgotEmail={setForgotEmail}
+              forgotPassword={forgotPassword}
+              forgotEmailError={forgotEmailError}
+              setForgotEmailError={setForgotEmailError}
+              setError={setError}
+            />
 
             {/* <View style={{justifyContent: 'center', alignItems: 'center'}}>
               <TouchableOpacity

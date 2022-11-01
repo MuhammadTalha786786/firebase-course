@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { windowHeight } from '../../Utils/Dimesnions';
 import { StyleGuide } from '../../Utils/StyleGuide';
@@ -9,7 +9,10 @@ const ButtonComponent = ({
     color,
     backgroundColor,
     press,
+    uploading,
+    setUploading,
     ...rest
+
 }) => {
     let bgColor = backgroundColor;
 
@@ -26,7 +29,8 @@ const ButtonComponent = ({
                 />
             </View>
             <View style={styles.btnTxtWrapper}>
-                <Text style={[styles.buttonText, { color: color }]}>{buttonTitle}</Text>
+                {uploading ? <ActivityIndicator color='red' size={20} /> : <Text style={[styles.buttonText, { color: color }]}>{buttonTitle}</Text>}
+
             </View>
         </TouchableOpacity>
     );
