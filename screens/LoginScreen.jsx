@@ -57,9 +57,21 @@ const LoginScreen = ({navigation}) => {
   const LoginUser = {
     isLoggedIn: true,
   };
-  async function getUserData(uid) {
+  const getUserData = uid => {
     console.log(uid, 'uid');
 
+    firestore()
+      .collection('users')
+      .doc(uid)
+      .update({
+        isLogin: true,
+      })
+      .then(() => {
+        console.log('User updated!');
+      });
+  };
+
+  const updateLogin = uid => {
     firestore()
       .collection('users')
       .doc(uid)
@@ -68,9 +80,11 @@ const LoginScreen = ({navigation}) => {
         console.log(snapshot.data().image, 'dasdad');
         LoginUser.userName = snapshot.data().name;
         LoginUser.photoURL = snapshot.data().image;
+        LoginUser.isLoggedIn = snapshot.data().isLogin;
+
         dispatch(setSignIn(LoginUser));
       });
-  }
+  };
   console.log(photoUrl, 'photos....');
   const login = async () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -81,12 +95,13 @@ const LoginScreen = ({navigation}) => {
     } else if (Password === '') {
       setError('Please Enter the Password');
     } else {
-      const a = await auth()
+      auth()
         .signInWithEmailAndPassword(email, Password)
         .then(loggedInUser => {
           if (loggedInUser) {
             console.log(loggedInUser, 'user login here');
-            getUserData(loggedInUser.user._user.uid);
+            updateLogin(loggedInUser.user._user.uid);
+            // getUserData(loggedInUser.user._user.uid);
 
             LoginUser.email = loggedInUser.user._user.email;
             LoginUser.uid = loggedInUser.user._user.uid;
@@ -95,7 +110,6 @@ const LoginScreen = ({navigation}) => {
         .catch(eror => {
           console.warn('Login fail!!', eror.message);
         });
-      return a;
     }
   };
 

@@ -8,7 +8,8 @@ import Home from './screens/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import TabNavigation from './TabNavigation/TabNavigation';
-
+import Comment from './screens/Post/Comment';
+import Profile from './screens/Profile';
 const AppStack = createStackNavigator();
 
 const App = () => {
@@ -42,6 +43,16 @@ const App = () => {
               <AppStack.Screen
                 name="Main"
                 component={TabNavigation}
+                options={{headerShown: false}}
+              />
+              <AppStack.Screen
+                name="Comment"
+                component={Comment}
+                options={{headerShown: false}}
+              />
+              <AppStack.Screen
+                name="Profile"
+                component={Profile}
                 options={{headerShown: false}}
               />
             </>

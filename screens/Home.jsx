@@ -18,8 +18,11 @@ import {Avatar} from 'native-base';
 import {Button, Card, Title, Paragraph} from 'react-native-paper';
 import CardUI from './Post/CardUI';
 import firestore from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import {async} from '@firebase/util';
 
-const Home = ({navigation}) => {
+const Home = () => {
   const [post, setPost] = useState();
   const dispatch = useDispatch();
   const authState = useSelector((state: AppState) => state);
@@ -27,10 +30,8 @@ const Home = ({navigation}) => {
   const [data, setData] = useState();
   const [getData, setGetData] = useState(false);
   const [isPostLiked, setIsPostLiked] = useState(false);
-
-  const logout = () => {
-    dispatch(setSignOut());
-  };
+  const [loginState, setLoginState] = useState();
+  const navigation = useNavigation();
 
   function getPostData() {
     setGetData(true);
@@ -47,12 +48,49 @@ const Home = ({navigation}) => {
         setData(postData);
       });
   }
-  useEffect(() => {
-    getPostData();
-  }, [navigation, isPostLiked]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getPostData();
+    }, [isPostLiked, navigation]),
+  );
+
+  let uid = authState.userAuthReducer.uid;
+
+  const getDataofUserPost = async () => {
+    await firestore()
+      .collection('posts')
+      .where('userID', '==', uid)
+      .get()
+      .then(res => {
+        console.log(res, 'post data!');
+        res.forEach(documentSnapshot => {
+          documentSnapshot.ref.update({isLogin: true});
+        });
+      });
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getDataofUserPost();
+    }, [isPostLiked, navigation]),
+  );
+
+  // useEffect(() => {
+  //   firestore()
+  //     .collection('users')
+  //     .doc(uid)
+  //     .update({
+  //       isLogin: true,
+  //     })
+  //     .then(() => {
+  //       console.log('User updated!');
+  //     });
+  // }, []);
 
   let userProfileName = authState.userAuthReducer.userName;
   let userProfileImaege = authState.userAuthReducer.photoURL;
+  console.log(authState.userAuthReducer);
 
   return (
     <>
@@ -68,14 +106,21 @@ const Home = ({navigation}) => {
               subtitle={item.postDetail}
               postID={item.postID}
               arrayLikes={item.likes}
+              date={item.dateCreated}
               post={item}
+              comments={item.comments}
               setIsPostLiked={setIsPostLiked}
               isPostLiked={isPostLiked}
+              getPostData={getPostData}
+              postData={getPostData}
+              setGetData={getData}
+              PostedUser={item.userID}
+              loginState={item.isLogin}
             />
           )}
           onRefresh={getPostData}
           refreshing={getData}
-          keyExtractor={item => item.uid}
+          keyExtractor={item => item.postID}
         />
       </SafeAreaView>
     </>

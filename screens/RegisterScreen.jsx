@@ -122,6 +122,7 @@ const RegisterScreen = ({navigation}) => {
           image: userProfieImage,
           uid: userAuth.user._user.uid,
           email: userAuth.user._user.email,
+          isLogin: false,
         };
         writeUserData(user);
       } catch (error) {

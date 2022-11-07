@@ -20,12 +20,6 @@ const TabNavigation = () => {
                         ) : (
                             <AntDesign name='home' size={20} color='black' />
                         );
-                    } else if (route.name === 'Profile') {
-                        return focused ? (
-                            <AntDesign name='profile' size={20} color='#8b6ed4' />
-                        ) : (
-                            <AntDesign name='profile' size={20} color='black' />
-                        );
                     }
                     else if (route.name === 'Post') {
                         return focused ? (
@@ -56,7 +50,7 @@ const TabNavigation = () => {
                 },
             }}>
             <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
-            <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+
             <Tab.Screen name="Post" component={Post} options={{ headerShown: false }} />
 
 
