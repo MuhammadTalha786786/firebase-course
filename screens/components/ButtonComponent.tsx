@@ -29,7 +29,7 @@ const ButtonComponent = ({
                 />
             </View>
             <View style={styles.btnTxtWrapper}>
-                {uploading ? <ActivityIndicator color='red' size={20} /> : <Text style={[styles.buttonText, { color: color }]}>{buttonTitle}</Text>}
+                {uploading ? <ActivityIndicator color='white' size={20} /> : <Text style={[styles.buttonText, { color: color }]}>{buttonTitle}</Text>}
 
             </View>
         </TouchableOpacity>

@@ -17,7 +17,7 @@ const Profile = () => {
     const route = useRoute();
     const fetchID = route.params.id;
     const [userData, setUserData] = useState({});
-    console.log(fetchID)
+    console.log(fetchID, "user id ")
 
 
     useEffect(() => {

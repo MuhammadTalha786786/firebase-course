@@ -1,4 +1,12 @@
-import {View, Text, Image, StyleSheet, Alert, FlatList} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Alert,
+  FlatList,
+  TouchableHighlight,
+} from 'react-native';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSignOut} from '../Redux/Auth/AuthReducer';
@@ -24,7 +32,6 @@ import {async} from '@firebase/util';
 
 const Home = () => {
   const [post, setPost] = useState();
-  const dispatch = useDispatch();
   const authState = useSelector((state: AppState) => state);
   const [image, setImage] = useState();
   const [data, setData] = useState();
@@ -87,14 +94,43 @@ const Home = () => {
   //       console.log('User updated!');
   //     });
   // }, []);
-
+  console.log(data, 'data console');
   let userProfileName = authState.userAuthReducer.userName;
   let userProfileImaege = authState.userAuthReducer.photoURL;
-  console.log(authState.userAuthReducer);
+  let isLoggedIn = authState.userAuthReducer.isLoggedIn;
 
   return (
     <>
       <SafeAreaView style={styles.SafeAreaView}>
+        <View
+          style={{
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            backgroundColor: '#ffff',
+          }}>
+          <View>
+            <Avatar
+              style={{
+                marginVertical: 10,
+                marginHorizontal: 10,
+              }}
+              size="md"
+              source={require('./../images/logo.jpg')}></Avatar>
+          </View>
+          <View>
+            <TouchableHighlight activeOpacity={0.6} underlayColor="#DDDDDD">
+              <Avatar
+                style={{
+                  marginVertical: 10,
+                  marginHorizontal: 10,
+                }}
+                size="md"
+                source={{uri: userProfileImaege}}>
+                <Avatar.Badge bg={isLoggedIn ? 'green.500' : 'red.500'} />
+              </Avatar>
+            </TouchableHighlight>
+          </View>
+        </View>
         <FlatList
           data={data}
           renderItem={({item}) => (

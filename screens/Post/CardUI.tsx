@@ -25,6 +25,8 @@ import { widthPercentageToDP } from 'react-native-responsive-screen';
 import moment from 'moment';
 import { background } from 'native-base/lib/typescript/theme/styled-system';
 import uuid from 'react-native-uuid';
+import { Popover } from 'native-base';
+
 
 const CardUI = ({
     userName,
@@ -167,7 +169,6 @@ const CardUI = ({
     };
     let userProfileImaege = authState.userAuthReducer.photoURL;
     let isLogin = authState.userAuthReducer.isLoggedIn;
-    console.log(loginState, "login state true and false")
 
     return (
         <View>

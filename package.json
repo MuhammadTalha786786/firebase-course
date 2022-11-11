@@ -12,6 +12,7 @@
   "dependencies": {
     "@firebase/app": "^0.7.33",
     "@react-native-async-storage/async-storage": "^1.17.10",
+    "@react-native-community/datetimepicker": "^6.5.4",
     "@react-native-firebase/app": "^15.6.0",
     "@react-native-firebase/auth": "^15.6.0",
     "@react-native-firebase/database": "^15.6.0",
@@ -32,8 +33,10 @@
     "react-native-get-random-values": "^1.8.0",
     "react-native-image-crop-picker": "^0.38.0",
     "react-native-image-picker": "^4.10.0",
+    "react-native-modal-datetime-picker": "^14.0.0",
     "react-native-onboarding-swiper": "^1.2.0",
     "react-native-paper": "5.0.0-rc.6",
+    "react-native-phone-number-input": "^2.1.0",
     "react-native-progress": "^5.0.0",
     "react-native-responsive-screen": "^1.4.2",
     "react-native-safe-area-context": "3.3.2",

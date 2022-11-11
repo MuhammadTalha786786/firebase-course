@@ -30,6 +30,8 @@ const App = () => {
     setData();
   }, []);
 
+  console.log(UserLogin);
+
   return (
     firstLaunch != null && (
       <NavigationContainer>

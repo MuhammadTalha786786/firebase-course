@@ -14,21 +14,17 @@ import { useEffect } from 'react';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import storage from '@react-native-firebase/storage';
-import database from '@react-native-firebase/database';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { Box, TextArea } from 'native-base';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import Entypo from 'react-native-vector-icons/Entypo';
-import TextInputComponent from '../components/TextInputComponent';
 import ButtonComponent from '../components/ButtonComponent';
-import * as Progress from 'react-native-progress';
 import { setSignOut } from '../../Redux/Auth/AuthReducer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import uuid from 'react-native-uuid';
 import firestore from '@react-native-firebase/firestore';
-import moment from 'moment';
 import { windowHeight, windowWidth } from '../../Utils/Dimesnions';
 
 const Post = ({ navigation }) => {
@@ -42,6 +38,7 @@ const Post = ({ navigation }) => {
   const [postImage, setPostImage] = useState('');
   const authState = useSelector((state: AppState) => state);
   const [loginState, setLoginState] = useState();
+  const [imageText, selectImageText] = useState('')
 
 
   const dispatch = useDispatch();
@@ -84,44 +81,12 @@ const Post = ({ navigation }) => {
         console.log('User updated!');
       });
   }
-  console.log(authState.userAuthReducer.uid);
 
-  // const uploadImage = async () => {
-  //     console.log(image, 'uri....');
-  //     const filename = image.substring(image.lastIndexOf('/') + 1);
-  //     const uploadUri =
-  //         Platform.OS === 'ios' ? image.replace('file://', '') : image;
 
-  //     setTransferred(0);
 
-  //     console.log('filenmae', filename)
-  //     console.log('upload uri', uploadUri)
+  const selectImage = () => {
+    selectImageText('Please Wait While your Image is Uploading')
 
-  //     const task = storage().ref(filename).putFile(uploadUri)
-  //     console.log(uploadUri.slice(70), "url")
-  //     // set progress state
-  //     task.on('state_changed', snapshot => {
-  //         setTransferred(
-  //             Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
-  //         );
-  //         setPostImage(filename)
-  //         // storage().ref().child(filename).getDownloadURL().then((url) => {
-  //         //     setPostImage(url)
-  //         //     console.log(url, "url new ")
-  //         // })
-  //     });
-  //     try {
-  //         await task;
-  //     } catch (e) {
-  //         console.error(e);
-  //     }
-  //     Alert.alert('Your data has been uploaded');
-  //     uploadPost();
-  //     setUploading(false);
-
-  // };
-
-  const selectImage = async () => {
     ImagePicker.openPicker({
       width: 300,
       height: 400,
@@ -136,13 +101,13 @@ const Post = ({ navigation }) => {
         ref.getDownloadURL().then(x => {
           console.log(x, 'x url');
           setPostImage(x);
+
         });
       });
-      // console.log(image.path);
     });
   };
 
-
+  console.log(postImage === '', "postImage")
 
   useEffect(() => {
     auth().onAuthStateChanged(function (user) {
@@ -165,16 +130,32 @@ const Post = ({ navigation }) => {
 
 
 
+  const postUploaded = (id, postData) => {
+    firestore()
+      .collection('posts')
+      .doc(id)
+      .set(postData)
+      .then(() => {
+        console.log('post added!');
+        Alert.alert('uploaded');
+        setUploading(false);
+        setImage(''); // uploadImage()
+        setPostImage('');
+        setTitle('');
+        setTextAreaValue('');
+      }).catch((error) => {
+        console.log(error)
+      })
+  }
+
   const uploadPost = () => {
-    console.log("new ...")
-    if (postImage === '' || postImage === undefined) {
+    if (postImage === '') {
       setImageError('please Select an image');
     } else if (textAreaValue === '') {
       setError('please Add a detail');
     } else {
       setUploading(true);
       let id = uuid.v4();
-      const date = new Date();
       const postData = {
         userID: authState.userAuthReducer.uid,
         userImage: authState.userAuthReducer.photoURL,
@@ -187,30 +168,12 @@ const Post = ({ navigation }) => {
         comments: [],
         isLogin: loginState
       };
-      var newPostKey = database().ref('userPosts').push().key;
-
-      console.log(newPostKey);
-      firestore()
-        .collection('posts')
-        .doc(id)
-        .set(postData)
-        .then(() => {
-          console.log('post added!');
-          Alert.alert('uploaded');
-          setUploading(false);
-
-          setImage(''); // uploadImage()
-          setPostImage('');
-          setTitle('');
-          setTextAreaValue('');
-        }).catch(() => {
-          console.log("dsfksdf")
-        })
+      postUploaded(id, postData)
     }
   };
 
-  let disabled = image === '' || image === undefined || textAreaValue === '';
-  console.log(disabled);
+  let disabled = postImage === '' || textAreaValue === '';
+  console.log(disabled, "disabled")
   return (
     <>
       <StatusBar
@@ -245,7 +208,7 @@ const Post = ({ navigation }) => {
           <View style={{ padding: 10 }}>
             <TextArea
               style={{
-                fontFamily: 'Poppins-Regular',
+                fontFamily: StyleGuide.fontFamily.regular,
                 fontSize: widthPercentageToDP('3.7'),
               }}
               h={40}
@@ -261,6 +224,8 @@ const Post = ({ navigation }) => {
           <View style={{ padding: 10 }}>
             {image === '' && <Text style={styles.errorText}>{imageError}</Text>}
             <Text style={styles.errorText}>{error}</Text>
+            {postImage === '' && <Text style={styles.errorText}>{imageText}</Text>}
+
             <ButtonComponent
               buttonTitle="Post"
               btnType="check-square"

@@ -57,19 +57,6 @@ const LoginScreen = ({navigation}) => {
   const LoginUser = {
     isLoggedIn: true,
   };
-  const getUserData = uid => {
-    console.log(uid, 'uid');
-
-    firestore()
-      .collection('users')
-      .doc(uid)
-      .update({
-        isLogin: true,
-      })
-      .then(() => {
-        console.log('User updated!');
-      });
-  };
 
   const updateLogin = uid => {
     firestore()
@@ -80,8 +67,6 @@ const LoginScreen = ({navigation}) => {
         console.log(snapshot.data().image, 'dasdad');
         LoginUser.userName = snapshot.data().name;
         LoginUser.photoURL = snapshot.data().image;
-        LoginUser.isLoggedIn = snapshot.data().isLogin;
-
         dispatch(setSignIn(LoginUser));
       });
   };
