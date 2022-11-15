@@ -261,8 +261,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-auth'
 
+
     
     implementation project(':react-native-vector-icons')
+    implementation project(':react-native-push-notification')
+
     implementation 'com.google.android.gms:play-services-safetynet:18.0.1'
 
 

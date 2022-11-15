@@ -5,9 +5,10 @@ import {
     StyleSheet,
     FlatList,
     Alert,
+
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { TextInput } from 'react-native-paper';
 import ButtonComponent from '../components/ButtonComponent';
@@ -18,6 +19,7 @@ import moment from 'moment';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+
 const Comment = () => {
     const [comments, setComments] = useState([])
     const [comment, setComment] = useState('');
@@ -25,15 +27,29 @@ const Comment = () => {
     const [isFetchingComments, setIsFetchingComments] = useState(false);
     const authState = useSelector((state: AppState) => state);
     const route = useRoute();
+    const navigation = useNavigation()
     let id = authState.userAuthReducer.uid;
     // let comments = route.params.comments;
     let refreshData = route.params.postData;
     let isrefresh = route.params.setGetData;
     let postId = route.params.postID;
     console.log(postId, "post id is here");
+    let mode = route.params?.mode;
 
-    console.log(refreshData, 'comments');
+
+    console.log(mode, 'comments');
     useEffect(() => { getComments() }, [])
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTintColor: StyleGuide.color.light,
+            headerStyle: { backgroundColor: StyleGuide.color.primary },
+            headerTitleStyle: {
+                fontWeight: 'bold',
+                fontFamily: StyleGuide.fontFamily.medium
+            },
+        });
+    }, [navigation]);
 
 
     const getComments = () => {
@@ -96,17 +112,17 @@ const Comment = () => {
 
     console.log(comments, 'length');
     return (
-        <SafeAreaView style={styles.SafeAreaView}>
+        <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
             <View style={{ flex: 1 }}>
-                <View style={styles.mainView}>
+                {/* <View style={styles.mainView}>
                     <Text style={styles.mainViewContent}>Comments</Text>
-                </View>
+                </View> */}
 
                 <View style={{ width: '100%' }}>
                     {comments.length === 0 ? (
                         <Text
                             style={{
-                                color: 'black',
+                                color: mode ? 'white' : 'black',
                                 textAlign: 'center',
                                 marginVertical: 15,
                                 fontFamily: StyleGuide.fontFamily.regular,
@@ -188,7 +204,7 @@ const Comment = () => {
 const styles = StyleSheet.create({
     SafeAreaView: {
         flex: 1,
-        // backgroundColor: '#F5F5DC',
+
     },
     mainView: {
         width: '100%',

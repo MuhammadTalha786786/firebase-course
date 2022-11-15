@@ -10,6 +10,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import TabNavigation from './TabNavigation/TabNavigation';
 import Comment from './screens/Post/Comment';
 import Profile from './screens/Profile';
+import messaging from '@react-native-firebase/messaging';
+
 const AppStack = createStackNavigator();
 
 const App = () => {
@@ -30,16 +32,43 @@ const App = () => {
     setData();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    // Assume a message-notification contains a "type" property in the data payload of the screen to open
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+        }
+      });
+  }, []);
+
   console.log(UserLogin);
 
   return (
     firstLaunch != null && (
       <NavigationContainer>
-        <AppStack.Navigator
-          header="none"
-          screenOptions={{
-            headerShown: false,
-          }}>
+        <AppStack.Navigator header="none">
           {UserLogin ? (
             <>
               <AppStack.Screen
@@ -47,11 +76,8 @@ const App = () => {
                 component={TabNavigation}
                 options={{headerShown: false}}
               />
-              <AppStack.Screen
-                name="Comment"
-                component={Comment}
-                options={{headerShown: false}}
-              />
+
+              <AppStack.Screen name="Comment" component={Comment} />
               <AppStack.Screen
                 name="Profile"
                 component={Profile}

@@ -6,7 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {useDispatch} from 'react-redux';
@@ -20,6 +20,7 @@ import TextInputComponent from './components/TextInputComponent';
 import useGoogleSignIn from './components/GoogleSignIn';
 import ForgotModal from './components/ForgotModal';
 import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
 
 const LoginScreen = ({navigation}) => {
   const dispatch = useDispatch();
@@ -119,13 +120,62 @@ const LoginScreen = ({navigation}) => {
     }
   };
 
-  async function confirmCode() {
-    try {
-      await confirm.confirm(code);
-    } catch (error) {
-      console.log('Invalid code.');
+  // async function confirmCode() {
+  //   try {
+  //     await confirm.confirm(code);
+  //   } catch (error) {
+  //     console.log('Invalid code.');
+  //   }
+  // }
+
+  //push notification using firebase cloud messaging
+
+  useEffect(() => {
+    requestUserPermission();
+  }, []);
+
+  useEffect(() => {
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {});
+  }, []);
+
+  const checkToken = async () => {
+    await messaging().registerDeviceForRemoteMessages();
+    const token = await messaging().getToken();
+    console.log(token, 'fcm token for android device');
+  };
+
+  async function requestUserPermission() {
+    const authorizationStatus = await messaging().requestPermission();
+    if (authorizationStatus) {
+      console.log('Permission status:', authorizationStatus);
+      checkToken();
     }
   }
+
+  useEffect(() => {
+    // Assume a message-notification contains a "type" property in the data payload of the screen to open
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+        }
+      });
+  }, []);
 
   console.log(photoUrl);
   return (
@@ -285,7 +335,6 @@ const LoginScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   SafeAreaView: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
   },
   loginText: {
     fontFamily: StyleGuide.fontFamily.medium,

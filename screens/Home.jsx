@@ -6,6 +6,7 @@ import {
   Alert,
   FlatList,
   TouchableHighlight,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -98,15 +99,20 @@ const Home = () => {
   let userProfileName = authState.userAuthReducer.userName;
   let userProfileImaege = authState.userAuthReducer.photoURL;
   let isLoggedIn = authState.userAuthReducer.isLoggedIn;
+  const mode = authState.darkModeReducer.mode;
 
   return (
     <>
-      <SafeAreaView style={styles.SafeAreaView}>
+      <SafeAreaView
+        style={[
+          styles.SafeAreaView,
+          {backgroundColor: mode ? 'black' : 'white'},
+        ]}>
         <View
           style={{
             justifyContent: 'space-between',
             flexDirection: 'row',
-            backgroundColor: '#ffff',
+            backgroundColor: mode ? 'black' : 'white',
           }}>
           <View>
             <Avatar
@@ -115,7 +121,7 @@ const Home = () => {
                 marginHorizontal: 10,
               }}
               size="md"
-              source={require('./../images/logo.jpg')}></Avatar>
+              source={require('./../images/logo.png')}></Avatar>
           </View>
           <View>
             <TouchableHighlight activeOpacity={0.6} underlayColor="#DDDDDD">
@@ -131,10 +137,12 @@ const Home = () => {
             </TouchableHighlight>
           </View>
         </View>
+
         <FlatList
           data={data}
           renderItem={({item}) => (
             <CardUI
+              mode={mode}
               userName={item.userName}
               userImage={{uri: item.userImage}}
               postImage={{uri: item.postImage}}
@@ -158,6 +166,19 @@ const Home = () => {
           refreshing={getData}
           keyExtractor={item => item.postID}
         />
+        <View style={styles.MainContainer}>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => navigation.navigate('Post')}
+            style={styles.TouchableOpacityStyle}>
+            <Image
+              source={{
+                uri: 'https://reactnativecode.com/wp-content/uploads/2017/11/Floating_Button.png',
+              }}
+              style={styles.FloatingButtonStyle}
+            />
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </>
   );
@@ -173,7 +194,6 @@ const styles = StyleSheet.create({
   },
   SafeAreaView: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
   },
   logo: {
     height: 50,
@@ -195,6 +215,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 10,
+  },
+  MainContainer: {
+    flex: 1,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  TouchableOpacityStyle: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 30,
+    bottom: 30,
+  },
+
+  FloatingButtonStyle: {
+    resizeMode: 'contain',
+    width: 50,
+    height: 50,
   },
 });
 export default Home;

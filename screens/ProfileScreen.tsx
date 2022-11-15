@@ -28,13 +28,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import ImagePicker from 'react-native-image-crop-picker';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
-
+import { setSignIn } from '../Redux/Auth/AuthReducer'
 const ProfileScreen = () => {
-    const authState = useSelector((state: AppState) => state);
+    const authState = useSelector((state: AppState) => state.userAuthReducer);
 
-    let userID = authState.userAuthReducer.uid;
-    let isLoggedIn = authState.userAuthReducer.isLoggedIn;
-    let userProfileImage = authState.userAuthReducer.photoURL;
+    let userID = authState.uid;
+    let isLoggedIn = authState.isLoggedIn;
+    let userProfileImage = authState.photoURL;
+
 
 
     console.log(userID, "userID")
@@ -42,7 +43,7 @@ const ProfileScreen = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState(new Date());
     const [open, setOpen] = React.useState(false);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -54,18 +55,26 @@ const ProfileScreen = () => {
     const [verified, setVerified] = useState(false);
     const [image, setImage] = useState('');
     const [updateImage, setUpdateImage] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const [newDate, setNewDate] = useState<Date>(new Date())
     const dispatch = useDispatch()
 
     const updateProfile = () => {
         if (name === '') {
             Alert.alert('Please Enter Your name');
-        } else if (phoneNumber === '') {
-            Alert.alert('Please Enter Your name');
-        } else if (dateOfBirth === '') {
-            Alert.alert('Please Enter Your name');
-        } else if (verified === false) {
+        } else if (phoneNumber === '' || phoneNumber === undefined) {
+            Alert.alert('Please Enter Your phone number..');
+        }
+
+
+        // else if (dateOfBirth === '') {
+        //     Alert.alert('Please Enter Your name');
+        // }
+
+        else if (verified === false) {
             Alert.alert('Your Number has not been  Verified');
-        } else {
+        }
+        else {
             firestore()
                 .collection('users')
                 .doc(userID)
@@ -77,13 +86,19 @@ const ProfileScreen = () => {
                     numberVerified: true
                 })
                 .then(() => {
-
+                    Alert.alert("Your Data has been updated...")
                     console.log('User data has been updated!');
+
                 });
+            dispatch(setSignIn({ ...authState, photoURL: image === '' ? userProfileImage : updateImage }));
+
         }
     };
 
+
+
     const selectImage = async () => {
+        setUploading(true);
         ImagePicker.openPicker({
             width: 300,
             height: 400,
@@ -99,9 +114,13 @@ const ProfileScreen = () => {
                 ref.getDownloadURL().then(x => {
                     console.log(x, 'x url');
                     setUpdateImage(x);
+                    setUploading(false)
                 });
             });
-        });
+        }).catch(error => {
+            console.log(error)
+            setUploading(false)
+        })
     };
 
     console.log(ishow, 'sjs');
@@ -111,6 +130,7 @@ const ProfileScreen = () => {
         } else {
             const confirmation = await auth().verifyPhoneNumber(phoneNumber);
             setConfirm(confirmation);
+            setVerified(true)
             setShow(true);
         }
     };
@@ -128,7 +148,6 @@ const ProfileScreen = () => {
             console.log(credential, 'credential');
             Alert.alert('Your Number Has Been Verified...');
             setShow(false);
-            setVerified(true);
         } catch (error) {
             console.log(error);
             if (error.code == 'auth/invalid-verification-code') {
@@ -139,6 +158,8 @@ const ProfileScreen = () => {
         }
     };
 
+    console.log(uploading, "uploading")
+
     useEffect(() => {
         firestore()
             .collection('users')
@@ -148,14 +169,24 @@ const ProfileScreen = () => {
                 console.log(snapshot.data());
                 let data = snapshot.data();
                 console.log(data, dateOfBirth)
-                setName(data.name);
-                setEmail(data.email);
-                setPhoneNumber(data.phoneNumber)
-                setDateOfBirth(moment(data.dateOfBirth).format('LL'))
+                setName(data?.name);
+                setEmail(data?.email);
+                if (data?.phoneNumber !== undefined) {
+                    setPhoneNumber(data?.phoneNumber)
+                    setDateOfBirth(data?.dateOfBirth.toDate())
+                    setNewDate(data?.dateOfBirth.toDate())
+                    setVerified(data?.numberVerified)
+                }
+
             });
     }, []);
 
-    console.log(phoneNumber);
+
+
+    console.log(newDate, "new date")
+
+
+    console.log(phoneNumber, name, "phone number");
 
     return (
         <SafeAreaView style={styles.SafeAreaView}>
@@ -302,12 +333,14 @@ const ProfileScreen = () => {
                             )}
 
                             <View style={{ padding: 10 }}>
+                                {uploading && (<Text style={{ color: 'red', fontSize: 10 }}>Please Wait While Your Image has been upload.... </Text>)}
                                 <ButtonComponent
                                     buttonTitle="Update"
                                     btnType="upload"
-                                    color="#702963"
-                                    backgroundColor="#f5e7ea"
+                                    color={'#ffff'}
+                                    backgroundColor={uploading ? 'grey' : "#702963"}
                                     onPress={updateProfile}
+                                    disabled={uploading}
                                 />
                             </View>
                         </View>

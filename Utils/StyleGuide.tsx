@@ -1,6 +1,8 @@
 import { widthPercentageToDP } from "react-native-responsive-screen"
 import { Platform } from 'react-native'
+
 export const StyleGuide = {
+
     fontFamily: {
         regular: 'Poppins-Regular',
         medium: 'Poppins-Medium',
@@ -14,10 +16,11 @@ export const StyleGuide = {
         small: widthPercentageToDP('3.5%')
     },
     color: {
-        primary: '#60C35B',
-        paragraph: "#8e8e93",
-        heading: "#272d4e",
-        light: '#f6f6f6'
+        primary: '#3B55D9',
+        paragraph: "#FEBEBE",
+        heading: "#FFCE35",
+        light: '#f6f6f6',
+        dark: '#111'
     },
     bottomNavigator: {
         focused: 'Poppins-Medium',
@@ -28,6 +31,7 @@ export const StyleGuide = {
         bold: 'Poppins-Medium',
         fontSize: 16,
     },
+
 
 
 }

@@ -279,7 +279,6 @@ const styles = StyleSheet.create({
   },
   SafeAreaView: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
   },
   cameraIcon: {
     borderRadius: 20,

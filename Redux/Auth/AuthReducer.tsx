@@ -8,6 +8,7 @@ const AuthSlice = createSlice({
         userName: null,
         uid: null,
         photoURL: null,
+        mode: false
 
     },
     reducers: {
@@ -28,11 +29,14 @@ const AuthSlice = createSlice({
             state.photoURL = null;
 
 
+        },
+        setDarkMode: (state, action) => {
+            state.mode = action.payload.mode
         }
     }
 })
 
-export const { setSignIn, setSignOut } = AuthSlice.actions;
+export const { setSignIn, setSignOut, setDarkMode } = AuthSlice.actions;
 
 export const selectIsLoggedIn = (state) => state.userAuth.isLoggedIn;
 export const selectEmail = (state) => state.userAuth.email;

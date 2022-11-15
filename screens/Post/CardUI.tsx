@@ -29,6 +29,7 @@ import { Popover } from 'native-base';
 
 
 const CardUI = ({
+    mode,
     userName,
     userImage,
     postImage,
@@ -173,7 +174,7 @@ const CardUI = ({
     return (
         <View>
             <View style={{ padding: 10 }}>
-                <Card style={{ backgroundColor: '#fff' }} mode="elevated">
+                <Card style={{ backgroundColor: mode ? "black" : '#fff' }} mode="contained">
                     <View
                         style={{
                             justifyContent: 'space-between',
@@ -198,7 +199,7 @@ const CardUI = ({
                             </TouchableHighlight>
                             <Text
                                 style={{
-                                    color: 'black',
+                                    color: mode ? '#ffff' : 'black',
                                     marginVertical: 20,
                                     marginHorizontal: 5,
                                     fontFamily: StyleGuide.fontFamily.medium,
@@ -211,7 +212,7 @@ const CardUI = ({
                             {console.log(date)}
                             <Text
                                 style={{
-                                    color: 'black',
+                                    color: mode ? '#ffff' : 'black',
                                     marginVertical: 20,
                                     fontSize: widthPercentageToDP('3%'),
                                     fontFamily: StyleGuide.fontFamily.regular,
@@ -228,7 +229,7 @@ const CardUI = ({
                             <AntDesign
                                 style={{ marginHorizontal: 10, marginVertical: 15 }}
                                 name={likeStatus(arrayLikes) ? 'heart' : 'hearto'}
-                                color={likeStatus(arrayLikes) ? 'red' : 'black'}
+                                color={likeStatus(arrayLikes) ? 'red' : mode ? '#ffff' : 'black'}
                                 size={20}
                                 onPress={() => {
                                     addPostLiked(arrayLikes);
@@ -240,7 +241,7 @@ const CardUI = ({
                                         style={{
                                             marginVertical: 15,
                                             marginHorizontal: 5,
-                                            color: 'black',
+                                            color: mode ? '#ffff' : 'black',
                                             fontSize: widthPercentageToDP('3.5%'),
                                             fontFamily: StyleGuide.fontFamily.medium,
                                         }}>{`${arrayLikes.length} likes`}</Text>
@@ -250,7 +251,7 @@ const CardUI = ({
                             <FontAwesome5
                                 style={{ marginHorizontal: 10, marginVertical: 15 }}
                                 name={'comment'}
-                                color={'black'}
+                                color={mode ? "#ffff" : 'black'}
                                 size={20}
                                 onPress={() => {
                                     navigation.navigate('Comment', {
@@ -258,6 +259,7 @@ const CardUI = ({
                                         comments: comments,
                                         setGetData: setGetData,
                                         postID: postID,
+                                        mode: mode
                                     });
                                 }}
                             />
@@ -265,7 +267,7 @@ const CardUI = ({
                                 style={{
                                     marginVertical: 15,
                                     marginHorizontal: 5,
-                                    color: 'black',
+                                    color: mode ? '#ffff' : 'black',
                                     fontSize: widthPercentageToDP('3.5%'),
                                     fontFamily: StyleGuide.fontFamily.medium,
                                 }}>
@@ -290,7 +292,6 @@ const CardUI = ({
                     <View
                         style={{
                             flexDirection: 'row',
-
                             height: 40,
                         }}>
                         <Text
@@ -298,7 +299,7 @@ const CardUI = ({
                                 marginVertical: 0,
                                 marginHorizontal: 10,
 
-                                color: 'black',
+                                color: mode ? 'white' : 'black',
                                 fontSize: widthPercentageToDP('3%'),
                                 fontFamily: StyleGuide.fontFamily.bold,
                             }}>
@@ -309,7 +310,7 @@ const CardUI = ({
                                 width: '70%',
                                 marginVertical: 0,
 
-                                color: 'black',
+                                color: mode ? '#ffff' : 'black',
                                 fontSize: widthPercentageToDP('3%'),
                                 fontFamily: StyleGuide.fontFamily.regular,
                             }}>
@@ -359,8 +360,8 @@ const CardUI = ({
                                     width: '75%',
                                 }}>
                                 <TextInput
-                                    style={styles.input}
-                                    placeholderTextColor="black"
+                                    style={[styles.input, { color: mode ? 'white' : "black" }]}
+                                    placeholderTextColor={mode ? 'white' : 'black'}
                                     value={comment}
                                     onChangeText={text => setComment(text)}
                                     placeholder="Add a comment..."
@@ -386,7 +387,6 @@ const styles = StyleSheet.create({
         borderBottomColor: 'grey',
         borderBottomWidth: 1,
         padding: 10,
-        color: 'black',
         marginVertical: 10,
         marginHorizontal: 5,
         fontFamily: StyleGuide.fontFamily.regular,
