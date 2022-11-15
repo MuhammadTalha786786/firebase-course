@@ -7,6 +7,10 @@ import OnBoardingScreen from './screens/OnBoardingScreen';
 import Home from './screens/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
+import TabNavigation from './TabNavigation/TabNavigation';
+import Comment from './screens/Post/Comment';
+import Profile from './screens/Profile';
+import messaging from '@react-native-firebase/messaging';
 
 const AppStack = createStackNavigator();
 
@@ -28,28 +32,72 @@ const App = () => {
     setData();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    // Assume a message-notification contains a "type" property in the data payload of the screen to open
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+        }
+      });
+  }, []);
+
+  console.log(UserLogin);
+
   return (
     firstLaunch != null && (
       <NavigationContainer>
-        <AppStack.Navigator
-          header="none"
-          screenOptions={{
-            headerShown: false,
-          }}>
-          {firstLaunch && (
-            <AppStack.Screen name="OnBoarding" component={OnBoardingScreen} />
-          )}
-
-          {UserLogin === false ? (
+        <AppStack.Navigator header="none">
+          {UserLogin ? (
             <>
+              <AppStack.Screen
+                name="Main"
+                component={TabNavigation}
+                options={{headerShown: false}}
+              />
+
+              <AppStack.Screen name="Comment" component={Comment} />
+              <AppStack.Screen
+                name="Profile"
+                component={Profile}
+                options={{headerShown: false}}
+              />
+            </>
+          ) : (
+            <>
+              {firstLaunch && (
+                <AppStack.Screen
+                  name="OnBoarding"
+                  component={OnBoardingScreen}
+                />
+              )}
               <AppStack.Screen name="Login" component={LoginScreen} />
               <AppStack.Screen
                 name="RegisterScreen"
                 component={RegisterScreen}
               />
             </>
-          ) : (
-            <AppStack.Screen name="Home" component={Home} />
           )}
         </AppStack.Navigator>
       </NavigationContainer>
