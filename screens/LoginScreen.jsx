@@ -5,6 +5,7 @@ import {
   StatusBar,
   SafeAreaView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import auth from '@react-native-firebase/auth';
@@ -21,6 +22,7 @@ import useGoogleSignIn from './components/GoogleSignIn';
 import ForgotModal from './components/ForgotModal';
 import firestore from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
+import {Avatar} from 'native-base';
 
 const LoginScreen = ({navigation}) => {
   const dispatch = useDispatch();
@@ -187,16 +189,23 @@ const LoginScreen = ({navigation}) => {
       />
       <SafeAreaView style={styles.SafeAreaView}>
         <View>
+          <View style={styles.loginTxtView}>
+            <Avatar
+              bg="indigo.500"
+              alignSelf="center"
+              size="xl"
+              source={require('../images/logo.png')}
+            />
+            {/* <Text style={styles.loginText}>Login</Text> */}
+          </View>
           <View
             style={{
               padding: 0,
-              marginVertical: 100,
-
+              marginVertical: 0,
               textAlign: 'center',
               justifyContent: 'center',
               alignContent: 'center',
             }}>
-            <Text style={styles.loginText}>Login</Text>
             <View style={{padding: 0}}>
               <TextInputComponent
                 value={email}
@@ -228,7 +237,7 @@ const LoginScreen = ({navigation}) => {
                 buttonTitle="SIGN IN"
                 btnType="sign-in"
                 color="#f5e7ea"
-                backgroundColor="#6A0DAD"
+                backgroundColor={StyleGuide.color.primary}
                 onPress={login}
               />
               <Text
@@ -316,7 +325,7 @@ const LoginScreen = ({navigation}) => {
                   }}>
                   <Text
                     style={{
-                      color: '#6A0DAD',
+                      color: StyleGuide.color.primary,
                       fontFamily: StyleGuide.fontFamily.medium,
                       fontSize: widthPercentageToDP('4%'),
                     }}>
@@ -336,18 +345,22 @@ const styles = StyleSheet.create({
   SafeAreaView: {
     flex: 1,
   },
+
+  loginTxtView: {
+    marginVertical: 60,
+  },
   loginText: {
     fontFamily: StyleGuide.fontFamily.medium,
     fontSize: StyleGuide.fontSize.medium,
     textAlign: 'center',
     alignItems: 'center',
-    color: StyleGuide.color.heading,
+    color: StyleGuide.color.primary,
   },
 
   forgotPassword: {
     textAlign: 'center',
     paddingVertical: 20,
-    color: '#6A0DAD',
+    color: StyleGuide.color.primary,
     fontFamily: StyleGuide.fontFamily.medium,
     fontSize: StyleGuide.fontSize.medium,
   },
@@ -373,7 +386,7 @@ const styles = StyleSheet.create({
     fontSize: StyleGuide.fontSize.small,
     textAlign: 'center',
     alignItems: 'center',
-    color: StyleGuide.color.paragraph,
+    color: StyleGuide.color.dark,
     paddingHorizontal: 6,
   },
 
@@ -385,7 +398,7 @@ const styles = StyleSheet.create({
   accountText: {
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: StyleGuide.fontSize.small,
-    color: StyleGuide.color.paragraph,
+    color: StyleGuide.color.dark,
   },
   accountView: {
     alignItems: 'center',

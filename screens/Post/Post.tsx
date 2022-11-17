@@ -173,6 +173,7 @@ const Post = ({ navigation }) => {
   };
 
   let disabled = postImage === '' || textAreaValue === '';
+  let mode = authState.darkModeReducer.mode;
   console.log(disabled, "disabled")
   return (
     <>
@@ -181,7 +182,7 @@ const Post = ({ navigation }) => {
         translucent
         backgroundColor="transparent"
       />
-      <SafeAreaView style={styles.SafeAreaView}>
+      <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
         <>
           <View style={styles.heading}>
             <Text style={styles.headingText}>Create Post</Text>
@@ -199,7 +200,7 @@ const Post = ({ navigation }) => {
             <Entypo
               onPress={selectImage}
               style={styles.imageIconSelect}
-              color="#6A0DAD"
+              color={StyleGuide.color.primary}
               size={30}
               name="images"
             />
@@ -230,7 +231,7 @@ const Post = ({ navigation }) => {
               buttonTitle="Post"
               btnType="check-square"
               color="#f5e7ea"
-              backgroundColor={disabled ? 'grey' : '#6A0DAD'}
+              backgroundColor={disabled ? 'grey' : StyleGuide.color.primary}
               onPress={uploadPost}
               disabled={disabled}
               uploading={uploading}
@@ -241,7 +242,7 @@ const Post = ({ navigation }) => {
               buttonTitle="logout"
               btnType="check-square"
               color="#f5e7ea"
-              backgroundColor={'#6A0DAD'}
+              backgroundColor={StyleGuide.color.primary}
               onPress={logout}
             />
           </View>
@@ -257,14 +258,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   headingText: {
-    color: 'black',
+    color: StyleGuide.color.primary,
     fontFamily: StyleGuide.fontFamily.medium,
     fontSize: widthPercentageToDP('5%'),
   },
 
   SafeAreaView: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
     marginVertical: 10,
   },
   mainBox: {

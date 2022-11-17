@@ -30,15 +30,12 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import { setSignIn } from '../Redux/Auth/AuthReducer'
 const ProfileScreen = () => {
-    const authState = useSelector((state: AppState) => state.userAuthReducer);
-
-    let userID = authState.uid;
-    let isLoggedIn = authState.isLoggedIn;
-    let userProfileImage = authState.photoURL;
+    const authState = useSelector((state: AppState) => state);
 
 
 
-    console.log(userID, "userID")
+
+
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -59,13 +56,16 @@ const ProfileScreen = () => {
     const [newDate, setNewDate] = useState<Date>(new Date())
     const dispatch = useDispatch()
 
+    let userID = authState.userAuthReducer.uid;
+    let isLoggedIn = authState.userAuthReducer.isLoggedIn;
+    let userProfileImage = authState.userAuthReducer.photoURL;
+
     const updateProfile = () => {
         if (name === '') {
             Alert.alert('Please Enter Your name');
         } else if (phoneNumber === '' || phoneNumber === undefined) {
             Alert.alert('Please Enter Your phone number..');
         }
-
 
         // else if (dateOfBirth === '') {
         //     Alert.alert('Please Enter Your name');
@@ -95,8 +95,6 @@ const ProfileScreen = () => {
         }
     };
 
-
-
     const selectImage = async () => {
         setUploading(true);
         ImagePicker.openPicker({
@@ -123,7 +121,6 @@ const ProfileScreen = () => {
         })
     };
 
-    console.log(ishow, 'sjs');
     const verifyPhoneNumber = async phoneNumber => {
         if (phoneNumber === '') {
             Alert.alert('please Enter the Phone Number');
@@ -158,7 +155,6 @@ const ProfileScreen = () => {
         }
     };
 
-    console.log(uploading, "uploading")
 
     useEffect(() => {
         firestore()
@@ -181,15 +177,11 @@ const ProfileScreen = () => {
             });
     }, []);
 
-
-
-    console.log(newDate, "new date")
-
-
-    console.log(phoneNumber, name, "phone number");
+    const mode = authState.darkModeReducer.mode;
+    console.log(mode, "mode reducer")
 
     return (
-        <SafeAreaView style={styles.SafeAreaView}>
+        <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : ''}
                 style={styles.container}>
@@ -217,7 +209,7 @@ const ProfileScreen = () => {
                             <MaterialCommunityIcons
                                 name="image-edit-outline"
                                 size={25}
-                                color="#702963"
+                                color={StyleGuide.color.primary}
                                 onPress={selectImage}
                                 style={{ marginVertical: 10, marginHorizontal: 7 }}
                             />
@@ -232,10 +224,13 @@ const ProfileScreen = () => {
                                     label="Email"
                                     name={'email'}
                                     isReadOnly={true}
+                                    darkMode={mode}
                                 />
                             </View>
                             <View style={{ marginVertical: 10 }}>
                                 <TextInputComponent
+                                    placeholderTextColor={mode ? 'white' : 'black'}
+
                                     value={name}
                                     placeholder="Enter Name"
                                     mode="outlined"
@@ -243,6 +238,8 @@ const ProfileScreen = () => {
                                     name={'supervised-user-circle'}
                                     setValue={setName}
                                     setError={setError}
+                                    darkMode={mode}
+
                                 />
                             </View>
 
@@ -255,12 +252,11 @@ const ProfileScreen = () => {
                                             <EvilIcons
                                                 name="calendar"
                                                 size={20}
-                                                color={'black'}
-                                                style={{ marginVertical: 20, marginHorizontal: 10 }}
+                                                color={mode ? StyleGuide.color.light : StyleGuide.color.dark} style={{ marginVertical: 20, marginHorizontal: 10 }}
                                             />
                                         </View>
                                         <View>
-                                            <Text style={styles.dateOfBirthText}>
+                                            <Text style={[styles.dateOfBirthText, { color: mode ? StyleGuide.color.light : StyleGuide.color.dark }]}>
                                                 {dateOfBirth === ''
                                                     ? 'Select Your DOB'
                                                     : moment(dateOfBirth).format('LL')}
@@ -290,6 +286,8 @@ const ProfileScreen = () => {
                                     setValue={setPhoneNumber}
                                     setError={setError}
                                     keyboardType="phone-pad"
+                                    darkMode={mode}
+
                                 />
 
                                 <Text
@@ -316,6 +314,8 @@ const ProfileScreen = () => {
                                         setValue={setCode}
                                         setError={setError}
                                         keyboardType="phone-pad"
+                                        darkMode={mode}
+
                                     />
                                     <Text
                                         onPress={() => confirmCode(code)}
@@ -338,7 +338,7 @@ const ProfileScreen = () => {
                                     buttonTitle="Update"
                                     btnType="upload"
                                     color={'#ffff'}
-                                    backgroundColor={uploading ? 'grey' : "#702963"}
+                                    backgroundColor={uploading ? 'grey' : StyleGuide.color.primary}
                                     onPress={updateProfile}
                                     disabled={uploading}
                                 />
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     },
     SafeAreaView: {
         flex: 1,
-        backgroundColor: '#F5F5DC',
+        // backgroundColor: '#F5F5DC',
     },
     userText: {
         fontSize: StyleGuide.fontSize.medium,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
         marginVertical: 60,
     },
     header: {
-        backgroundColor: '#702963',
+        backgroundColor: StyleGuide.color.primary,
         height: 200,
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
         borderColor: 'lightgrey',
     },
     dateOfBirthText: {
-        color: 'black',
+
         textAlign: 'center',
         marginVertical: 18,
         marginHorizontal: 5,

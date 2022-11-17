@@ -1,11 +1,11 @@
-import {View, Text} from 'react-native';
+import { View, Text } from 'react-native';
 import React from 'react';
-import {TextInput} from 'react-native-paper';
-import {StyleGuide} from '../../Utils/StyleGuide';
-import {windowHeight} from '../../Utils/Dimesnions';
-import {Input, Icon, Pressable} from 'native-base';
+import { TextInput } from 'react-native-paper';
+import { StyleGuide } from '../../Utils/StyleGuide';
+import { windowHeight } from '../../Utils/Dimesnions';
+import { Input, Icon, Pressable } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 
 const TextInputComponent = ({
   value,
@@ -15,6 +15,7 @@ const TextInputComponent = ({
   name,
   setShowPassword,
   IsPassword,
+  darkMode,
   ...reset
 }) => {
   return (
@@ -46,6 +47,7 @@ const TextInputComponent = ({
               height: windowHeight / 15,
               fontFamily: 'Poppins-Regular',
               fontSize: widthPercentageToDP('3.7'),
+              color: darkMode ? StyleGuide.color.light : StyleGuide.color.dark
             }}
             {...reset}
           />
@@ -69,7 +71,10 @@ const TextInputComponent = ({
             height: windowHeight / 15,
             fontFamily: 'Poppins-Regular',
             fontSize: widthPercentageToDP('3.7'),
+            color: darkMode ? StyleGuide.color.light : StyleGuide.color.dark
+
           }}
+
           {...reset}
         />
       )}

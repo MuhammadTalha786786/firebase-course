@@ -9,35 +9,27 @@ import Home from '../screens/Home';
 import ProfileScreen from '../screens/ProfileScreen';
 import { StyleGuide } from '../Utils/StyleGuide';
 import { DrawerActions } from '@react-navigation/native';
-import Icon from "react-native-vector-icons/MaterialIcons";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Avatar } from 'native-base';
 import { setDarkMode } from '../Redux/Auth/DarkMode';
 import { useDispatch, useSelector } from 'react-redux';
-
-
-
+import Feather from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const darkMode = useSelector((state: AppState) => state);
-    const mode = darkMode.darkModeReducer.mode
-    console.log(mode, "mode")
+    const mode = darkMode.darkModeReducer.mode;
+    console.log(mode, 'mode');
     return (
         <Drawer.Navigator
-
-
             defaultScreenOptions={{
-                drawerStyle: {
-                    backgroundColor: 'red',
-                    width: 240,
-                },
                 drawerLabelStyle: {
                     fontFamily: StyleGuide.fontFamily.regular,
                 },
             }}
-
             drawerContent={props => (
                 <DrawerContentScrollView {...props}>
                     <View
@@ -47,14 +39,12 @@ const DrawerNavigation = () => {
                             flexDirection: 'row',
                             alignItems: 'center',
                         }}>
-
                         <Avatar
                             bg="indigo.500"
                             alignSelf="center"
                             size="xl"
                             source={require('../images/logo.png')}
                         />
-
                     </View>
                     <DrawerItemList {...props} />
                     <View
@@ -68,7 +58,6 @@ const DrawerNavigation = () => {
                     </View>
                     <View
                         style={{
-
                             paddingTop: 20,
                             flexDirection: 'row',
                             alignItems: 'center',
@@ -83,12 +72,10 @@ const DrawerNavigation = () => {
                                 style={{
                                     fontFamily: StyleGuide.fontFamily.regular,
                                     marginLeft: 32,
-                                    color: mode ? '#fff' : '#111'
-                                }}
-                            >
+                                    color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
+                                }}>
                                 Dark Mode
                             </Text>
-
                         </View>
                         <Switch
                             thumbColor={'#fff'}
@@ -98,9 +85,9 @@ const DrawerNavigation = () => {
                             }}
                             onChange={() => {
                                 if (mode == false) {
-                                    dispatch(setDarkMode({ mode: true }))
+                                    dispatch(setDarkMode({ mode: true }));
                                 } else {
-                                    dispatch(setDarkMode({ mode: false }))
+                                    dispatch(setDarkMode({ mode: false }));
                                 }
                             }}
                             value={mode ? true : false}
@@ -110,8 +97,9 @@ const DrawerNavigation = () => {
             )}
             screenOptions={({ navigation }) => ({
                 drawerStyle: {
-                    backgroundColor: mode ? '#111' : '#fff',
-
+                    backgroundColor: mode
+                        ? StyleGuide.color.dark
+                        : StyleGuide.color.light,
                 },
                 headerTitleStyle: {
                     fontFamily: StyleGuide.fontFamily.medium,
@@ -125,26 +113,23 @@ const DrawerNavigation = () => {
                 headerLeft: () => (
                     <TouchableOpacity
                         style={{ marginLeft: 10 }}
-                        onPress={() =>
-                            navigation.dispatch(DrawerActions.toggleDrawer())
-                        }>
+                        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
                         <Icon name="menu" size={30} color="#fff" />
-
-
                     </TouchableOpacity>
                 ),
                 headerRight: () => (
                     <View style={{ flexDirection: 'row' }}>
-                        <TouchableOpacity style={{ marginRight: 15 }}></TouchableOpacity>
-                        <View
-                            style={{
-                                borderRightWidth: 0.5,
-                                height: 25,
-                                marginRight: 10,
-                                borderColor: '#fff',
+                        <TouchableOpacity
+                            onPress={() => {
+                                dispatch(setDarkMode({ mode: !mode }));
                             }}
-                        />
-                        <TouchableOpacity style={{ marginRight: 20 }}></TouchableOpacity>
+                            style={{ marginRight: 15 }}>
+                            {mode ? (
+                                <Feather size={25} color={'white'} name={'sun'} />
+                            ) : (
+                                <Ionicons size={25} color={'white'} name={'md-moon-sharp'} />
+                            )}
+                        </TouchableOpacity>
                     </View>
                 ),
             })}>

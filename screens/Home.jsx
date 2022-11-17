@@ -101,6 +101,8 @@ const Home = () => {
   let isLoggedIn = authState.userAuthReducer.isLoggedIn;
   const mode = authState.darkModeReducer.mode;
 
+  console.log(authState.darkModeReducer, 'auth state');
+
   return (
     <>
       <SafeAreaView
@@ -108,11 +110,10 @@ const Home = () => {
           styles.SafeAreaView,
           {backgroundColor: mode ? 'black' : 'white'},
         ]}>
-        <View
+        {/* <View
           style={{
             justifyContent: 'space-between',
             flexDirection: 'row',
-            backgroundColor: mode ? 'black' : 'white',
           }}>
           <View>
             <Avatar
@@ -136,7 +137,7 @@ const Home = () => {
               </Avatar>
             </TouchableHighlight>
           </View>
-        </View>
+        </View> */}
 
         <FlatList
           data={data}
@@ -166,19 +167,6 @@ const Home = () => {
           refreshing={getData}
           keyExtractor={item => item.postID}
         />
-        <View style={styles.MainContainer}>
-          <TouchableOpacity
-            activeOpacity={0.5}
-            onPress={() => navigation.navigate('Post')}
-            style={styles.TouchableOpacityStyle}>
-            <Image
-              source={{
-                uri: 'https://reactnativecode.com/wp-content/uploads/2017/11/Floating_Button.png',
-              }}
-              style={styles.FloatingButtonStyle}
-            />
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     </>
   );
@@ -210,32 +198,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 66,
     height: 58,
-  },
-  mainView: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  MainContainer: {
-    flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-  },
-  TouchableOpacityStyle: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    right: 30,
-    bottom: 30,
-  },
-
-  FloatingButtonStyle: {
-    resizeMode: 'contain',
-    width: 50,
-    height: 50,
   },
 });
 export default Home;

@@ -68,7 +68,11 @@ const App = () => {
   return (
     firstLaunch != null && (
       <NavigationContainer>
-        <AppStack.Navigator header="none">
+        <AppStack.Navigator
+          header="none"
+          screenOptions={{
+            headerShown: false,
+          }}>
           {UserLogin ? (
             <>
               <AppStack.Screen
@@ -81,7 +85,7 @@ const App = () => {
               <AppStack.Screen
                 name="Profile"
                 component={Profile}
-                options={{headerShown: false}}
+                options={{headerShown: true}}
               />
             </>
           ) : (

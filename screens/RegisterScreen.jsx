@@ -227,7 +227,7 @@ const RegisterScreen = ({navigation}) => {
               image === '' ||
               image === undefined
                 ? 'grey'
-                : '#6A0DAD'
+                : StyleGuide.color.primary
             }
             onPress={createNewAccount}
           />
@@ -254,7 +254,7 @@ const RegisterScreen = ({navigation}) => {
               }}>
               <Text
                 style={{
-                  color: '#6A0DAD',
+                  color: StyleGuide.color.primary,
                   fontFamily: StyleGuide.fontFamily.medium,
                   fontSize: widthPercentageToDP('4%'),
                 }}>
@@ -274,12 +274,13 @@ const styles = StyleSheet.create({
     fontSize: StyleGuide.fontSize.medium,
     textAlign: 'center',
     alignItems: 'center',
-    color: StyleGuide.color.heading,
+    color: StyleGuide.color.primary,
     marginBottom: 15,
   },
   SafeAreaView: {
     flex: 1,
   },
+
   cameraIcon: {
     borderRadius: 20,
     borderColor: 'red',
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
     fontSize: StyleGuide.fontSize.small,
     textAlign: 'center',
     alignItems: 'center',
-    color: StyleGuide.color.paragraph,
+    color: StyleGuide.color.dark,
     paddingHorizontal: 6,
   },
   buttonContainer: {
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
   accountText: {
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: StyleGuide.fontSize.small,
-    color: StyleGuide.color.paragraph,
+    color: StyleGuide.color.dark,
   },
   accountView: {
     alignItems: 'center',
