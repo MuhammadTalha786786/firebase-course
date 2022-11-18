@@ -98,8 +98,8 @@ const DrawerNavigation = () => {
             screenOptions={({ navigation }) => ({
                 drawerStyle: {
                     backgroundColor: mode
-                        ? StyleGuide.color.dark
-                        : StyleGuide.color.light,
+                        ? 'rgb(40, 42, 54)'
+                        : "#f6f8fa",
                 },
                 headerTitleStyle: {
                     fontFamily: StyleGuide.fontFamily.medium,

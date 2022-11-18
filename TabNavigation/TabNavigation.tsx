@@ -89,7 +89,7 @@ const TabNavigation = () => {
                 },
                 tabBarStyle: {
                     height: 70,
-                    backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light,
+                    backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa',
                     borderRadius: 5,
                     borderTopStartRadius: 5,
                     borderTopEndRadius: 5,
@@ -98,7 +98,15 @@ const TabNavigation = () => {
                 },
                 headerStyle: {
                     backgroundColor: StyleGuide.color.primary,
+
                 },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                    textAlign: 'center',
+                    fontFamily: StyleGuide.fontFamily.regular,
+                },
+                headerTitleAlign: 'center'
+
             })
 
 
@@ -128,10 +136,10 @@ const TabNavigation = () => {
         >
 
             <Tab.Screen name="Home" component={DrawerNavigation} options={{ headerShown: false }} />
-            <Tab.Screen name="Friends" component={FriendsScreen} options={{ headerShown: false }} />
-            <Tab.Screen name=" " component={Post} options={{ headerShown: false }} />
-            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
+            <Tab.Screen name="Friends" component={FriendsScreen} options={{ headerShown: true }} />
+            <Tab.Screen name=" " component={Post} options={{ headerShown: true, title: "Create Post" }} />
+            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
+            <Tab.Screen name="Notifications" component={Notifications} options={{ headerShown: true }} />
 
 
 

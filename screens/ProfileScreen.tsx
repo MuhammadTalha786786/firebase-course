@@ -41,13 +41,10 @@ const ProfileScreen = () => {
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState(new Date());
-    const [open, setOpen] = React.useState(false);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [confirm, setConfirm] = useState(null);
     const [code, setCode] = useState('');
-    const phoneInput = useRef<PhoneInput>(null);
-    const [formattedValue, setFormattedValue] = useState('');
     const [ishow, setShow] = useState(false);
     const [verified, setVerified] = useState(false);
     const [image, setImage] = useState('');
@@ -293,7 +290,7 @@ const ProfileScreen = () => {
                                 <Text
                                     onPress={() => verifyPhoneNumber(phoneNumber)}
                                     style={{
-                                        color: 'blue',
+                                        color: 'rgb(40, 42, 54)',
                                         fontSize: widthPercentageToDP('3.3%'),
                                         fontFamily: StyleGuide.fontFamily.regular,
                                         marginVertical: 10,
@@ -338,7 +335,7 @@ const ProfileScreen = () => {
                                     buttonTitle="Update"
                                     btnType="upload"
                                     color={'#ffff'}
-                                    backgroundColor={uploading ? 'grey' : StyleGuide.color.primary}
+                                    backgroundColor={uploading ? 'grey' : '#3d5a80'}
                                     onPress={updateProfile}
                                     disabled={uploading}
                                 />
@@ -375,7 +372,8 @@ const styles = StyleSheet.create({
         marginVertical: 60,
     },
     header: {
-        backgroundColor: StyleGuide.color.primary,
+        marginVertical: 10,
+        backgroundColor: '#3d5a80',
         height: 200,
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,

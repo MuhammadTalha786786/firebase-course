@@ -305,8 +305,8 @@ const styles = StyleSheet.create({
     // padding: 10
   },
   errorText: {
-    color: 'red',
-    fontSize: StyleGuide.fontSize.small,
+    color: 'blue',
+    fontSize: widthPercentageToDP('2.5%'),
     fontFamily: StyleGuide.fontFamily.medium,
   },
 });
