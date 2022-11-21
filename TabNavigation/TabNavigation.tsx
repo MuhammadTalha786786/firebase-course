@@ -90,11 +90,7 @@ const TabNavigation = () => {
                 tabBarStyle: {
                     height: 70,
                     backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa',
-                    borderRadius: 5,
-                    borderTopStartRadius: 5,
-                    borderTopEndRadius: 5,
-                    marginHorizontal: 4,
-                    margin: 0
+
                 },
                 headerStyle: {
                     backgroundColor: StyleGuide.color.primary,

@@ -4,12 +4,13 @@ import firestore from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
 import Lottie from 'lottie-react-native';
 import NotificationCard from './components/NotificationCard';
+import { StyleGuide } from '../Utils/StyleGuide';
 
 
 
 const Notifications = () => {
     const authState = useSelector((state: AppState) => state);
-    const [likedPeople, setLikedPeople] = useState([]);
+    const [likedPeople, setLikedPeople] = useState();
     const uid = authState.userAuthReducer.uid;
     const [visible, setVisible] = useState(false);
     const mode = authState.darkModeReducer.mode;
@@ -38,23 +39,28 @@ const Notifications = () => {
             });
     }, []);
 
+    let flatArray = [].concat.apply([], likedPeople);
+
+
 
 
     console.log(likedPeople, "liked people")
     return (
-        <SafeAreaView>
-            <View style={{ justifyContent: 'center' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }}>
+            <View >
 
-                {visible ? <View >
+                {visible ? <View style={{ justifyContent: 'center', alignItems: 'center' }}>
 
                     <Lottie style={{ height: 100 }}
                         source={require('../9764-loader.json')} autoPlay loop />
 
-                </View> : <FlatList
-                    data={likedPeople}
-                    renderItem={({ item }) => <NotificationCard item={item} mode={mode} />}
-                    keyExtractor={item => item.uid}
-                />}
+                </View> : flatArray.length === 0 ? <Text style={[styles.NotificationExist, { color: mode ? StyleGuide.color.light : StyleGuide.color.dark }]}> No Notification ! </Text> :
+
+                    <FlatList
+                        data={flatArray}
+                        renderItem={({ item }) => <NotificationCard item={item} mode={mode} />}
+                        keyExtractor={item => item.uid}
+                    />}
 
 
 
@@ -68,5 +74,12 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
     },
+    NotificationExist: {
+        fontFamily: StyleGuide.fontFamily.regular,
+        fontSize: 10,
+        textAlign: 'center',
+        marginVertical: 20
+
+    }
 });
 export default Notifications;

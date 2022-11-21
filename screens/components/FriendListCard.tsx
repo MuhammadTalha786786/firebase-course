@@ -26,7 +26,7 @@ const FriendListCard = ({ item, mode }) => {
               styles.title,
               { color: mode ? StyleGuide.color.light : StyleGuide.color.dark },
             ]}>
-            {/* {item.name.charAt(0).toUpperCase() + item.name.slice(1)}{' '} */}
+            {item.name.charAt(0).toUpperCase() + item.name.slice(1)}{' '}
           </Text>
         </View>
       </View>
