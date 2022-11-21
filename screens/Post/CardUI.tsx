@@ -6,7 +6,7 @@ import {
     TextInput,
     Button,
     TouchableOpacity,
-    TouchableHighlight
+    TouchableHighlight,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { StyleGuide } from '../../Utils/StyleGuide';
@@ -27,7 +27,6 @@ import { background } from 'native-base/lib/typescript/theme/styled-system';
 import uuid from 'react-native-uuid';
 import { Popover } from 'native-base';
 
-
 const CardUI = ({
     mode,
     userName,
@@ -45,8 +44,7 @@ const CardUI = ({
     postData,
     setGetData,
     PostedUser,
-    loginState
-
+    loginState,
 }) => {
     const authState = useSelector((state: AppState) => state);
     const [showComment, setShowComment] = useState(false);
@@ -65,7 +63,7 @@ const CardUI = ({
         if (arrayLikes?.length > 0) {
             let status = false;
             arrayLikes?.map(item => {
-                if (item == userID) {
+                if (item.userID == userID) {
                     status = true;
                 } else {
                     status = false;
@@ -80,15 +78,27 @@ const CardUI = ({
 
         setIsPostLiked(!isPostLiked);
         if (arrayLikes?.length > 0) {
-            let findCurrent = arrayLikes.find(item => item === userID);
+            let findCurrent = arrayLikes.find(item => item.userID === userID);
             console.log(findCurrent);
             if (findCurrent) {
-                arrayLikes = arrayLikes.filter(el => userID !== el);
+                arrayLikes = arrayLikes.filter(el => userID !== el.userID);
             } else {
-                arrayLikes?.push(userID);
+                arrayLikes?.push({
+                    userID: userID,
+                    postDetail: subtitle,
+                    userName: userName,
+                    userProfileImaege: userProfileImaege,
+                    timeLiked: new Date(),
+                });
             }
         } else {
-            arrayLikes?.push(userID);
+            arrayLikes?.push({
+                userID: userID,
+                postDetail: subtitle,
+                userName: userName,
+                userProfileImaege: userProfileImaege,
+                timeLiked: new Date(),
+            });
         }
         console.log('arrayLikes', arrayLikes);
         firestore()
@@ -103,7 +113,6 @@ const CardUI = ({
     };
 
     let PostedDate = date.toDate();
-
 
     const postComment = () => {
         let commentID = uuid.v4();
@@ -174,28 +183,26 @@ const CardUI = ({
     return (
         <View>
             <View style={{ padding: 10 }}>
-                <Card style={{ backgroundColor: mode ? "black" : '#fff' }} mode="contained">
+                <Card
+                    style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa' }}
+                    mode="elevated">
                     <View
                         style={{
                             justifyContent: 'space-between',
                             flexDirection: 'row',
                         }}>
-                        <View style={{ flexDirection: 'row' }} >
-                            <TouchableHighlight activeOpacity={0.6}
+                        <View style={{ flexDirection: 'row' }}>
+                            <TouchableHighlight
+                                activeOpacity={0.6}
                                 underlayColor="#DDDDDD"
-                                onPress={() => { navigation.navigate('Profile', { id: PostedUser }) }}>
+                                onPress={() => {
+                                    navigation.navigate('Profile', { id: PostedUser });
+                                }}>
                                 <Avatar
-
                                     style={{ marginVertical: 10, marginHorizontal: 10 }}
                                     source={userImage}>
-
-                                    <Avatar.Badge
-                                        bg={
-                                            loginState ? 'green.500' : 'red.500'
-                                        }
-                                    />
+                                    <Avatar.Badge bg={loginState ? 'green.500' : 'red.500'} />
                                 </Avatar>
-
                             </TouchableHighlight>
                             <Text
                                 style={{
@@ -206,7 +213,6 @@ const CardUI = ({
                                 }}>
                                 {userName?.charAt(0).toUpperCase() + userName?.slice(1)}
                             </Text>
-
                         </View>
                         <View>
                             {console.log(date)}
@@ -229,7 +235,9 @@ const CardUI = ({
                             <AntDesign
                                 style={{ marginHorizontal: 10, marginVertical: 15 }}
                                 name={likeStatus(arrayLikes) ? 'heart' : 'hearto'}
-                                color={likeStatus(arrayLikes) ? 'red' : mode ? '#ffff' : 'black'}
+                                color={
+                                    likeStatus(arrayLikes) ? 'red' : mode ? '#ffff' : 'black'
+                                }
                                 size={20}
                                 onPress={() => {
                                     addPostLiked(arrayLikes);
@@ -251,7 +259,7 @@ const CardUI = ({
                             <FontAwesome5
                                 style={{ marginHorizontal: 10, marginVertical: 15 }}
                                 name={'comment'}
-                                color={mode ? "#ffff" : 'black'}
+                                color={mode ? '#ffff' : 'black'}
                                 size={20}
                                 onPress={() => {
                                     navigation.navigate('Comment', {
@@ -259,7 +267,7 @@ const CardUI = ({
                                         comments: comments,
                                         setGetData: setGetData,
                                         postID: postID,
-                                        mode: mode
+                                        mode: mode,
                                     });
                                 }}
                             />
@@ -298,7 +306,6 @@ const CardUI = ({
                             style={{
                                 marginVertical: 0,
                                 marginHorizontal: 10,
-
                                 color: mode ? 'white' : 'black',
                                 fontSize: widthPercentageToDP('3%'),
                                 fontFamily: StyleGuide.fontFamily.bold,
@@ -360,7 +367,7 @@ const CardUI = ({
                                     width: '75%',
                                 }}>
                                 <TextInput
-                                    style={[styles.input, { color: mode ? 'white' : "black" }]}
+                                    style={[styles.input, { color: mode ? 'white' : 'black' }]}
                                     placeholderTextColor={mode ? 'white' : 'black'}
                                     value={comment}
                                     onChangeText={text => setComment(text)}

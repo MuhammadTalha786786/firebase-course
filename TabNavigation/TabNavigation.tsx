@@ -9,10 +9,15 @@ const Tab = createBottomTabNavigator();
 import ProfileScreen from '../screens/ProfileScreen';
 import DrawerNavigation from '../DrawerNavigation/DrawerNavigation';
 import { StyleGuide } from '../Utils/StyleGuide';
-import { Platform } from 'react-native'
-
+import { Platform, View, Image } from 'react-native'
+import { useDispatch, useSelector } from 'react-redux';
+import Notifications from '../screens/Notifications';
 
 const TabNavigation = () => {
+    const authState = useSelector((state: AppState) => state);
+    let mode = authState.darkModeReducer.mode;
+
+
 
     return (
         <Tab.Navigator
@@ -20,47 +25,84 @@ const TabNavigation = () => {
                 tabBarIcon: ({ focused, color, size }) => {
                     if (route.name === 'Home') {
                         return focused ? (
-                            <AntDesign name='home' size={20} color={'#ffff'} />
+                            <AntDesign name='home' size={20} color={StyleGuide.color.primary} />
                         ) : (
-                            <AntDesign name='home' size={20} color='black' />
+                            <AntDesign name='home' size={20} color={mode ? StyleGuide.color.light : "#023047"} />
                         );
                     }
                     else if (
                         route.name === 'Friends'
                     ) {
                         return focused ? (
-                            <AntDesign name='addusergroup' size={20} color={"#ffff"} />
+                            <AntDesign name='addusergroup' size={20} color={StyleGuide.color.primary} />
                         ) : (
-                            <AntDesign name='addusergroup' size={20} color='black' />
+                            <AntDesign name='addusergroup' size={20} color={mode ? StyleGuide.color.light : "#023047"} />
                         );
                     }
-                    else if (route.name === 'Post') {
+                    else if (route.name === ' ') {
                         return focused ? (
-                            <AntDesign name='plus' size={20} color={'#ffff'} />
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 20, // space from bottombar
+                                    height: 58,
+                                    width: 58,
+                                    borderRadius: 58,
+                                    backgroundColor: '#5a95ff',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                <AntDesign name='plus' size={20} color={StyleGuide.color.light} />
+
+                            </View>
                         ) : (
-                            <AntDesign name='plus' size={20} color='black' />
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 20, // space from bottombar
+                                    height: 58,
+                                    width: 58,
+                                    borderRadius: 58,
+                                    backgroundColor: '#5a95ff',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                <AntDesign name='plus' size={20} color={StyleGuide.color.light} />
+
+                            </View>
                         );
                     }
                     else if (route.name === 'Profile') {
                         return focused ? (
-                            <AntDesign name='profile' size={20} color={'#fff'} />
+                            <AntDesign name='profile' size={20} color={StyleGuide.color.primary} />
                         ) : (
-                            <AntDesign name='profile' size={20} color='black' />
+                            <AntDesign name='profile' size={20} color={mode ? StyleGuide.color.light : "#023047"} />
+                        );
+                    }
+                    else if (route.name === 'Notifications') {
+                        return focused ? (
+                            <AntDesign name='notification' size={20} color={StyleGuide.color.primary} />
+                        ) : (
+                            <AntDesign name='notification' size={20} color={mode ? StyleGuide.color.light : "#023047"} />
                         );
                     }
                 },
                 tabBarStyle: {
                     height: 70,
-                    backgroundColor: StyleGuide.color.primary,
-                    borderRadius: 5,
-                    borderTopStartRadius: 5,
-                    borderTopEndRadius: 5,
-                    marginHorizontal: 4,
-                    margin: 0
+                    backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa',
+
                 },
                 headerStyle: {
                     backgroundColor: StyleGuide.color.primary,
+
                 },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                    textAlign: 'center',
+                    fontFamily: StyleGuide.fontFamily.regular,
+                },
+                headerTitleAlign: 'center'
+
             })
 
 
@@ -72,8 +114,8 @@ const TabNavigation = () => {
                     margin: 0,
                     padding: 0,
                 },
-                activeTintColor: "#ffff",
-                inactiveTintColor: 'black',
+                activeTintColor: StyleGuide.color.primary,
+                inactiveTintColor: mode ? StyleGuide.color.light : "#023047",
                 style: {
                     // paddingHorizontal:25,
                     // height: 50,
@@ -90,9 +132,11 @@ const TabNavigation = () => {
         >
 
             <Tab.Screen name="Home" component={DrawerNavigation} options={{ headerShown: false }} />
-            <Tab.Screen name="Friends" component={FriendsScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="Post" component={Post} options={{ headerShown: false }} />
-            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+            <Tab.Screen name="Friends" component={FriendsScreen} options={{ headerShown: true }} />
+            <Tab.Screen name=" " component={Post} options={{ headerShown: true, title: "Create Post" }} />
+            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
+            <Tab.Screen name="Notifications" component={Notifications} options={{ headerShown: true }} />
+
 
 
 

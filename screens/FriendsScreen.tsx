@@ -1,13 +1,15 @@
 import { View, Text, SafeAreaView, StyleSheet, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import FriendListCard from './components/FriendListCard';
+import { StyleGuide } from '../Utils/StyleGuide';
 
 const FriendsScreen = () => {
     const authState = useSelector((state: AppState) => state);
     const [friendsList, setFriendsList] = useState([]);
     const userID = authState.userAuthReducer.uid;
+    const mode = authState.darkModeReducer.mode;
 
     useEffect(() => {
         firestore()
@@ -26,11 +28,11 @@ const FriendsScreen = () => {
 
     console.log(friendsList, 'list of users');
     return (
-        <SafeAreaView style={styles.SafeAreaView}>
+        <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
             <View>
                 <FlatList
                     data={friendsList}
-                    renderItem={({ item }) => <FriendListCard item={item} />}
+                    renderItem={({ item }) => <FriendListCard item={item} mode={mode} />}
                     keyExtractor={item => item.uid}
                 />
             </View>
@@ -41,7 +43,6 @@ const FriendsScreen = () => {
 const styles = StyleSheet.create({
     SafeAreaView: {
         flex: 1,
-        backgroundColor: '#F5F5DC',
     },
 });
 
