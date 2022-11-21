@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableHighlight,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -30,6 +31,8 @@ import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import {async} from '@firebase/util';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import SkeletonPlaceHolder from './components/SkeletonPlaceHolder';
 
 const Home = () => {
   const [post, setPost] = useState();
@@ -141,28 +144,32 @@ const Home = () => {
 
         <FlatList
           data={data}
-          renderItem={({item}) => (
-            <CardUI
-              mode={mode}
-              userName={item.userName}
-              userImage={{uri: item.userImage}}
-              postImage={{uri: item.postImage}}
-              title={item.postTitle}
-              subtitle={item.postDetail}
-              postID={item.postID}
-              arrayLikes={item.likes}
-              date={item.dateCreated}
-              post={item}
-              comments={item.comments}
-              setIsPostLiked={setIsPostLiked}
-              isPostLiked={isPostLiked}
-              getPostData={getPostData}
-              postData={getPostData}
-              setGetData={getData}
-              PostedUser={item.userID}
-              loginState={item.isLogin}
-            />
-          )}
+          renderItem={({item}) =>
+            getData ? (
+              <SkeletonPlaceHolder />
+            ) : (
+              <CardUI
+                mode={mode}
+                userName={item.userName}
+                userImage={{uri: item.userImage}}
+                postImage={{uri: item.postImage}}
+                title={item.postTitle}
+                subtitle={item.postDetail}
+                postID={item.postID}
+                arrayLikes={item.likes}
+                date={item.dateCreated}
+                post={item}
+                comments={item.comments}
+                setIsPostLiked={setIsPostLiked}
+                isPostLiked={isPostLiked}
+                getPostData={getPostData}
+                postData={getPostData}
+                setGetData={getData}
+                PostedUser={item.userID}
+                loginState={item.isLogin}
+              />
+            )
+          }
           onRefresh={getPostData}
           refreshing={getData}
           keyExtractor={item => item.postID}

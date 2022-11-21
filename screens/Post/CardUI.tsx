@@ -63,6 +63,7 @@ const CardUI = ({
         if (arrayLikes?.length > 0) {
             let status = false;
             arrayLikes?.map(item => {
+                console.log(item.userID === userID, "user ID")
                 if (item.userID == userID) {
                     status = true;
                 } else {
