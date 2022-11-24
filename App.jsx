@@ -11,6 +11,7 @@ import TabNavigation from './TabNavigation/TabNavigation';
 import Comment from './screens/Post/Comment';
 import Profile from './screens/Profile';
 import messaging from '@react-native-firebase/messaging';
+import ChatScreen from './screens/ChatScreen';
 
 const AppStack = createStackNavigator();
 
@@ -85,6 +86,11 @@ const App = () => {
               <AppStack.Screen
                 name="Profile"
                 component={Profile}
+                options={{headerShown: true}}
+              />
+              <AppStack.Screen
+                name="ChatsScreen"
+                component={ChatScreen}
                 options={{headerShown: true}}
               />
             </>

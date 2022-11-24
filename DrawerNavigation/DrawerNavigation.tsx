@@ -15,6 +15,7 @@ import { setDarkMode } from '../Redux/Auth/DarkMode';
 import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ChatScreen from '../screens/ChatScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -134,6 +135,8 @@ const DrawerNavigation = () => {
                 ),
             })}>
             <Drawer.Screen name="Home" component={Home} mode={mode} />
+            <Drawer.Screen name="Chat" component={ChatScreen} mode={mode} />
+
         </Drawer.Navigator>
     );
 };
