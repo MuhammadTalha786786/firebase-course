@@ -5,7 +5,6 @@ import {
     StyleSheet,
     FlatList,
     Alert,
-
 } from 'react-native';
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,26 +18,26 @@ import moment from 'moment';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-
 const Comment = () => {
-    const [comments, setComments] = useState([])
+    const [comments, setComments] = useState([]);
     const [comment, setComment] = useState('');
     const [error, setError] = useState();
     const [isFetchingComments, setIsFetchingComments] = useState(false);
     const authState = useSelector((state: AppState) => state);
     const route = useRoute();
-    const navigation = useNavigation()
+    const navigation = useNavigation();
     let id = authState.userAuthReducer.uid;
     // let comments = route.params.comments;
     let refreshData = route.params.postData;
     let isrefresh = route.params.setGetData;
     let postId = route.params.postID;
-    console.log(postId, "post id is here");
+    console.log(postId, 'post id is here');
     let mode = route.params?.mode;
 
-
     console.log(mode, 'comments');
-    useEffect(() => { getComments() }, [])
+    useEffect(() => {
+        getComments();
+    }, []);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -46,11 +45,10 @@ const Comment = () => {
             headerStyle: { backgroundColor: StyleGuide.color.primary },
             headerTitleStyle: {
                 fontWeight: 'bold',
-                fontFamily: StyleGuide.fontFamily.medium
+                fontFamily: StyleGuide.fontFamily.medium,
             },
         });
     }, [navigation]);
-
 
     const getComments = () => {
         firestore()
@@ -59,13 +57,12 @@ const Comment = () => {
 
             .get()
             .then(querySnapshot => {
-
-                console.log(querySnapshot.data().comments)
-                setComments(querySnapshot.data().comments)
+                console.log(querySnapshot.data().comments);
+                setComments(querySnapshot.data().comments);
                 /* ... */
             });
     };
-    console.log(comments, "comemnts")
+    console.log(comments, 'comemnts');
     const DeleteComment = (commentID, postID) => {
         Alert.alert(
             'Are you sure to delete?',
@@ -89,7 +86,7 @@ const Comment = () => {
     };
 
     const userCommentDeleted = (commentID, postID) => {
-        console.log(commentID, "on ");
+        console.log(commentID, 'on ');
 
         firestore()
             .collection('posts')
@@ -99,20 +96,24 @@ const Comment = () => {
             })
             .then(() => {
                 Alert.alert('your comment has been Deleted...');
-                getComments()
+                getComments();
             })
             .catch(error => {
                 console.log(error.message);
             });
     };
 
-
-
-
-
     console.log(comments, 'length');
     return (
-        <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
+        <SafeAreaView
+            style={[
+                styles.SafeAreaView,
+                {
+                    backgroundColor: mode
+                        ? StyleGuide.color.dark
+                        : StyleGuide.color.light,
+                },
+            ]}>
             <View style={{ flex: 1 }}>
                 {/* <View style={styles.mainView}>
                     <Text style={styles.mainViewContent}>Comments</Text>
@@ -204,7 +205,6 @@ const Comment = () => {
 const styles = StyleSheet.create({
     SafeAreaView: {
         flex: 1,
-
     },
     mainView: {
         width: '100%',
