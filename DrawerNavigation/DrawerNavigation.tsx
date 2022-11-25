@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ChatScreen from '../screens/ChatScreen';
+import GoogleMaps from '../screens/GoogleMaps';
 
 const Drawer = createDrawerNavigator();
 
@@ -31,6 +32,7 @@ const DrawerNavigation = () => {
                     fontFamily: StyleGuide.fontFamily.regular,
                 },
             }}
+
             drawerContent={props => (
                 <DrawerContentScrollView {...props}>
                     <View
@@ -111,6 +113,15 @@ const DrawerNavigation = () => {
                 headerStyle: {
                     backgroundColor: StyleGuide.color.primary,
                 },
+                contentOptions: {
+                    activeTintColor: '#e91e63',
+                    itemsContainerStyle: {
+                        marginVertical: 0,
+                    },
+                    iconContainerStyle: {
+                        opacity: 1
+                    }
+                },
                 headerLeft: () => (
                     <TouchableOpacity
                         style={{ marginLeft: 10 }}
@@ -134,8 +145,29 @@ const DrawerNavigation = () => {
                     </View>
                 ),
             })}>
-            <Drawer.Screen name="Home" component={Home} mode={mode} />
-            <Drawer.Screen name="Chat" component={ChatScreen} mode={mode} />
+            <Drawer.Screen
+
+                options={{
+                    drawerLabelStyle: {
+                        fontFamily: StyleGuide.fontFamily.regular,
+                    },
+                    drawerLabel: ({ focused }) => <Text style={[{ fontFamily: StyleGuide.fontFamily.medium }, focused ? { color: StyleGuide.color.primary } : {}]}>
+                        Home
+                    </Text>,
+                }}
+                name="Home" component={Home} mode={mode} />
+
+            <Drawer.Screen
+
+                options={{
+                    drawerLabelStyle: {
+                        fontFamily: StyleGuide.fontFamily.regular,
+                    },
+                    drawerLabel: ({ focused }) => <Text style={[{ fontFamily: StyleGuide.fontFamily.medium }, focused ? { color: StyleGuide.color.primary } : {}]}>
+                        Google Map
+                    </Text>,
+                }}
+                name="Google Map" component={GoogleMaps} mode={mode} />
 
         </Drawer.Navigator>
     );

@@ -8,7 +8,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import auth from '@react-native-firebase/auth';
@@ -38,15 +38,13 @@ const Post = ({ navigation }) => {
   const [postImage, setPostImage] = useState('');
   const authState = useSelector((state: AppState) => state);
   const [loginState, setLoginState] = useState();
-  const [imageText, selectImageText] = useState('')
-
+  const [imageText, selectImageText] = useState('');
 
   const dispatch = useDispatch();
   const logout = () => {
-    UpdateLogin()
-    getDataofUserPost()
+    UpdateLogin();
+    getDataofUserPost();
     dispatch(setSignOut());
-
   };
 
   let uid = authState.userAuthReducer.uid;
@@ -67,8 +65,6 @@ const Post = ({ navigation }) => {
     return a;
   };
 
-
-
   const UpdateLogin = () => {
     let userID = authState.userAuthReducer.uid;
     firestore()
@@ -80,12 +76,10 @@ const Post = ({ navigation }) => {
       .then(() => {
         console.log('User updated!');
       });
-  }
-
-
+  };
 
   const selectImage = () => {
-    selectImageText('Please Wait While your Image is Uploading')
+    selectImageText('Please Wait While your Image is Uploading');
 
     ImagePicker.openPicker({
       width: 300,
@@ -101,13 +95,12 @@ const Post = ({ navigation }) => {
         ref.getDownloadURL().then(x => {
           console.log(x, 'x url');
           setPostImage(x);
-
         });
       });
     });
   };
 
-  console.log(postImage === '', "postImage")
+  console.log(postImage === '', 'postImage');
 
   useEffect(() => {
     auth().onAuthStateChanged(function (user) {
@@ -117,18 +110,15 @@ const Post = ({ navigation }) => {
           .doc(user.uid)
           .get()
           .then(documentSnapshot => {
-            console.log(documentSnapshot.data().isLogin, "mdfdas")
+            console.log(documentSnapshot.data().isLogin, 'mdfdas');
 
             setLoginState(documentSnapshot.data().isLogin);
           });
-
       } else {
         console.log('not login');
       }
     });
   }, [navigation]);
-
-
 
   const postUploaded = (id, postData) => {
     firestore()
@@ -143,10 +133,11 @@ const Post = ({ navigation }) => {
         setPostImage('');
         setTitle('');
         setTextAreaValue('');
-      }).catch((error) => {
-        console.log(error)
       })
-  }
+      .catch(error => {
+        console.log(error);
+      });
+  };
 
   const uploadPost = () => {
     if (postImage === '') {
@@ -166,15 +157,18 @@ const Post = ({ navigation }) => {
         postID: id,
         likes: [],
         comments: [],
-        isLogin: loginState
+        isLogin: loginState,
       };
-      postUploaded(id, postData)
+      postUploaded(id, postData);
     }
   };
 
+
+
   let disabled = postImage === '' || textAreaValue === '';
   let mode = authState.darkModeReducer.mode;
-  console.log(disabled, "disabled")
+  console.log(disabled, 'disabled');
+
   return (
     <>
       <StatusBar
@@ -182,7 +176,15 @@ const Post = ({ navigation }) => {
         translucent
         backgroundColor="transparent"
       />
-      <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
+      <SafeAreaView
+        style={[
+          styles.SafeAreaView,
+          {
+            backgroundColor: mode
+              ? StyleGuide.color.dark
+              : StyleGuide.color.light,
+          },
+        ]}>
         <>
           <View style={styles.heading}>
             <Text style={styles.headingText}>Create Post</Text>
@@ -225,7 +227,9 @@ const Post = ({ navigation }) => {
           <View style={{ padding: 10 }}>
             {image === '' && <Text style={styles.errorText}>{imageError}</Text>}
             <Text style={styles.errorText}>{error}</Text>
-            {postImage === '' && <Text style={styles.errorText}>{imageText}</Text>}
+            {postImage === '' && (
+              <Text style={styles.errorText}>{imageText}</Text>
+            )}
 
             <ButtonComponent
               buttonTitle="Post"

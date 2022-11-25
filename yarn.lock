@@ -2837,6 +2837,11 @@
   resolved "https://registry.npmjs.org/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
+"@types/geojson@^7946.0.8":
+  version "7946.0.10"
+  resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.10.tgz#6dfbf5ea17142f7f9a043809f1cd4c448cb68249"
+  integrity sha512-Nmh0K3iWQJzniTuPRcJn5hxXkfB1T1pgB89SBig5PlJQU5yocazeu4jATJlaA0GYFKWMqDdvYemoSnF2pXgLVA==
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
   resolved "https://registry.npmjs.org/@types/graceful-fs/-/graceful-fs-4.1.5.tgz"
@@ -7643,6 +7648,11 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.npmjs.org/punycode/-/punycode-2.1.1.tgz"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
+qs@~6.9.1:
+  version "6.9.7"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.7.tgz#4610846871485e1e048f44ae3b94033f0e675afe"
+  integrity sha512-IhMFgUmuNpyRfxA90umL7ByLlgRXu6tIfKPpF5TmcfRLlLCckfP/g3IQmju6jjpu+Hh8rA+2p6A27ZSPOOHdKw==
+
 query-string@^7.0.0:
   version "7.1.1"
   resolved "https://registry.npmjs.org/query-string/-/query-string-7.1.1.tgz"
@@ -7737,6 +7747,11 @@ react-native-floating-action@^1.22.0:
   resolved "https://registry.yarnpkg.com/react-native-floating-action/-/react-native-floating-action-1.22.0.tgz#7ec476f320e16855ad4077a3a9f36511d1718a52"
   integrity sha512-m/9ueh2bgV+Dopelam2hu+FIY1wrIOPjpcBNgU3I5J9SqWmPQCarSz5L8zsW5QWE4YgXuaVbYAO/pgb0P8x/gQ==
 
+react-native-geolocation-service@^5.3.1:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/react-native-geolocation-service/-/react-native-geolocation-service-5.3.1.tgz#4ce1017789da6fdfcf7576eb6f59435622af4289"
+  integrity sha512-LTXPtPNmrdhx+yeWG47sAaCgQc3nG1z+HLLHlhK/5YfOgfLcAb9HAkhREPjQKPZOUx8pKZMIpdGFUGfJYtimXQ==
+
 react-native-gesture-handler@^2.8.0:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.8.0.tgz#ef9857871c10663c95a51546225b6e00cd4740cf"
@@ -7754,6 +7769,15 @@ react-native-get-random-values@^1.8.0:
   integrity sha512-H/zghhun0T+UIJLmig3+ZuBCvF66rdbiWUfRSNS6kv5oDSpa1ZiVyvRWtuPesQpT8dXj+Bv7WJRQOUP+5TB1sA==
   dependencies:
     fast-base64-decode "^1.0.0"
+
+react-native-google-places-autocomplete@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/react-native-google-places-autocomplete/-/react-native-google-places-autocomplete-2.5.1.tgz#93d5ac3e34e3e8f594aae5349f9e2d3e0b87484e"
+  integrity sha512-2FZZomogB18mLSC/N39UcpiVoJn/fFIpud1M2KZMom/pJhSMgfqV4qLjHuzaDyYIl7KBz/zpGDcbYgmtvvpkHQ==
+  dependencies:
+    lodash.debounce "^4.0.8"
+    prop-types "^15.7.2"
+    qs "~6.9.1"
 
 react-native-gradle-plugin@^0.70.3:
   version "0.70.3"
@@ -7788,6 +7812,13 @@ react-native-linear-gradient@^2.6.2:
   resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.6.2.tgz#56598a76832724b2afa7889747635b5c80948f38"
   integrity sha512-Z8Xxvupsex+9BBFoSYS87bilNPWcRfRsGC0cpJk72Nxb5p2nEkGSBv73xZbEHnW2mUFvP+huYxrVvjZkr/gRjQ==
 
+react-native-maps@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-1.3.2.tgz#8e30bfd9d934de02827253e5cde6c08a04f6356c"
+  integrity sha512-NB7HGRZOgxxXCWzrhIVucx/bsrEWANvk3DLci1ov4P9MQnEVQYQCCkTxsnaEvO191GeBOCRDyYn6jckqbfMtmg==
+  dependencies:
+    "@types/geojson" "^7946.0.8"
+
 react-native-modal-datetime-picker@^14.0.0:
   version "14.0.0"
   resolved "https://registry.yarnpkg.com/react-native-modal-datetime-picker/-/react-native-modal-datetime-picker-14.0.0.tgz#ca2c81a275ee3a23d9ad02113e76ed243c90781e"
@@ -7810,6 +7841,11 @@ react-native-paper@5.0.0-rc.6:
     "@callstack/react-theme-provider" "^3.0.7"
     color "^3.1.2"
     react-native-iphone-x-helper "^1.3.1"
+
+react-native-permissions@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-3.6.1.tgz#73adcc1cef8cd57a9ef167b4507405f4ff5749c4"
+  integrity sha512-fzPpPQXeD34inUccqtoResSwYubfrwUguP4qrVUUv8+KSMjYSaHGoS5HaIJLZHlN9gO+TvLJZ2L5ZljTsb6qnQ==
 
 react-native-phone-number-input@^2.1.0:
   version "2.1.0"

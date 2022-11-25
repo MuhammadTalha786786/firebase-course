@@ -133,8 +133,8 @@ const TabNavigation = () => {
 
             <Tab.Screen name="Home" component={DrawerNavigation} options={{ headerShown: false }} />
             <Tab.Screen name="Friends" component={FriendsScreen} options={{ headerShown: true }} />
-            <Tab.Screen name=" " component={Post} options={{ headerShown: true, title: "Create Post" }} />
-            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
+            <Tab.Screen name=" " component={Post} options={{ headerShown: true, title: 'Create Post' }} />
+            <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, }} />
             <Tab.Screen name="Notifications" component={Notifications} options={{ headerShown: true }} />
 
 
