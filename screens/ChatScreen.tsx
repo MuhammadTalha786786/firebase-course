@@ -12,7 +12,6 @@ import {
     FlatList,
     Dimensions,
     Alert,
-
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { useRoute } from '@react-navigation/native';
@@ -35,7 +34,7 @@ export default function ChatScreen({ navigation }) {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     let senderName = authState.userName;
-    let senderID = authState.uid
+    let senderID = authState.uid;
     const sendMessage = () => {
         setMesssageSend(!messageSend);
         if (inputMessage === '') {
@@ -99,12 +98,15 @@ export default function ChatScreen({ navigation }) {
                                 color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
                                 fontSize: 18,
                                 fontFamily: StyleGuide.fontFamily.medium,
-
                             }}>
                             {receiverName}
                         </Text>
                         <Text
-                            style={{ color: '#111', fontFamily: StyleGuide.fontFamily.medium, color: mode ? StyleGuide.color.light : StyleGuide.color.dark, }}>
+                            style={{
+                                color: '#111',
+                                fontFamily: StyleGuide.fontFamily.medium,
+                                color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
+                            }}>
                             {receiverLogin ? 'online' : 'offline'}
                             { }
                         </Text>
@@ -146,9 +148,21 @@ export default function ChatScreen({ navigation }) {
 
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <View style={[styles.container, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
+            <View
+                style={[
+                    styles.container,
+                    {
+                        backgroundColor: mode
+                            ? StyleGuide.color.dark
+                            : StyleGuide.color.light,
+                    },
+                ]}>
                 <FlatList
-                    style={{ backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }}
+                    style={{
+                        backgroundColor: mode
+                            ? StyleGuide.color.dark
+                            : StyleGuide.color.light,
+                    }}
                     inverted={true}
                     data={JSON.parse(JSON.stringify(messages)).reverse()}
                     renderItem={({ item }) => (
@@ -191,7 +205,11 @@ export default function ChatScreen({ navigation }) {
                 />
 
                 <View style={{ paddingVertical: 10 }}>
-                    <View style={{ ...styles.messageInputView, backgroundColor: 'rgb(57, 58, 52)' }}>
+                    <View
+                        style={{
+                            ...styles.messageInputView,
+                            backgroundColor: 'rgb(57, 58, 52)',
+                        }}>
                         <TextInput
                             defaultValue={inputMessage}
                             style={{ ...styles.messageInput, color: StyleGuide.color.light }}
@@ -206,7 +224,11 @@ export default function ChatScreen({ navigation }) {
                             onPress={() => {
                                 sendMessage();
                             }}>
-                            <Icon name="send" type="material" color={StyleGuide.color.light} />
+                            <Icon
+                                name="send"
+                                type="material"
+                                color={StyleGuide.color.light}
+                            />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -223,8 +245,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    userProfileImage:
-        { height: '100%', aspectRatio: 1, borderRadius: 100 },
+    userProfileImage: { height: '100%', aspectRatio: 1, borderRadius: 100 },
     container: {
         flex: 1,
     },
@@ -233,13 +254,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginHorizontal: 10,
         borderRadius: 3.3,
-        height: 50
+        height: 50,
     },
     messageInput: {
         height: 50,
         flex: 1,
         paddingHorizontal: 10,
-
     },
     messageSendView: {
         paddingHorizontal: 10,
