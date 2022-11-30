@@ -21,15 +21,11 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 const Comment = () => {
     const [comments, setComments] = useState([]);
     const [comment, setComment] = useState('');
-    const [error, setError] = useState();
     const [isFetchingComments, setIsFetchingComments] = useState(false);
     const authState = useSelector((state: AppState) => state);
     const route = useRoute();
     const navigation = useNavigation();
     let id = authState.userAuthReducer.uid;
-    // let comments = route.params.comments;
-    let refreshData = route.params.postData;
-    let isrefresh = route.params.setGetData;
     let postId = route.params.postID;
     console.log(postId, 'post id is here');
     let mode = route.params?.mode;

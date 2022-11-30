@@ -149,6 +149,7 @@ const Home = () => {
               <SkeletonPlaceHolder />
             ) : (
               <CardUI
+                item={item}
                 mode={mode}
                 userName={item.userName}
                 userImage={{uri: item.userImage}}

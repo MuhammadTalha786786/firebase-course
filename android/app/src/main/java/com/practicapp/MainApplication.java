@@ -14,6 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.rnfs.RNFSPackage;
+import com.brentvatne.react.ReactVideoPackage;
+
   // <--- Import Package
 
 
