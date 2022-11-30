@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {StyleGuide} from '../../Utils/StyleGuide';
-import {Card, Title, Paragraph} from 'react-native-paper';
+import {Card, Paragraph} from 'react-native-paper';
 import {Avatar} from 'native-base';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';

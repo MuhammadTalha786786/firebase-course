@@ -151,23 +151,11 @@ const Home = () => {
               <CardUI
                 item={item}
                 mode={mode}
-                userName={item.userName}
-                userImage={{uri: item.userImage}}
-                postImage={{uri: item.postImage}}
-                title={item.postTitle}
-                subtitle={item.postDetail}
-                postID={item.postID}
-                arrayLikes={item.likes}
-                date={item.dateCreated}
-                post={item}
-                comments={item.comments}
                 setIsPostLiked={setIsPostLiked}
                 isPostLiked={isPostLiked}
-                getPostData={getPostData}
                 postData={getPostData}
                 setGetData={getData}
                 PostedUser={item.userID}
-                loginState={item.isLogin}
               />
             )
           }

@@ -4,29 +4,28 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableHighlight,
+  Platform
 } from 'react-native';
 import React, {useRef, useState, useEffect} from 'react';
 import {
   Camera,
   useCameraDevices,
-  CameraPermissionStatus,
 } from 'react-native-vision-camera';
 import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import {StyleGuide} from '../../Utils/StyleGuide';
+import storage from '@react-native-firebase/storage';
+import {v4 as uuidv4} from 'uuid';
 
 const CameraComponent = () => {
   const camera = useRef<any>();
   const [hasPermission, setHasPermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordedVideoURL, setRecordedVideoURL]=useState('');
+  const [fetchRecordedURL,setFetchRecordedURL]=useState('')
   const navigation = useNavigation();
 
-  // useEffect(() => {
-  //     (async () => {
-  //       const status = await Camera.requestCameraPermission();
-  //       setHasPermission(status === 'authorized');
-  //     })();
-  //   }, [navigation]);
+ 
 
   useFocusEffect(
     React.useCallback(() => {
@@ -46,15 +45,69 @@ const CameraComponent = () => {
     setIsRecording(true);
     camera.current.startRecording({
       flash: 'on',
-      onRecordingFinished: video => console.log(video),
+      onRecordingFinished: video => {
+        setRecordedVideoURL(video.path)
+      },
       onRecordingError: error => console.error(error),
     });
+
+
+
+       
   };
 
   const stopRecording = async () => {
     setIsRecording(false);
+   
     await camera.current.stopRecording();
+   
+   
   };
+
+
+  const uploadVideoURL= ()=> {
+    console.log("inside");
+
+      const uploadUri = Platform.OS === 'ios' ? recordedVideoURL.replace('file://', '') : recordedVideoURL
+
+      const videoRef = storage().ref('videos').child('video_098')
+      var metadata = {
+        contentType: 'video/mp4'
+      };
+      var uploadTask = videoRef.put(uploadUri, metadata);
+      uploadTask.on('state_changed', taskSnapshot => {
+        console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
+
+
+      });
+      
+      // Listen for state changes, errors, and completion of the upload.
+    
+    }
+
+
+
+
+
+  const UploadVideo=()=>{
+    console.log("upload video")
+    let fileName =  `${uuidv4()}${recordedVideoURL.substr(
+      recordedVideoURL.lastIndexOf('.'),
+    )}`;
+    const ref =  storage().ref(fileName);
+    var metadata = {
+      contentType: 'video/mp4'
+    };
+    ref.putFile(recordedVideoURL,metadata).then(s => {
+      console.log(s)
+      ref.getDownloadURL().then(x => {
+        console.log(x, 'x url');
+        console.log('Your Video Has Been Uploaded')
+        setFetchRecordedURL(x);
+      });
+    });
+  }
+  console.log(fetchRecordedURL,"fetched url")
 
   return (
     <View
@@ -97,7 +150,11 @@ const CameraComponent = () => {
               justifyContent: 'flex-end',
               alignItems: 'center',
             }}>
-            {isRecording === false && (
+
+              <View style={{flexDirection:'row'}}>
+
+
+              {isRecording === false && (
               <TouchableHighlight
                 onPress={videoRecording}
                 style={styles.capture}>
@@ -112,6 +169,12 @@ const CameraComponent = () => {
                 <View />
               </TouchableHighlight>
             )}
+
+            <View>
+              <Text onPress={UploadVideo} style={{color:'red'}}>Upload Video</Text>
+            </View>
+              </View>
+           
           </View>
         </>
       )}
