@@ -6,7 +6,6 @@ import {
   DrawerItemList,
 } from '@react-navigation/drawer';
 import Home from '../screens/Home';
-import ProfileScreen from '../screens/ProfileScreen';
 import {StyleGuide} from '../Utils/StyleGuide';
 import {DrawerActions} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -15,7 +14,6 @@ import {setDarkMode} from '../Redux/Auth/DarkMode';
 import {useDispatch, useSelector} from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ChatScreen from '../screens/ChatScreen';
 import GoogleMaps from '../screens/GoogleMaps';
 import VideoComponent from '../screens/VideoComponent';
 
@@ -73,14 +71,15 @@ const DrawerNavigation = () => {
               }}>
               <Text
                 style={{
-                  fontFamily: StyleGuide.fontFamily.regular,
-                  marginLeft: 32,
+                  fontFamily: StyleGuide.fontFamily.medium,
+                  marginLeft: 15,
                   color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
                 }}>
                 Dark Mode
               </Text>
             </View>
             <Switch
+              style={{marginRight: 10}}
               thumbColor={'#fff'}
               trackColor={{
                 false: 'grey',
@@ -152,7 +151,9 @@ const DrawerNavigation = () => {
             <Text
               style={[
                 {fontFamily: StyleGuide.fontFamily.medium},
-                focused ? {color: StyleGuide.color.primary} : {},
+                focused
+                  ? {color: StyleGuide.color.primary}
+                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
               ]}>
               Home
             </Text>
@@ -172,7 +173,9 @@ const DrawerNavigation = () => {
             <Text
               style={[
                 {fontFamily: StyleGuide.fontFamily.medium},
-                focused ? {color: StyleGuide.color.primary} : {},
+                focused
+                  ? {color: StyleGuide.color.primary}
+                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
               ]}>
               Google Map
             </Text>
@@ -191,7 +194,9 @@ const DrawerNavigation = () => {
             <Text
               style={[
                 {fontFamily: StyleGuide.fontFamily.medium},
-                focused ? {color: StyleGuide.color.primary} : {},
+                focused
+                  ? {color: StyleGuide.color.primary}
+                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
               ]}>
               Video
             </Text>

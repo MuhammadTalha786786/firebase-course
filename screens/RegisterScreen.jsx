@@ -61,19 +61,7 @@ const RegisterScreen = ({navigation}) => {
     });
 
     console.log(image, 'uri....');
-    // const filename = image.substring(image.lastIndexOf('/') + 1);
-    // const uploadUri =
-    //   Platform.OS === 'ios' ? image.replace('file://', '') : image;
-    // setTransferred(0);
-    // const task = storage().ref(filename).putFile(uploadUri);
-
-    // set progress state
-    // task.on('state_changed', snapshot => {
-    //   setUserProfileImage(filename);
-    //   setTransferred(
-    //     Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
-    //   );
-    // });
+ 
   };
 
   const writeUserData = user => {

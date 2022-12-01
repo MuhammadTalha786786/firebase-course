@@ -4,13 +4,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TouchableHighlight,
-  Platform
+  Platform,
 } from 'react-native';
 import React, {useRef, useState, useEffect} from 'react';
-import {
-  Camera,
-  useCameraDevices,
-} from 'react-native-vision-camera';
+import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import {StyleGuide} from '../../Utils/StyleGuide';
@@ -21,11 +18,9 @@ const CameraComponent = () => {
   const camera = useRef<any>();
   const [hasPermission, setHasPermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedVideoURL, setRecordedVideoURL]=useState('');
-  const [fetchRecordedURL,setFetchRecordedURL]=useState('')
+  const [recordedVideoURL, setRecordedVideoURL] = useState('');
+  const [fetchRecordedURL, setFetchRecordedURL] = useState('');
   const navigation = useNavigation();
-
- 
 
   useFocusEffect(
     React.useCallback(() => {
@@ -44,70 +39,54 @@ const CameraComponent = () => {
   const videoRecording = () => {
     setIsRecording(true);
     camera.current.startRecording({
-      flash: 'on',
+      flash: 'off',
       onRecordingFinished: video => {
-        setRecordedVideoURL(video.path)
+        console.log(video, 'video details');
+        setRecordedVideoURL(video.path);
       },
       onRecordingError: error => console.error(error),
     });
-
-
-
-       
   };
 
   const stopRecording = async () => {
     setIsRecording(false);
-   
+
     await camera.current.stopRecording();
-   
-   
   };
 
-
-  const uploadVideoURL= ()=> {
-    console.log("inside");
-
-      const uploadUri = Platform.OS === 'ios' ? recordedVideoURL.replace('file://', '') : recordedVideoURL
-
-      const videoRef = storage().ref('videos').child('video_098')
-      var metadata = {
-        contentType: 'video/mp4'
-      };
-      var uploadTask = videoRef.put(uploadUri, metadata);
-      uploadTask.on('state_changed', taskSnapshot => {
-        console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
-
-
-      });
-      
-      // Listen for state changes, errors, and completion of the upload.
-    
-    }
-
-
-
-
-
-  const UploadVideo=()=>{
-    console.log("upload video")
-    let fileName =  `${uuidv4()}${recordedVideoURL.substr(
+  const UploadVideo = () => {
+    console.log(recordedVideoURL, 'url');
+    console.log('upload video');
+    let fileName = `${uuidv4()}${recordedVideoURL.substr(
       recordedVideoURL.lastIndexOf('.'),
     )}`;
-    const ref =  storage().ref(fileName);
-    var metadata = {
-      contentType: 'video/mp4'
-    };
-    ref.putFile(recordedVideoURL,metadata).then(s => {
-      console.log(s)
-      ref.getDownloadURL().then(x => {
-        console.log(x, 'x url');
-        console.log('Your Video Has Been Uploaded')
-        setFetchRecordedURL(x);
-      });
-    });
-  }
-  console.log(fetchRecordedURL,"fetched url")
+    console.log(fileName, 'file name of the recorded video');
+    const ref = storage().ref(fileName);
+
+    console.log('ref', ref);
+    console.log('recordedVideoURL', recordedVideoURL);
+
+    storage()
+      .ref(fileName)
+      .putFile(recordedVideoURL)
+      .then(snapshot => {
+        //You can check the image is now uploaded in the storage bucket
+        console.log(snapshot, 'snapshot of uploading the file.....');
+        console.log(`${fileName} has been successfully uploaded.`);
+      })
+      .catch(e => console.log('uploading image error => ', e));
+    //  ref.putFile(recordedVideoURL).then(s => {
+    //     console.log(s,"s");
+    //     ref.getDownloadURL().then(x => {
+    //       console.log(x, 'x url');
+    //       console.log('Your Video Has Been Uploaded');
+    //       setFetchRecordedURL(x);
+    //     });
+    //   }).catch((error)=>{
+    //     console.log(error,"this is the error while uploading videos")
+    //   })
+  };
+  console.log(fetchRecordedURL, 'fetched url');
 
   return (
     <View
@@ -117,22 +96,6 @@ const CameraComponent = () => {
         borderRadius: 100000000 / 2,
         alignItems: 'center',
       }}>
-      {/* <RNCamera
-    style={{ height: RFValue(320), width: RFValue(320), overflow: 'hidden', borderRadius: 10000 / 2 }}
-    ref={camera} 
-    captureAudio={false}
-    type={RNCamera.Constants.Type.front }
-    androidCameraPermissionOptions={
-      {
-        title: 'Permissions Required',
-        message: 'Allow app to access Camera',
-        buttonPositive: 'Ok',
-        buttonNegative: 'No'
-      }
-
-    }>
-  </RNCamera> */}
-
       {device != null && hasPermission && (
         <>
           <Camera
@@ -150,31 +113,29 @@ const CameraComponent = () => {
               justifyContent: 'flex-end',
               alignItems: 'center',
             }}>
-
-              <View style={{flexDirection:'row'}}>
-
-
+            <View style={{flexDirection: 'row'}}>
               {isRecording === false && (
-              <TouchableHighlight
-                onPress={videoRecording}
-                style={styles.capture}>
-                <View />
-              </TouchableHighlight>
-            )}
+                <TouchableHighlight
+                  onPress={videoRecording}
+                  style={styles.capture}>
+                  <View />
+                </TouchableHighlight>
+              )}
 
-            {isRecording && (
-              <TouchableHighlight
-                onPress={stopRecording}
-                style={styles.stopCapture}>
-                <View />
-              </TouchableHighlight>
-            )}
+              {isRecording && (
+                <TouchableHighlight
+                  onPress={stopRecording}
+                  style={styles.stopCapture}>
+                  <View />
+                </TouchableHighlight>
+              )}
 
-            <View>
-              <Text onPress={UploadVideo} style={{color:'red'}}>Upload Video</Text>
-            </View>
+              <View>
+                <Text onPress={UploadVideo} style={{color: 'red'}}>
+                  Upload Video
+                </Text>
               </View>
-           
+            </View>
           </View>
         </>
       )}
