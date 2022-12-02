@@ -61,30 +61,47 @@ const CameraComponent = () => {
       recordedVideoURL.lastIndexOf('.'),
     )}`;
     console.log(fileName, 'file name of the recorded video');
-    const ref = storage().ref(fileName);
+    const ref = storage().ref().child(fileName);
 
     console.log('ref', ref);
     console.log('recordedVideoURL', recordedVideoURL);
 
-    storage()
-      .ref(fileName)
-      .putFile(recordedVideoURL)
-      .then(snapshot => {
-        //You can check the image is now uploaded in the storage bucket
-        console.log(snapshot, 'snapshot of uploading the file.....');
-        console.log(`${fileName} has been successfully uploaded.`);
-      })
-      .catch(e => console.log('uploading image error => ', e));
-    //  ref.putFile(recordedVideoURL).then(s => {
-    //     console.log(s,"s");
+    // storage()
+    //   .ref(fileName)
+    //   .putFile(recordedVideoURL)
+    //   .then(snapshot => {
+    //     //You can check the image is now uploaded in the storage bucket
+    //     console.log(snapshot, 'snapshot of uploading the file.....');
+    //     console.log(`${fileName} has been successfully uploaded.`);
+    //   })
+    //   .catch(e => console.log('uploading image error => ', e));
+    // var task = ref.putFile(recordedVideoURL);
+    // task.on(
+    //   'state_changed',
+    //   function progress(snapshot) {
+    //     console.log(snapshot,)
+    //     var percentage =
+    //       (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
     //     ref.getDownloadURL().then(x => {
     //       console.log(x, 'x url');
     //       console.log('Your Video Has Been Uploaded');
     //       setFetchRecordedURL(x);
     //     });
-    //   }).catch((error)=>{
-    //     console.log(error,"this is the error while uploading videos")
-    //   })
+    //     console.log(percentage, 'the process is on the way....');
+    //   },
+    //   function complete() {},
+    // );
+
+     ref.putFile(recordedVideoURL).then(s => {
+        console.log(s,"s");
+        ref.getDownloadURL().then(x => {
+          console.log(x, 'x url');
+          console.log('Your Video Has Been Uploaded');
+          setFetchRecordedURL(x);
+        });
+      }).catch((error)=>{
+        console.log(error,"this is the error while uploading videos")
+      })
   };
   console.log(fetchRecordedURL, 'fetched url');
 

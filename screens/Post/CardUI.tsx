@@ -99,34 +99,42 @@ const CardUI = ({
   let PostedDate = item.dateCreated.toDate();
 
   const postComment = () => {
-    let commentID = uuid.v4();
-    let userID = authState.userAuthReducer.uid;
-    let userProfileName = authState.userAuthReducer.userName;
-    let userProfileImage = authState.userAuthReducer.photoURL;
-    let tempComments = item.comments;
-    tempComments.push({
-      userID: userID,
-      userImage: userProfileImage,
-      userProfileName: userProfileName,
-      comment: comment,
-      commentCreated: new Date(),
-      postID: item.postID,
-      commentID: commentID,
-    });
-    firestore()
-      .collection('posts')
-      .doc(item.postID)
-      .update({
-        comments: tempComments,
-      })
-      .then(() => {
-        Alert.alert('your comment has been posted...');
-        setComment('');
-        setShowComment(false);
-      })
-      .catch(error => {
-        console.log(error);
+
+
+    if(comment !== ''){
+      let commentID = uuid.v4();
+      let userID = authState.userAuthReducer.uid;
+      let userProfileName = authState.userAuthReducer.userName;
+      let userProfileImage = authState.userAuthReducer.photoURL;
+      let tempComments = item.comments;
+      tempComments.push({
+        userID: userID,
+        userImage: userProfileImage,
+        userProfileName: userProfileName,
+        comment: comment,
+        commentCreated: new Date(),
+        postID: item.postID,
+        commentID: commentID,
       });
+      firestore()
+        .collection('posts')
+        .doc(item.postID)
+        .update({
+          comments: tempComments,
+        })
+        .then(() => {
+          Alert.alert('your comment has been posted...');
+          setComment('');
+          setShowComment(false);
+        })
+        .catch(error => {
+          console.log(error);
+        })
+    }
+    else{
+      Alert.alert("Please Enter the Comment...")
+    }
+  
   };
 
   const DeletePost = postID => {

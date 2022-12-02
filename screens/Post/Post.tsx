@@ -96,6 +96,8 @@ const Post = ({ navigation }) => {
           console.log(x, 'x url');
           setPostImage(x);
         });
+      }).catch((error)=>{
+        console.log(error,"error....")
       });
     });
   };
