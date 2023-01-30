@@ -106,6 +106,7 @@ const App = () => {
               <AppStack.Screen
                 name="RegisterScreen"
                 component={RegisterScreen}
+                
               />
             </>
           )}

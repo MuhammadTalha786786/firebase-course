@@ -63,7 +63,7 @@ const Home = () => {
   useFocusEffect(
     React.useCallback(() => {
       getPostData();
-    }, [isPostLiked, navigation]),
+    }, [ isPostLiked,  navigation]),
   );
 
   let uid = authState.userAuthReducer.uid;
@@ -160,7 +160,9 @@ const Home = () => {
             )
           }
           onRefresh={getPostData}
-          refreshing={getData}
+          colors={["#9Bd35A", "#689F38"]}
+
+           refreshing={getData}
           keyExtractor={item => item.postID}
         />
       </SafeAreaView>

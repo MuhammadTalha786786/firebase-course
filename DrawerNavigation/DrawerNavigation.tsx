@@ -30,6 +30,9 @@ const DrawerNavigation = () => {
         drawerLabelStyle: {
           fontFamily: StyleGuide.fontFamily.regular,
         },
+        drawerContentStyle:{
+          backgroundColor:'red'
+        }
       }}
       drawerContent={props => (
         <DrawerContentScrollView {...props}>
@@ -39,6 +42,7 @@ const DrawerNavigation = () => {
               alignSelf: 'center',
               flexDirection: 'row',
               alignItems: 'center',
+              backgroundColor:'red'
             }}>
             <Avatar
               bg="indigo.500"
@@ -94,6 +98,9 @@ const DrawerNavigation = () => {
               }}
               value={mode ? true : false}
             />
+          </View>
+          <View >
+            <Text  style={{alignSelf:'flex-end'}}    >Hello there</Text>
           </View>
         </DrawerContentScrollView>
       )}

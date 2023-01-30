@@ -202,7 +202,6 @@ const GoogleMaps = () => {
         provider={PROVIDER_GOOGLE}
         showsMyLocationButton={true}
         region={{
-       
           latitude: currentLocation?.latitude
             ? currentLocation?.latitude
             : geometry?.lat

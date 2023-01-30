@@ -9,6 +9,8 @@ target 'practicapp' do
 
   # Flags change depending on the env values.
   flags = get_default_flags()
+  rn_maps_path = '../node_modules/react-native-maps'
+
   pod 'Firebase', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
   pod 'FirebaseCoreInternal', :modular_headers => true  
@@ -21,6 +23,9 @@ target 'practicapp' do
   pod 'FirebaseAppCheckInterop', :modular_headers => true
   pod 'FirebaseAuthInterop', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
+  pod 'react-native-google-maps', :path => rn_maps_path , :inhibit_warnings => true, :modular_headers => false
+  pod 'GoogleMaps'
+  pod 'Google-Maps-iOS-Utils' , :inhibit_warnings => true, :modular_headers => false
   use_react_native!(
     :path => config[:reactNativePath],
     # Hermes is now enabled by default. Disable by setting this flag to false.

@@ -23,15 +23,15 @@ import moment from 'moment';
 import uuid from 'react-native-uuid';
 import Share from 'react-native-share';
 import ImgToBase64 from 'react-native-image-base64';
+import ProgressiveImage from '../components/ProgressiveImage';
 
 const CardUI = ({
   item,
   mode,
   isPostLiked,
-  setIsPostLiked,  
+  setIsPostLiked,
   postData,
   setGetData,
-
 }) => {
   const authState = useSelector((state: AppState) => state);
   const [showComment, setShowComment] = useState(false);
@@ -39,7 +39,7 @@ const CardUI = ({
   const [imageBase64URL, setImageBase64URL] = useState('');
 
   let userID = authState.userAuthReducer.uid;
- 
+
   const navigation = useNavigation();
   const likeStatus = arrayLikes => {
     if (arrayLikes?.length > 0) {
@@ -57,14 +57,17 @@ const CardUI = ({
   };
 
   const addPostLiked = arrayLikes => {
-
     setIsPostLiked(!isPostLiked);
     if (arrayLikes?.length > 0) {
       let findCurrent = arrayLikes.find(item => item.userID === userID);
       console.log(findCurrent);
       if (findCurrent) {
+        setIsPostLiked(!isPostLiked);
+
         arrayLikes = arrayLikes.filter(el => userID !== el.userID);
       } else {
+        setIsPostLiked(!isPostLiked);
+
         arrayLikes?.push({
           userID: userID,
           postDetail: item.postDetail,
@@ -74,6 +77,8 @@ const CardUI = ({
         });
       }
     } else {
+      setIsPostLiked(!isPostLiked);
+
       arrayLikes?.push({
         userID: userID,
         postDetail: item.postDetail,
@@ -94,14 +99,10 @@ const CardUI = ({
       });
   };
 
-  console.log(item)
-
-  let PostedDate = item.dateCreated.toDate();
+  // let PostedDate = item.dateCreated.toDate();
 
   const postComment = () => {
-
-
-    if(comment !== ''){
+    if (comment !== '') {
       let commentID = uuid.v4();
       let userID = authState.userAuthReducer.uid;
       let userProfileName = authState.userAuthReducer.userName;
@@ -129,12 +130,10 @@ const CardUI = ({
         })
         .catch(error => {
           console.log(error);
-        })
+        });
+    } else {
+      Alert.alert('Please Enter the Comment...');
     }
-    else{
-      Alert.alert("Please Enter the Comment...")
-    }
-  
   };
 
   const DeletePost = postID => {
@@ -170,8 +169,6 @@ const CardUI = ({
       });
   };
 
-  console.log(imageBase64URL, 'image url');
-
   const convertImage = async (name, image, title) => {
     console.log(image, title, 'share clicked');
 
@@ -181,31 +178,6 @@ const CardUI = ({
         setImageBase64URL(base64String), sharePost(name, image, title);
       })
       .catch(err => console.log(err));
-
-    // RNFetchBlob.config({
-
-    //     fileCache: true
-
-    // }).fetch("GET", image.uri)       // the file is now downloaded at local storage
-
-    //     .then(resp => {
-    //         console.log(resp, "resp")
-
-    //         image = resp.path();                // to get the file path
-
-    //         return resp.readFile("base64");      // to get the base64 string
-
-    //     })
-
-    //     .then(base64 => {
-
-    //         // here base64 encoded file data is returned
-
-    //         setImageBase64URL(base64)
-    //         sharePost(name, imageBase64URL, title)
-    //         console.log(base64)
-
-    //     });
   };
 
   const sharePost = (name, image, title) => {
@@ -224,6 +196,9 @@ const CardUI = ({
   };
   let userProfileImage = authState.userAuthReducer.photoURL;
   let isLogin = authState.userAuthReducer.isLoggedIn;
+  let PostedDate = item.dateCreated.toDate();
+
+  console.log(item.postImage, 'post url');
 
   return (
     <View>
@@ -256,7 +231,8 @@ const CardUI = ({
                   marginHorizontal: 5,
                   fontFamily: StyleGuide.fontFamily.medium,
                 }}>
-                {item.userName?.charAt(0).toUpperCase() + item.userName?.slice(1)}
+                {item.userName?.charAt(0).toUpperCase() +
+                  item.userName?.slice(1)}
               </Text>
             </View>
             <View>
@@ -273,7 +249,20 @@ const CardUI = ({
             </View>
           </View>
 
-          <Card.Cover source={{uri: item.postImage}} />
+          {item.postImage == undefined ||
+          item.postImage == null ||
+          item.postImage == '' ? (
+            <ProgressiveImage
+              defaultImageSource={require('../../images/default-img.jpeg')}
+              source={{uri: item.postImg}}
+              style={{width: '100%', height: 250}}
+              resizeMode="cover"
+            />
+          ) : (
+            <Card.Cover   
+            resizeMode='stretch'
+            source={{uri: item.postImage}} />
+          )}
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <View style={{flexDirection: 'row'}}>
               <AntDesign
@@ -288,7 +277,7 @@ const CardUI = ({
                 }}
               />
               <View>
-                {item.likes.length > 0 && (
+                {item?.likes?.length > 0 && (
                   <Text
                     style={{
                       marginVertical: 15,
@@ -323,19 +312,21 @@ const CardUI = ({
                   fontSize: widthPercentageToDP('3.5%'),
                   fontFamily: StyleGuide.fontFamily.medium,
                 }}>
-                {item.comments.length} comments
+                {item?.comments?.length} comments
               </Text>
               <View style={{marginHorizontal: 10, marginVertical: 15}}>
                 <MaterialCommunityIcons
                   name="share-variant-outline"
                   size={25}
                   color={mode ? '#ffff' : 'black'}
-                  onPress={() => convertImage(item.userName, item.postImage, item.postDetail)}
+                  onPress={() =>
+                    convertImage(item.userName, item.postImage, item.postDetail)
+                  }
                 />
               </View>
             </View>
 
-            {item.userID === userID ? (
+            {item?.userID === userID ? (
               <View>
                 <MaterialCommunityIcons
                   style={{marginHorizontal: 10, marginVertical: 15}}
@@ -343,7 +334,7 @@ const CardUI = ({
                   color={'red'}
                   size={22}
                   onPress={() => {
-                    DeletePost(item.postID);
+                    DeletePost(item?.postID);
                   }}
                 />
               </View>
@@ -374,10 +365,11 @@ const CardUI = ({
                 fontSize: widthPercentageToDP('3%'),
                 fontFamily: StyleGuide.fontFamily.regular,
               }}>
-              {item.postDetail?.charAt(0).toUpperCase() + item?.postDetail?.slice(1)}
+              {item.postDetail?.charAt(0).toUpperCase() +
+                item?.postDetail?.slice(1)}
             </Paragraph>
           </View>
-       
+
           <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
             <View style={{flexDirection: 'row'}}>
               <View>

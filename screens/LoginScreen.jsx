@@ -41,6 +41,7 @@ const LoginScreen = ({navigation}) => {
 
   async function signInWithPhoneNumber(phoneNumber) {
     const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+
     setConfirm(confirmation);
   }
 
@@ -48,6 +49,7 @@ const LoginScreen = ({navigation}) => {
     console.log('verifying the code');
     try {
       const codeVerify = await confirm.confirm(code);
+      let userData = await auth().currentUser.linkWithCredential(credential);
       console.warn(codeVerify, 'verify ');
       if (codeVerify) {
         navigation.navigate('Home');

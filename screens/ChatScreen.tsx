@@ -20,7 +20,6 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
 import { StyleGuide } from '../Utils/StyleGuide';
-import { Item } from 'react-native-paper/lib/typescript/components/List/List';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function ChatScreen({ navigation }) {
@@ -56,8 +55,7 @@ export default function ChatScreen({ navigation }) {
             .doc(id)
             .set(messageData)
             .then(() => {
-                console.log('post added!');
-                Alert.alert('uploaded');
+                console.log('Message added!');
             })
             .catch(error => {
                 console.log(error);
@@ -108,7 +106,6 @@ export default function ChatScreen({ navigation }) {
                                 color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
                             }}>
                             {receiverLogin ? 'online' : 'offline'}
-                            { }
                         </Text>
                     </View>
                 </View>

@@ -30,13 +30,8 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import { setSignIn } from '../Redux/Auth/AuthReducer'
 const ProfileScreen = () => {
+    
     const authState = useSelector((state: AppState) => state);
-
-
-
-
-
-
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
