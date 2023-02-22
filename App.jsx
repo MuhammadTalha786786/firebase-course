@@ -1,17 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import LoginScreen from './screens/LoginScreen';
+import LoginScreen from './screens/Login/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import OnBoardingScreen from './screens/OnBoardingScreen';
-import Home from './screens/Home';
+import Home from './screens/Home/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import TabNavigation from './TabNavigation/TabNavigation';
 import Comment from './screens/Post/Comment';
-import Profile from './screens/Profile';
 import messaging from '@react-native-firebase/messaging';
 import ChatScreen from './screens/ChatScreen';
+import ProfileScreen from './screens/Profile/ProfileScreen';
 
 const AppStack = createStackNavigator();
 
@@ -83,13 +83,10 @@ const App = () => {
               />
 
               <AppStack.Screen name="Comment" component={Comment} />
+              <AppStack.Screen name="profile" component={ProfileScreen} />
+
               <AppStack.Screen
-                name="Profile"
-                component={Profile}
-                options={{headerShown: true}}
-              />
-              <AppStack.Screen
-                name="ChatsScreen"
+                name="ChatsScreen"s
                 component={ChatScreen}
                 options={{headerShown: true}}
               />
@@ -106,7 +103,6 @@ const App = () => {
               <AppStack.Screen
                 name="RegisterScreen"
                 component={RegisterScreen}
-                
               />
             </>
           )}

@@ -1,18 +1,19 @@
 import React from 'react';
 import Home from '../screens/Home';
-import Profile from '../screens/Profile';
 import Post from '../screens/Post/Post';
 import FriendsScreen from '../screens/FriendsScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 const Tab = createBottomTabNavigator();
-import ProfileScreen from '../screens/ProfileScreen';
+
 import DrawerNavigation from '../DrawerNavigation/DrawerNavigation';
 import {StyleGuide} from '../Utils/StyleGuide';
 import {Platform, View, Image} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import Notifications from '../screens/Notifications';
 import GoogleMaps from '../screens/GoogleMaps';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
+
 
 const TabNavigation = () => {
   const authState = useSelector((state: AppState) => state);

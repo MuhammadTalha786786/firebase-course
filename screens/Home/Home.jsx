@@ -11,100 +11,39 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {setSignOut} from '../Redux/Auth/AuthReducer';
+import {setSignOut} from '../../Redux/Auth/AuthReducer';
 import {useEffect} from 'react';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import storage from '@react-native-firebase/storage';
 import database from '@react-native-firebase/database';
 
-import TextInputComponent from './components/TextInputComponent';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {StyleGuide} from '../Utils/StyleGuide';
+import {StyleGuide} from '../../Utils/StyleGuide';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import {Box, TextArea} from 'native-base';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {Avatar} from 'native-base';
 import {Button, Card, Title, Paragraph} from 'react-native-paper';
-import CardUI from './Post/CardUI';
+import CardUI from '../Post/CardUI';
 import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
-import {useFocusEffect} from '@react-navigation/native';
 import {async} from '@firebase/util';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import SkeletonPlaceHolder from './components/SkeletonPlaceHolder';
+import SkeletonPlaceHolder from '../components/SkeletonPlaceHolder';
+import { useHome } from './useHome';
+
 
 const Home = () => {
-  const [post, setPost] = useState();
-  const authState = useSelector((state: AppState) => state);
-  const [image, setImage] = useState();
-  const [data, setData] = useState();
-  const [getData, setGetData] = useState(false);
-  const [isPostLiked, setIsPostLiked] = useState(false);
-  const [loginState, setLoginState] = useState();
-  const navigation = useNavigation();
-
-  function getPostData() {
-    setGetData(true);
-    firestore()
-      .collection('posts')
-      .get()
-      .then(snapshot => {
-        setGetData(false);
-        let postData = [];
-        snapshot.forEach(post => {
-          const data = post.data();
-          postData.unshift(data);
-        });
-        setData(postData);
-      });
-  }
-
-  useFocusEffect(
-    React.useCallback(() => {
-      getPostData();
-    }, [ isPostLiked,  navigation]),
-  );
-
-  let uid = authState.userAuthReducer.uid;
-
-  const getDataofUserPost = async () => {
-    await firestore()
-      .collection('posts')
-      .where('userID', '==', uid)
-      .get()
-      .then(res => {
-        console.log(res, 'post data!');
-        res.forEach(documentSnapshot => {
-          documentSnapshot.ref.update({isLogin: true});
-        });
-      });
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      getDataofUserPost();
-    }, [isPostLiked, navigation]),
-  );
-
-  // useEffect(() => {
-  //   firestore()
-  //     .collection('users')
-  //     .doc(uid)
-  //     .update({
-  //       isLogin: true,
-  //     })
-  //     .then(() => {
-  //       console.log('User updated!');
-  //     });
-  // }, []);
-  console.log(data, 'data console');
-  let userProfileName = authState.userAuthReducer.userName;
-  let userProfileImaege = authState.userAuthReducer.photoURL;
-  let isLoggedIn = authState.userAuthReducer.isLoggedIn;
-  const mode = authState.darkModeReducer.mode;
-
-  console.log(authState.darkModeReducer, 'auth state');
+ const {
+   isPostLiked,
+   data,
+   setIsPostLiked,
+   setGetData,
+   getData,
+   mode,
+   getPostData,
+ } = useHome();
 
   return (
     <>

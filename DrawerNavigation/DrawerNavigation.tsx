@@ -5,7 +5,7 @@ import {
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
-import Home from '../screens/Home';
+import Home from '../screens/Home/Home';
 import {StyleGuide} from '../Utils/StyleGuide';
 import {DrawerActions} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
