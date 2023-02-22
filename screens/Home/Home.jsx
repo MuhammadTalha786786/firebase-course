@@ -52,6 +52,7 @@ const Home = () => {
           styles.SafeAreaView,
           {backgroundColor: mode ? 'black' : 'white'},
         ]}>
+          
         {/* <View
           style={{
             justifyContent: 'space-between',

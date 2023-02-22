@@ -16,13 +16,63 @@ import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import GoogleMaps from '../screens/GoogleMaps';
 import VideoComponent from '../screens/VideoComponent';
+import Svg from '../screens/components/Svg';
+import { logout } from '../Utils/SvgAssests';
+import firestore from '@react-native-firebase/firestore';
+import { setSignOut } from '../Redux/Auth/AuthReducer';
+
+
 
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
+
+
+
+
+   
   const dispatch = useDispatch();
   const darkMode = useSelector((state: AppState) => state);
   const mode = darkMode.darkModeReducer.mode;
+  const authState = useSelector((state: AppState) => state);
+  let uid = authState.userAuthReducer.uid;
+
+   const logoutUser = () => {
+     UpdateLogin();
+     getDataofUserPost();
+     dispatch(setSignOut());
+   };
+
+   const getDataofUserPost = async () => {
+     const a = await firestore()
+       .collection('posts')
+       .where('userID', '==', uid)
+       .get()
+       .then(res => {
+         console.log(res, 'post data!');
+         res.forEach(documentSnapshot => {
+           documentSnapshot.ref.update({isLogin: false});
+         });
+       });
+     console.log(a);
+
+     return a;
+   };
+
+   const UpdateLogin = () => {
+     let userID = authState.userAuthReducer.uid;
+     firestore()
+       .collection('users')
+       .doc(userID)
+       .update({
+         isLogin: false,
+       })
+       .then(() => {
+         console.log('User updated!');
+       });
+   };
+
+
   console.log(mode, 'mode');
   return (
     <Drawer.Navigator
@@ -30,79 +80,99 @@ const DrawerNavigation = () => {
         drawerLabelStyle: {
           fontFamily: StyleGuide.fontFamily.regular,
         },
-        drawerContentStyle:{
-          backgroundColor:'red'
-        }
+        drawerContentStyle: {},
       }}
       drawerContent={props => (
-        <DrawerContentScrollView {...props}>
-          <View
-            style={{
-              bottom: 0,
-              alignSelf: 'center',
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor:'red'
-            }}>
-            <Avatar
-              bg="indigo.500"
-              alignSelf="center"
-              size="xl"
-              source={require('../images/logo.png')}
-            />
-          </View>
-          <DrawerItemList {...props} />
-          <View
-            style={{
-              bottom: 0,
-              alignSelf: 'center',
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            {/* <Text style={{fontFamily:StyleGuide.fontFamily.regular,fontSize:10}}>Copyright {'\u00A9'} 2022 Mahir Company</Text> */}
-          </View>
-          <View
-            style={{
-              paddingTop: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
+        <>
+          <DrawerContentScrollView {...props}>
             <View
               style={{
+                bottom: 0,
+                alignSelf: 'center',
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
+              <Avatar
+                bg="indigo.500"
+                alignSelf="center"
+                size="xl"
+                source={require('../images/logo.png')}
+              />
+            </View>
+            <DrawerItemList {...props} />
+            <View
+              style={{
+                bottom: 0,
+                alignSelf: 'center',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              {/* <Text style={{fontFamily:StyleGuide.fontFamily.regular,fontSize:10}}>Copyright {'\u00A9'} 2022 Mahir Company</Text> */}
+            </View>
+            <View
+              style={{
+                paddingTop: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  style={{
+                    fontFamily: StyleGuide.fontFamily.medium,
+                    marginLeft: 15,
+                    color: mode
+                      ? StyleGuide.color.light
+                      : StyleGuide.color.dark,
+                  }}>
+                  Dark Mode
+                </Text>
+              </View>
+              <Switch
+                style={{marginRight: 10}}
+                thumbColor={'#fff'}
+                trackColor={{
+                  false: 'grey',
+                  true: StyleGuide.color.primary,
+                }}
+                onChange={() => {
+                  if (mode == false) {
+                    dispatch(setDarkMode({mode: true}));
+                  } else {
+                    dispatch(setDarkMode({mode: false}));
+                  }
+                }}
+                value={mode ? true : false}
+              />
+            </View>
+          </DrawerContentScrollView>
+          <View style={{bottom: 20, marginHorizontal: 10}}>
+            <TouchableOpacity
+              onPress={logoutUser}
+              style={{flexDirection: 'row'}}>
+              <Svg
+                xml={logout}
+                rest={{
+                  height: 30,
+                  width: 30,
+                }}
+              />
               <Text
                 style={{
+                  marginHorizontal: 15,
+                  marginVertical: 5,
                   fontFamily: StyleGuide.fontFamily.medium,
-                  marginLeft: 15,
                   color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
                 }}>
-                Dark Mode
+                Logout
               </Text>
-            </View>
-            <Switch
-              style={{marginRight: 10}}
-              thumbColor={'#fff'}
-              trackColor={{
-                false: 'grey',
-                true: StyleGuide.color.primary,
-              }}
-              onChange={() => {
-                if (mode == false) {
-                  dispatch(setDarkMode({mode: true}));
-                } else {
-                  dispatch(setDarkMode({mode: false}));
-                }
-              }}
-              value={mode ? true : false}
-            />
+            </TouchableOpacity>
           </View>
-          <View >
-            <Text  style={{alignSelf:'flex-end'}}    >Hello there</Text>
-          </View>
-        </DrawerContentScrollView>
+        </>
       )}
       screenOptions={({navigation}) => ({
         drawerStyle: {
@@ -160,7 +230,11 @@ const DrawerNavigation = () => {
                 {fontFamily: StyleGuide.fontFamily.medium},
                 focused
                   ? {color: StyleGuide.color.primary}
-                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
+                  : {
+                      color: mode
+                        ? StyleGuide.color.light
+                        : StyleGuide.color.dark,
+                    },
               ]}>
               Home
             </Text>
@@ -182,7 +256,11 @@ const DrawerNavigation = () => {
                 {fontFamily: StyleGuide.fontFamily.medium},
                 focused
                   ? {color: StyleGuide.color.primary}
-                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
+                  : {
+                      color: mode
+                        ? StyleGuide.color.light
+                        : StyleGuide.color.dark,
+                    },
               ]}>
               Google Map
             </Text>
@@ -203,7 +281,11 @@ const DrawerNavigation = () => {
                 {fontFamily: StyleGuide.fontFamily.medium},
                 focused
                   ? {color: StyleGuide.color.primary}
-                  : {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
+                  : {
+                      color: mode
+                        ? StyleGuide.color.light
+                        : StyleGuide.color.dark,
+                    },
               ]}>
               Video
             </Text>

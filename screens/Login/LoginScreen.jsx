@@ -3,9 +3,9 @@ import {
   Text,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
   TouchableOpacity,
   Image,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import database from '@react-native-firebase/database';
@@ -18,6 +18,7 @@ import ForgotModal from '../components/ForgotModal';
 import {Avatar} from 'native-base';
 import { useLogin } from './useLogin.tsx';
 import useGoogleSignIn from '../components/GoogleSignIn';
+import SafeArea from '../components/SafeArea';
 const LoginScreen = ({navigation}) => {
   const {onGoogleButtonPress} =useGoogleSignIn()
 
@@ -50,84 +51,85 @@ const LoginScreen = ({navigation}) => {
         backgroundColor="transparent"
       />
       <SafeAreaView style={styles.SafeAreaView}>
-        <View>
-          <View style={styles.loginTxtView}>
-            <Avatar
-              bg="indigo.500"
-              alignSelf="center"
-              size="xl"
-              source={require('../../images/logo.png')}
-            />
-            {/* <Text style={styles.loginText}>Login</Text> */}
-          </View>
-          <View
-            style={{
-              padding: 0,
-              marginVertical: 0,
-              textAlign: 'center',
-              justifyContent: 'center',
-              alignContent: 'center',
-            }}>
-            <View style={{padding: 0}}>
-              <TextInputComponent
-                value={email}
-                setValue={setEmail}
-                placeholder="Enter Email"
-                mode="outlined"
-                label="email"
+        <SafeArea>
+          <View>
+            <View style={styles.loginTxtView}>
+              <Avatar
+                bg="indigo.500"
+                alignSelf="center"
+                size="xl"
+                source={require('../../images/logo.png')}
+              />
+              {/* <Text style={styles.loginText}>Login</Text> */}
+            </View>
+            <View
+              style={{
+                padding: 0,
+                marginVertical: 0,
+                textAlign: 'center',
+                justifyContent: 'center',
+                alignContent: 'center',
+              }}>
+              <View style={{padding: 0}}>
+                <TextInputComponent
+                  value={email}
+                  setValue={setEmail}
+                  placeholder="Enter Email"
+                  mode="outlined"
+                  label="email"
+                  setError={setError}
+                  name={'email'}
+                />
+              </View>
+              <View style={{padding: 0, marginVertical: 10}}>
+                <TextInputComponent
+                  value={Password}
+                  setValue={setPassword}
+                  placeholder="Enter Password"
+                  mode="outlined"
+                  label="password"
+                  setError={setError}
+                  name={'visibility'}
+                  showPassword={showPassword}
+                  setShowPassword={setShowPassword}
+                  IsPassword={true}
+                />
+              </View>
+              <View style={{padding: 10}}>
+                <Text style={{color: 'red', fontSize: 12}}>{error}</Text>
+                <ButtonComponent
+                  buttonTitle="SIGN IN"
+                  btnType="sign-in"
+                  color="#f5e7ea"
+                  backgroundColor={loader ? 'grey' : StyleGuide.color.primary}
+                  onPress={login}
+                  uploading={loader}
+                />
+                <Text
+                  style={styles.forgotPassword}
+                  onPress={() => setModalVisible(true)}>
+                  Forgot Password?
+                </Text>
+              </View>
+
+              <View style={styles.GoogleSignInView}>
+                <Divider style={styles.DividerStyle} />
+                <Text style={styles.SignInText}>or sign in with</Text>
+                <Divider style={styles.DividerStyle} />
+              </View>
+
+              <ForgotModal
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+                forgotEmail={forgotEmail}
+                setForgotEmail={setForgotEmail}
+                forgotPassword={forgotPassword}
+                forgotEmailError={forgotEmailError}
+                setForgotEmailError={setForgotEmailError}
                 setError={setError}
-                name={'email'}
               />
-            </View>
-            <View style={{padding: 0, marginVertical: 10}}>
-              <TextInputComponent
-                value={Password}
-                setValue={setPassword}
-                placeholder="Enter Password"
-                mode="outlined"
-                label="password"
-                setError={setError}
-                name={'visibility'}
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-                IsPassword={true}
-              />
-            </View>
-            <View style={{padding: 10}}>
-              <Text style={{color: 'red', fontSize: 12}}>{error}</Text>
-              <ButtonComponent
-                buttonTitle="SIGN IN"
-                btnType="sign-in"
-                color="#f5e7ea"
-                backgroundColor={loader  ? 'grey' :StyleGuide.color.primary}
-                onPress={login}
-                uploading={loader}
-              />
-              <Text
-                style={styles.forgotPassword}
-                onPress={() => setModalVisible(true)}>
-                Forgot Password?
-              </Text>
-            </View>
 
-            <View style={styles.GoogleSignInView}>
-              <Divider style={styles.DividerStyle} />
-              <Text style={styles.SignInText}>or sign in with</Text>
-              <Divider style={styles.DividerStyle} />
-            </View>
-
-            <ForgotModal
-              modalVisible={modalVisible}
-              setModalVisible={setModalVisible}
-              forgotEmail={forgotEmail}
-              setForgotEmail={setForgotEmail}
-              forgotPassword={forgotPassword}
-              forgotEmailError={forgotEmailError}
-              setForgotEmailError={setForgotEmailError}
-              setError={setError}
-            />
-
-            {/* <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              {/* <View style={{justifyContent: 'center', alignItems: 'center'}}>
               <TouchableOpacity
                 onPress={() => signInWithPhoneNumber('+92 3156028415')}
                 style={[styles.buttonContainer, {backgroundColor: '#4169e1'}]}>
@@ -172,33 +174,36 @@ const LoginScreen = ({navigation}) => {
               </Button>
             </View> */}
 
-            <View style={{padding: 10}}>
-              <ButtonComponent
-                buttonTitle="Sign In with Google"
-                btnType="google"
-                color="#de4d41"
-                backgroundColor="#f5e7ea"
-                onPress={onGoogleButtonPress}
-              />
-              <View style={styles.accountView}>
-                <Text style={styles.accountText}>Don't have an account? </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    navigation.navigate('RegisterScreen');
-                  }}>
-                  <Text
-                    style={{
-                      color: StyleGuide.color.primary,
-                      fontFamily: StyleGuide.fontFamily.medium,
-                      fontSize: widthPercentageToDP('4%'),
-                    }}>
-                    Sign Up
+              <View style={{padding: 10}}>
+                <ButtonComponent
+                  buttonTitle="Sign In with Google"
+                  btnType="google"
+                  color="#f5e7ea"
+                  backgroundColor="#de4d41"
+                  onPress={onGoogleButtonPress}
+                />
+                <View style={styles.accountView}>
+                  <Text style={styles.accountText}>
+                    Don't have an account?{' '}
                   </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate('RegisterScreen');
+                    }}>
+                    <Text
+                      style={{
+                        color: StyleGuide.color.primary,
+                        fontFamily: StyleGuide.fontFamily.medium,
+                        fontSize: widthPercentageToDP('4%'),
+                      }}>
+                      Sign Up
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </SafeArea>
       </SafeAreaView>
     </>
   );
