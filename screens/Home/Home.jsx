@@ -43,6 +43,7 @@ const Home = () => {
    getData,
    mode,
    getPostData,
+   getDataofUserPost,
  } = useHome();
 
   return (
@@ -52,7 +53,6 @@ const Home = () => {
           styles.SafeAreaView,
           {backgroundColor: mode ? 'black' : 'white'},
         ]}>
-          
         {/* <View
           style={{
             justifyContent: 'space-between',
@@ -96,13 +96,13 @@ const Home = () => {
                 postData={getPostData}
                 setGetData={getData}
                 PostedUser={item.userID}
+                getDataofUserPost={getDataofUserPost}
               />
             )
           }
           onRefresh={getPostData}
-          colors={["#9Bd35A", "#689F38"]}
-
-           refreshing={getData}
+          colors={['#9Bd35A', '#689F38']}
+          refreshing={getData}
           keyExtractor={item => item.postID}
         />
       </SafeAreaView>

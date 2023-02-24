@@ -5,6 +5,15 @@ import useGoogleSignIn from '../components/GoogleSignIn';
 import auth from '@react-native-firebase/auth';
 import {useDispatch} from 'react-redux';
 import {setSignIn} from '../../Redux/Auth/AuthReducer';
+
+interface loginUser {
+  isLogin:boolean
+  email:string
+  uid:string
+  isLoggedIn: boolean;
+  userName: string;
+  photoURL: string;
+}
 export const useLogin = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('user2@gmail.com');
@@ -12,14 +21,14 @@ export const useLogin = () => {
   const [userLoginName, setUserLoginName] = useState();
   const [confirm, setConfirm] = useState(null);
   const [code, setCode] = useState('');
-  const [error, setError] = useState();
+  const [error, setError] = useState<string>();
   const {onGoogleButtonPress} = useGoogleSignIn();
   const [photoUrl, setPhotoUrl] = useState();
-  const [showPassword, setShowPassword] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState();
-  const [forgotEmailError, setForgotEmailError] = useState();
-  const [loader, setLoader] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [forgotEmail, setForgotEmail] = useState<string>('');
+  const [forgotEmailError, setForgotEmailError] = useState<string>();
+  const [loader, setLoader] = useState<boolean>(false);
 
 //   async function signInWithPhoneNumber(phoneNumber) {
 //     const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
@@ -40,8 +49,13 @@ export const useLogin = () => {
 //     }
 //   };
 
-  const LoginUser = {
+  const LoginUser: loginUser = {
+    isLogin:true,
     isLoggedIn: true,
+    userName: '',
+    photoURL: '',
+    email: '',
+    uid: '',
   };
 
   const updateLogin = uid => {
@@ -49,7 +63,7 @@ export const useLogin = () => {
       .collection('users')
       .doc(uid)
       .get()
-      .then(snapshot => {
+      .then((snapshot:any) => {
         console.log(snapshot.data().image, 'dasdad');
         LoginUser.userName = snapshot.data().name;
         LoginUser.photoURL = snapshot.data().image;
@@ -69,13 +83,12 @@ export const useLogin = () => {
       setLoader(true);
       auth()
         .signInWithEmailAndPassword(email, Password)
-        .then(loggedInUser => {
+        .then((loggedInUser:any) => {
           if (loggedInUser) {
             setLoader(false);
             console.log(loggedInUser, 'user login here');
             updateLogin(loggedInUser.user._user.uid);
-            // getUserData(loggedInUser.user._user.uid);
-
+            //  getUserData(loggedInUser.user._user.uid);
             LoginUser.email = loggedInUser.user._user.email;
             LoginUser.uid = loggedInUser.user._user.uid;
           }

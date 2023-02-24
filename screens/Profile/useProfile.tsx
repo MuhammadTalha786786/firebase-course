@@ -13,7 +13,7 @@ import Svg from '../components/Svg';
 
 
 export const useProfile = () => {
-  const authState = useSelector((state: AppState) => state);
+  const authState:any = useSelector((state) => state);
   console.log(authState, 'auth state profile');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -110,7 +110,7 @@ export const useProfile = () => {
       setLoader(false);
       Alert.alert('please Enter the Phone Number');
     } else {
-      const confirmation = await auth().verifyPhoneNumber(phoneNumber);
+      const confirmation:any = await auth().verifyPhoneNumber(phoneNumber);
       console.log(confirmation, 'confirmation');
       if (confirmation) {
         // setLoader(false);
@@ -134,7 +134,7 @@ export const useProfile = () => {
         confirm?.verificationId,
         code,
       );
-      let userData = await auth().currentUser.linkWithCredential(credential);
+      // let userData = await auth().currentUser.linkWithCredential(credential);
 
       console.log(credential, 'credential');
       Alert.alert('Your Number Has Been Verified...');

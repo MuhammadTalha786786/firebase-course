@@ -21,6 +21,16 @@ const writeUserData = user => {
 
  
 };
+
+
+interface user {
+  isLogin: boolean;
+  email: string;
+  userName: string;
+  uid: string;
+  photoURL: string;
+  isLoggedIn:boolean
+}
 const useGoogleSignIn = () => {
   const dispatch = useDispatch();
   async function onGoogleButtonPress() {
@@ -28,8 +38,9 @@ const useGoogleSignIn = () => {
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     auth()
       .signInWithCredential(googleCredential)
-      .then(user => {
-        const LoginUser = {
+      .then((user:any) => {
+        
+        const LoginUser:user = {
           isLogin: true,
           email: user.user._user.email,
           userName: user.user._user.displayName,

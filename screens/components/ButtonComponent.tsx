@@ -9,38 +9,41 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {windowHeight} from '../../Utils/Dimesnions';
 import {StyleGuide} from '../../Utils/StyleGuide';
-const ButtonComponent = ({
-  buttonTitle,
-  btnType,
-  color,
-  backgroundColor,
-  press,
-  uploading,
-  setUploading,
-  ...rest
-}) => {
-  let bgColor = backgroundColor;
+
+
+interface ButtonProps {
+  buttonTitle: string;
+  btnType: string;
+  color: string;
+  disabled:boolean;
+  backgroundColor: string;
+  uploading: boolean;
+  // setUploading: () => void;
+  onPress: () => void;
+}
+const ButtonComponent = (props:ButtonProps) => {
+  let bgColor = props.backgroundColor;
 
   return (
     <TouchableOpacity
-      onPress={press}
       style={[styles.buttonContainer, {backgroundColor: bgColor}]}
-      {...rest}
-      disabled={uploading}
+      disabled={props.disabled || props.uploading}
+      onPress={props.onPress}
+      
       >
       <View style={styles.iconWrapper}>
         <FontAwesome
-          name={btnType}
+          name={props.btnType}
           style={styles.icon}
           size={22}
-          color={color}
+          color={props.color}
         />
       </View>
       <View style={styles.btnTxtWrapper}>
-        {uploading ? (
+        {props.uploading ? (
           <ActivityIndicator color="white" size={20} />
         ) : (
-          <Text style={[styles.buttonText, {color: color}]}>{buttonTitle}</Text>
+          <Text style={[styles.buttonText, {color: props.color}]}>{props.buttonTitle}</Text>
         )}
       </View>
     </TouchableOpacity>

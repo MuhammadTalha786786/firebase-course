@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import React, {useEffect, useState, useLayoutEffect} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -12,94 +13,23 @@ import {StyleGuide} from '../../Utils/StyleGuide';
 import {TextInput} from 'react-native-paper';
 import ButtonComponent from '../components/ButtonComponent';
 import {useDispatch, useSelector} from 'react-redux';
-import firestore from '@react-native-firebase/firestore';
 import {Avatar} from 'native-base';
 import moment from 'moment';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useComment} from './useComment';
 
 const Comment = () => {
-  const [comments, setComments] = useState([]);
-  const [comment, setComment] = useState('');
-  const [isFetchingComments, setIsFetchingComments] = useState(false);
-  const authState = useSelector((state: AppState) => state);
-  const route = useRoute();
-  const navigation = useNavigation();
-  let id = authState.userAuthReducer.uid;
-  let postId = route.params.postID;
-  console.log(postId, 'post id is here');
-  let mode = route.params?.mode;
-
-  console.log(mode, 'comments');
-  useEffect(() => {
-    getComments();
-  }, []);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTintColor: StyleGuide.color.light,
-      headerStyle: {backgroundColor: StyleGuide.color.primary},
-      headerTitleStyle: {
-        fontWeight: 'bold',
-        fontFamily: StyleGuide.fontFamily.medium,
-      },
-    });
-  }, [navigation]);
-
-  const getComments = () => {
-    firestore()
-      .collection('posts')
-      .doc(postId)
-
-      .get()
-      .then(querySnapshot => {
-        console.log(querySnapshot.data().comments);
-        setComments(querySnapshot.data().comments);
-        /* ... */
-      });
-  };
-  console.log(comments, 'comemnts');
-  const DeleteComment = (commentID, postID) => {
-    Alert.alert(
-      'Are you sure to delete?',
-      'never recover',
-      [
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          onPress: () => {
-            userCommentDeleted(commentID, postID);
-          },
-          style: 'destructive',
-        },
-      ],
-      {cancelable: false},
-    );
-  };
-
-  const userCommentDeleted = (commentID, postID) => {
-    console.log(commentID, 'on ');
-
-    firestore()
-      .collection('posts')
-      .doc(postID)
-      .update({
-        comments: comments.filter(c => c.commentID !== commentID),
-      })
-      .then(() => {
-        Alert.alert('your comment has been Deleted...');
-        getComments();
-      })
-      .catch(error => {
-        console.log(error.message);
-      });
-  };
-
-  console.log(comments, 'length');
+  const {
+    DeleteComment,
+    getComments,
+    comments,
+    comment,
+    setComment,
+    isFetchingComments,
+    mode,
+    id,
+  } = useComment();
   return (
     <SafeAreaView
       style={[
@@ -121,7 +51,7 @@ const Comment = () => {
               style={{
                 color: mode ? 'white' : 'black',
                 textAlign: 'center',
-                marginVertical: 15,
+                marginVertical: 20,
                 fontFamily: StyleGuide.fontFamily.regular,
               }}>
               No Comments Found!
@@ -131,7 +61,7 @@ const Comment = () => {
               data={comments}
               onRefresh={getComments}
               refreshing={isFetchingComments}
-              renderItem={({item}) => {
+              renderItem={({item}: any) => {
                 {
                 }
                 return (
@@ -202,6 +132,18 @@ const styles = StyleSheet.create({
   SafeAreaView: {
     flex: 1,
   },
+
+  input: {
+    height: 40,
+    margin: 12,
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
+    padding: 10,
+    marginVertical: 10,
+    marginHorizontal: 5,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: widthPercentageToDP('3%'),
+  },
   mainView: {
     width: '100%',
     height: 60,
@@ -256,6 +198,20 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     marginHorizontal: 20,
     fontFamily: StyleGuide.fontFamily.regular,
+  },
+  postButton: {
+    height: 50,
+    width: 50,
+    borderRadius: 5.5,
+    marginHorizontal: 5,
+    marginVertical: 10,
+  },
+  buttonText: {
+    textAlign: 'center',
+    marginVertical: 15,
+    color: 'blue',
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: widthPercentageToDP('3%'),
   },
 });
 

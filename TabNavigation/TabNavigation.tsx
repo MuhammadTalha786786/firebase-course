@@ -1,5 +1,5 @@
 import React from 'react';
-import Home from '../screens/Home';
+// import Home from '../screens/Home';
 import Post from '../screens/Post/Post';
 import FriendsScreen from '../screens/FriendsScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -16,7 +16,7 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 
 
 const TabNavigation = () => {
-  const authState = useSelector((state: AppState) => state);
+  const authState:any = useSelector((state) => state);
   let mode = authState.darkModeReducer.mode;
 
   return (
@@ -134,24 +134,13 @@ const TabNavigation = () => {
         headerTitleAlign: 'center',
       })}
       tabBarOptions={{
-        labelStyle: {
-          fontSize: 10,
-          margin: 0,
-          padding: 0,
-        },
+       
         activeTintColor: StyleGuide.color.primary,
         inactiveTintColor: mode ? StyleGuide.color.light : '#023047',
-        style: {
-          // paddingHorizontal:25,
-          // height: 50,
-          // width: 300,
-          // flexDirection: 'column',
-          // alignSelf: 'center',
-          // elevation: 2,
-          // borderTopStartRadius: 5,
-          // borderTopEndRadius: 5,
-        },
-      }}>
+      
+      }}
+      
+      >
       <Tab.Screen
         name="Home"
         component={DrawerNavigation}

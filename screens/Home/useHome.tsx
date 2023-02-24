@@ -5,9 +5,9 @@ import {useSelector} from 'react-redux';
 
 export const useHome = () => {
   const [post, setPost] = useState();
-  const authState = useSelector((state: AppState) => state);
+  const authState:any = useSelector((state) => state);
   const [image, setImage] = useState();
-  const [data, setData] = useState();
+  const [data, setData] = useState<string [] | any>();
   const [getData, setGetData] = useState(false);
   const [isPostLiked, setIsPostLiked] = useState(false);
   const [loginState, setLoginState] = useState();
@@ -18,22 +18,32 @@ export const useHome = () => {
     firestore()
       .collection('posts')
       .get()
-      .then(snapshot => {
+      .then((snapshot:any) => {
         setGetData(false);
-        let postData = [];
-        snapshot.forEach(post => {
-          const data = post.data();
+        let postData:string[] = [];
+        snapshot.forEach((post:any) => {
+          const data:any   = post.data();
           postData.unshift(data);
         });
         setData(postData);
       });
   }
 
-  useFocusEffect(
-    React.useCallback(() => {
-      getPostData();
-    }, [isPostLiked, navigation]),
-  );
+
+  useEffect(()=>{
+  getPostData();
+  getDataofUserPost();
+
+
+  },[])
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     getPostData();
+  //           getDataofUserPost();
+
+  //   }, [ navigation]),
+  // );
 
   let uid = authState.userAuthReducer.uid;
 
@@ -50,11 +60,11 @@ export const useHome = () => {
       });
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      getDataofUserPost();
-    }, [isPostLiked, navigation]),
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     getDataofUserPost();
+  //   }, [navigation]),
+  // );
 
   // useEffect(() => {
   //   firestore()
@@ -79,5 +89,6 @@ export const useHome = () => {
     mode,
     getPostData,
     data,
+    getDataofUserPost,
   };
 };

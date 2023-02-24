@@ -36,47 +36,13 @@ const Post = ({ navigation }) => {
   const [uploading, setUploading] = useState(false);
   const [transferred, setTransferred] = useState(0);
   const [postImage, setPostImage] = useState('');
-  const authState = useSelector((state: AppState) => state);
+  const authState:any = useSelector((state) => state);
   const [loginState, setLoginState] = useState();
   const [imageText, selectImageText] = useState('');
 
-  const dispatch = useDispatch();
-  const logout = () => {
-    UpdateLogin();
-    getDataofUserPost();
-    dispatch(setSignOut());
-  };
+ 
 
   let uid = authState.userAuthReducer.uid;
-
-  const getDataofUserPost = async () => {
-    const a = await firestore()
-      .collection('posts')
-      .where('userID', '==', uid)
-      .get()
-      .then(res => {
-        console.log(res, 'post data!');
-        res.forEach(documentSnapshot => {
-          documentSnapshot.ref.update({ isLogin: false });
-        });
-      });
-    console.log(a);
-
-    return a;
-  };
-
-  const UpdateLogin = () => {
-    let userID = authState.userAuthReducer.uid;
-    firestore()
-      .collection('users')
-      .doc(userID)
-      .update({
-        isLogin: false,
-      })
-      .then(() => {
-        console.log('User updated!');
-      });
-  };
 
   const selectImage = () => {
     selectImageText('Please Wait While your Image is Uploading');
@@ -84,7 +50,6 @@ const Post = ({ navigation }) => {
     ImagePicker.openPicker({
       width: 300,
       height: 400,
-      cropping: true,
     }).then(image => {
       setImage(image.path);
       let fileName = `${uuidv4()}${image.path.substr(
@@ -111,7 +76,7 @@ const Post = ({ navigation }) => {
           .collection('users')
           .doc(user.uid)
           .get()
-          .then(documentSnapshot => {
+          .then((documentSnapshot:any) => {
             console.log(documentSnapshot.data().isLogin, 'mdfdas');
 
             setLoginState(documentSnapshot.data().isLogin);
@@ -129,7 +94,7 @@ const Post = ({ navigation }) => {
       .set(postData)
       .then(() => {
         console.log('post added!');
-        Alert.alert('uploaded');
+        // Alert.alert('uploaded');
         setUploading(false);
         setImage(''); // uploadImage()
         setPostImage('');
@@ -196,7 +161,7 @@ const Post = ({ navigation }) => {
               {image === undefined || image === '' ? (
                 <Text style={styles.selectImageText}>Select Image</Text>
               ) : (
-                <Image source={{ uri: image }} style={styles.PostImage} />
+                <Image source={{uri: image}} style={styles.PostImage} />
               )}
             </View>
           </View>
@@ -210,8 +175,9 @@ const Post = ({ navigation }) => {
             />
           </View>
 
-          <View style={{ padding: 10 }}>
+          <View style={{padding: 10}}>
             <TextArea
+              autoCompleteType={true}
               style={{
                 fontFamily: StyleGuide.fontFamily.regular,
                 fontSize: widthPercentageToDP('3.7'),
@@ -226,31 +192,25 @@ const Post = ({ navigation }) => {
             />
           </View>
 
-          <View style={{ padding: 10 }}>
+          <View style={{padding: 10}}>
             {image === '' && <Text style={styles.errorText}>{imageError}</Text>}
             <Text style={styles.errorText}>{error}</Text>
             {postImage === '' && (
               <Text style={styles.errorText}>{imageText}</Text>
             )}
 
-            <ButtonComponent
-              buttonTitle="Post"
-              btnType="check-square"
-              color="#f5e7ea"
-              backgroundColor={disabled ? 'grey' : StyleGuide.color.primary}
-              onPress={uploadPost}
-              disabled={disabled}
-              uploading={uploading}
-              setUploading={setUploading}
-            />
-
-            <ButtonComponent
-              buttonTitle="logout"
-              btnType="check-square"
-              color="#f5e7ea"
-              backgroundColor={StyleGuide.color.primary}
-              onPress={logout}
-            />
+            <View style={{marginVertical:50}}>
+              <ButtonComponent
+              
+                buttonTitle="Post"
+                btnType="check-square"
+                color="#f5e7ea"
+                backgroundColor={disabled ? 'grey' : StyleGuide.color.primary}
+                onPress={uploadPost}
+                disabled={disabled}
+                uploading={uploading}
+              />
+            </View>
           </View>
         </>
       </SafeAreaView>
