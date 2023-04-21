@@ -10,13 +10,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import TabNavigation from './TabNavigation/TabNavigation';
 import Comment from './screens/Post/Comment';
 import messaging from '@react-native-firebase/messaging';
-import ChatScreen from './screens/ChatScreen';
+import ChatScreen from './screens/Chat/ChatScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
+import UserProfile from './screens/UserProfile';
 
 const AppStack = createStackNavigator();
 
 const App = () => {
-  const authState = useSelector((state: AppState) => state);
+  const authState = useSelector((state) => state);
   const UserLogin = authState.userAuthReducer.isLoggedIn;
   console.log(UserLogin, 'UserLogin');
   const [firstLaunch, setFirstLaunch] = useState(null);
@@ -81,13 +82,16 @@ const App = () => {
                 component={TabNavigation}
                 options={{headerShown: false}}
               />
-
               <AppStack.Screen name="Comment" component={Comment} />
               <AppStack.Screen name="profile" component={ProfileScreen} />
-
               <AppStack.Screen
-                name="ChatsScreen"s
+                name="ChatsScreen"
                 component={ChatScreen}
+                options={{headerShown: true}}
+              />
+              <AppStack.Screen
+                name="UserProfile"
+                component={UserProfile}
                 options={{headerShown: true}}
               />
             </>

@@ -5,6 +5,16 @@ import {useSelector} from 'react-redux';
 import FriendListCard from './components/FriendListCard';
 import {StyleGuide} from '../Utils/StyleGuide';
 
+type AppState={
+  userAuthReducer:{
+    uid:string
+  }
+  darkModeReducer:{
+    mode:boolean
+  }
+
+}
+
 const FriendsScreen = () => {
   const authState = useSelector((state: AppState) => state);
   const [friendsList, setFriendsList] = useState([]);
@@ -17,9 +27,9 @@ const FriendsScreen = () => {
       .where('uid', '!=', userID)
       .get()
       .then(res => {
-        let userData = [];
+        let userData:string[] | any = [];
         res.forEach(documentSnap => {
-          let data = documentSnap.data();
+          let data= documentSnap.data();
           userData.push(data);
         });
         setFriendsList(userData);
@@ -41,7 +51,7 @@ const FriendsScreen = () => {
         <FlatList
           data={friendsList}
           renderItem={({item}) => <FriendListCard item={item} mode={mode} />}
-          keyExtractor={item => item.uid}
+          keyExtractor={(item:{uid:string}) => item?.uid}
         />
       </View>
     </SafeAreaView>

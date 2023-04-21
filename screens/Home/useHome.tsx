@@ -13,15 +13,17 @@ export const useHome = () => {
   const [loginState, setLoginState] = useState();
   const navigation = useNavigation();
 
-  function getPostData() {
-    setGetData(true);
+ const  getPostData =  () => {
+    
+  getDataofUserPost();
+  setGetData(true);
     firestore()
       .collection('posts')
       .get()
-      .then((snapshot:any) => {
+      .then(async (snapshot:any) => {
         setGetData(false);
         let postData:string[] = [];
-        snapshot.forEach((post:any) => {
+         await snapshot.forEach((post:any) => {
           const data:any   = post.data();
           postData.unshift(data);
         });
@@ -32,7 +34,6 @@ export const useHome = () => {
 
   useEffect(()=>{
   getPostData();
-  getDataofUserPost();
 
 
   },[])

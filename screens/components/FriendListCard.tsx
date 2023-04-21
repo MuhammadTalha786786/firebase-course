@@ -4,10 +4,12 @@ import { Avatar } from 'native-base';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { StackParamList } from '../../Utils/routes';
+
 
 const FriendListCard = ({ item, mode }) => {
-  console.log(mode, 'user item');
-  const navigation = useNavigation();
+  const navigation =useNavigation<NativeStackNavigationProp<StackParamList>>();
   return (
     <View style={{ padding: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -23,7 +25,7 @@ const FriendListCard = ({ item, mode }) => {
             <Avatar.Badge bg={item.isLogin ? 'green.500' : 'red.500'} />
           </Avatar>
 
-          <View style={styles.metaInfo}>
+          <View   >
             <Text
               style={[
                 styles.title,
@@ -43,7 +45,7 @@ const FriendListCard = ({ item, mode }) => {
             }
           >
             <Image
-              size={'md'}
+             
               style={{ marginVertical: 20, marginHorizontal: 5, width: 50, height: 50 }}
               source={require("../../images/chat.png")}>
 

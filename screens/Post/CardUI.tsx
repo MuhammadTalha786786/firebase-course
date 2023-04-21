@@ -25,6 +25,8 @@ import uuid from 'react-native-uuid';
 import Share from 'react-native-share';
 import ImgToBase64 from 'react-native-image-base64';
 import ProgressiveImage from '../components/ProgressiveImage';
+import { StackParamList } from '../../Utils/routes';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const CardUI = ({
   item,
@@ -44,7 +46,7 @@ const CardUI = ({
 
   let userID = authState.userAuthReducer.uid;
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
   const likeStatus = tempLikes => {
     let status = false;
     if (tempLikes?.length > 0) {
@@ -278,7 +280,7 @@ const CardUI = ({
                 activeOpacity={0.6}
                 underlayColor="#DDDDDD"
                 onPress={() => {
-                  navigation.navigate('Profile', {id: item.userID});
+                  navigation.navigate('UserProfile', {id: item.userID});
                 }}>
                 <Avatar
                   style={{marginVertical: 10, marginHorizontal: 10}}

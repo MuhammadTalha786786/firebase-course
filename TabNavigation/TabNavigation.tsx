@@ -14,7 +14,6 @@ import Notifications from '../screens/Notifications';
 import GoogleMaps from '../screens/GoogleMaps';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 
-
 const TabNavigation = () => {
   const authState:any = useSelector((state) => state);
   let mode = authState.darkModeReducer.mode;

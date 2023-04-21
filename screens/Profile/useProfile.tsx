@@ -14,22 +14,23 @@ import Svg from '../components/Svg';
 
 export const useProfile = () => {
   const authState:any = useSelector((state) => state);
-  console.log(authState, 'auth state profile');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState(new Date());
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [confirm, setConfirm] = useState(null);
-  const [code, setCode] = useState('');
-  const [ishow, setShow] = useState(false);
-  const [verified, setVerified] = useState(false);
-  const [image, setImage] = useState('');
-  const [updateImage, setUpdateImage] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date>(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [confirm, setConfirm] = useState<any>(null);
+  const [code, setCode] = useState<string>('');
+  const [ishow, setShow] = useState<boolean>(false);
+  const [verified, setVerified] = useState<boolean>(false);
+  const [image, setImage] = useState<string>('');
+  const [updateImage, setUpdateImage] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
   const [newDate, setNewDate] = useState<Date>(new Date());
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState<boolean>(false);
+
+
   const dispatch = useDispatch();
   const navigation = useNavigation();
   let userID = authState.userAuthReducer.uid;
@@ -124,13 +125,15 @@ export const useProfile = () => {
   };
 
   console.log(name === '', 'confirm');
-
+  interface credential{
+    verificationId: string;
+  }
   // Handle confirm code button press
   const confirmCode = async code => {
     console.log("function called...")
     console.log(code);
     try {
-      const credential = auth.PhoneAuthProvider.credential(
+      const credential: credential = auth.PhoneAuthProvider.credential(
         confirm?.verificationId,
         code,
       );

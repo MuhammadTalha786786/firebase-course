@@ -27,3 +27,28 @@ export const logout = `<?xml version="1.0" encoding="iso-8859-1"?>
 	</g>
 </g>
 </svg>`;
+
+
+
+export const backArrowBlack  =`<svg width="10" height="18" viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 1L1 9L9 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
+export const backArrowWhite  =`<svg width="10" height="18" viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 1L1 9L9 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`
+
+export const moreIconBlack =`<svg width="15" height="3" viewBox="0 0 15 3" fill="#000" xmlns="http://www.w3.org/2000/svg">
+<circle cx="1.5" cy="1.5" r="1.5" fill="#000"/>
+<circle cx="7.5" cy="1.5" r="1.5" fill="#000"/>
+<circle cx="13.5" cy="1.5" r="1.5" fill="#000"/>
+</svg>
+`
+
+export const moreIconWhite =`<svg width="15" height="3" viewBox="0 0 15 3" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="1.5" cy="1.5" r="1.5" fill="white"/>
+<circle cx="7.5" cy="1.5" r="1.5" fill="white"/>
+<circle cx="13.5" cy="1.5" r="1.5" fill="white"/>
+</svg>
+`

@@ -5,7 +5,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import Lottie from 'lottie-react-native';
 import NotificationCard from './components/NotificationCard';
 import { StyleGuide } from '../Utils/StyleGuide';
+type AppState =
+{    userAuthReducer:{
+        uid:string
+    }
+    darkModeReducer:{
+        mode:boolean
+    }
 
+}
 const Notifications = () => {
     const authState = useSelector((state: AppState) => state);
     const [likedPeople, setLikedPeople] = useState();
@@ -21,7 +29,7 @@ const Notifications = () => {
             .get()
             .then(res => {
                 console.log(res, 'response of posts');
-                let peopleWhoLiked = [];
+                let peopleWhoLiked:any = [];
 
                 res.forEach(documentSnapshot => {
                     console.log(documentSnapshot.data(), 'data');

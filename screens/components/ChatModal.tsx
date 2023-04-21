@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import {StyleGuide} from '../../StyleGuide';
+import {StyleGuide} from '../../../../StyleGuide';
 type IModalProps = {
   isVisible: boolean;
   animationType?: 'slide' | 'fade' | 'none';
