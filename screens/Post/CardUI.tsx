@@ -27,6 +27,7 @@ import ImgToBase64 from 'react-native-image-base64';
 import ProgressiveImage from '../components/ProgressiveImage';
 import { StackParamList } from '../../Utils/routes';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { reducerType } from '../../Utils/types';
 
 const CardUI = ({
   item,
@@ -37,7 +38,7 @@ const CardUI = ({
   setGetData,
   getDataofUserPost,
 }) => {
-  const authState:any = useSelector((state) => state);
+  const authState = useSelector((state:reducerType) => state);
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState('');
   const [imageBase64URL, setImageBase64URL] = useState('');
@@ -264,6 +265,8 @@ const CardUI = ({
 
   console.log(item.postImage, 'post url');
 
+  const progressiveImageURL  = require('../../images/default-img.jpeg')
+
   return (
     <View>
       <View style={{padding: 10}}>
@@ -329,10 +332,8 @@ const CardUI = ({
           item.postImage == null ||
           item.postImage == '' ? (
             <ProgressiveImage
-              defaultImageSource={require('../../images/default-img.jpeg')}
-              source={{uri: item.postImg}}
+              source={progressiveImageURL}
               style={{width: '100%', height: 250}}
-              resizeMode="cover"
             />
           ) : (
             <Card.Cover source={{uri: item.postImage}} />

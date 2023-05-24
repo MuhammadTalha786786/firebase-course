@@ -1,6 +1,6 @@
 import {View, Text, SafeAreaView, StyleSheet, FlatList} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import {useSelector} from 'react-redux';
 import FriendListCard from './components/FriendListCard';
 import {StyleGuide} from '../Utils/StyleGuide';
@@ -17,7 +17,7 @@ type AppState={
 
 const FriendsScreen = () => {
   const authState = useSelector((state: AppState) => state);
-  const [friendsList, setFriendsList] = useState([]);
+  const [friendsList, setFriendsList] = useState<string []>([]);
   const userID = authState.userAuthReducer.uid;
   const mode = authState.darkModeReducer.mode;
 
@@ -27,8 +27,8 @@ const FriendsScreen = () => {
       .where('uid', '!=', userID)
       .get()
       .then(res => {
-        let userData:string[] | any = [];
-        res.forEach(documentSnap => {
+        let userData:string[]  = [];
+        res.forEach((documentSnap:FirebaseFirestoreTypes.DocumentData) => {
           let data= documentSnap.data();
           userData.push(data);
         });

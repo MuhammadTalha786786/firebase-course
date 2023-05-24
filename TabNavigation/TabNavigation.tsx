@@ -13,13 +13,15 @@ import {useDispatch, useSelector} from 'react-redux';
 import Notifications from '../screens/Notifications';
 import GoogleMaps from '../screens/GoogleMaps';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
+import { reducerType } from '../Utils/types';
 
 const TabNavigation = () => {
-  const authState:any = useSelector((state) => state);
+  const authState = useSelector((state:reducerType) => state);
   let mode = authState.darkModeReducer.mode;
 
   return (
     <Tab.Navigator
+ 
       screenOptions={({route}) => ({
         tabBarIcon: ({focused, color, size}) => {
           if (route.name === 'Home') {
@@ -59,7 +61,7 @@ const TabNavigation = () => {
                   height: 58,
                   width: 58,
                   borderRadius: 58,
-                  backgroundColor: '#5a95ff',
+                  backgroundColor: StyleGuide.color.primary,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
@@ -77,7 +79,7 @@ const TabNavigation = () => {
                   height: 58,
                   width: 58,
                   borderRadius: 58,
-                  backgroundColor: '#5a95ff',
+                  backgroundColor: StyleGuide.color.primary,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
@@ -130,14 +132,10 @@ const TabNavigation = () => {
           textAlign: 'center',
           fontFamily: StyleGuide.fontFamily.regular,
         },
+        tabBarActiveTintColor: StyleGuide.color.primary,
         headerTitleAlign: 'center',
       })}
-      tabBarOptions={{
-       
-        activeTintColor: StyleGuide.color.primary,
-        inactiveTintColor: mode ? StyleGuide.color.light : '#023047',
-      
-      }}
+    
       
       >
       <Tab.Screen

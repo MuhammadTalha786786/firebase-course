@@ -23,44 +23,49 @@ const writeUserData = user => {
 };
 
 
-interface user {
-  isLogin: boolean;
-  email: string;
-  userName: string;
-  uid: string;
-  photoURL: string;
-  isLoggedIn:boolean
+interface _userI {
+  user:{
+  email: string | null;
+  displayName: string | null;
+  uid: string | null;
+  photoURL?: string |null;
 }
+}
+
+
+
+
 const useGoogleSignIn = () => {
   const dispatch = useDispatch();
   async function onGoogleButtonPress() {
     const {idToken} = await GoogleSignin.signIn();
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    console.log(googleCredential)
     auth()
       .signInWithCredential(googleCredential)
-      .then((user:any) => {
+      .then((response:_userI) => {
+        console.log(response.user.displayName)
         
-        const LoginUser:user = {
+        const LoginUser = {
           isLogin: true,
-          email: user.user._user.email,
-          userName: user.user._user.displayName,
-          uid: user.user._user.uid,
-          photoURL: user.user._user.photoURL,
-          isLoggedIn: true,
+          email: response.user.email,
+          userName: response.user.displayName,
+          uid: response.user.uid,
+          photoURL: response.user.photoURL,
+          isLoggedIn:true
         };
 
         const userData ={
           isLogin: true,
-          email: user.user._user.email,
-          name: user.user._user.displayName,
-          uid: user.user._user.uid,
-          image: user.user._user.photoURL,
+          email: response.user.email,
+          name: response.user.displayName,
+          uid: response.user.uid,
+          image: response.user.photoURL,
         }
-        console.log(user, 'login user data');
 
-        if (user) {
+        if (response) {
           writeUserData(userData);
-          dispatch(setSignIn(LoginUser));
+         dispatch(setSignIn(LoginUser));
         }
       })
       .catch(eror => {

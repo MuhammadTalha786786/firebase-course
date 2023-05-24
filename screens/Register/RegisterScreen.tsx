@@ -1,123 +1,40 @@
 import {
   View,
   Text,
-  Alert,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
   Image,
 } from 'react-native';
-import React, {useState} from 'react';
-import auth from '@react-native-firebase/auth';
-import database from '@react-native-firebase/database';
-import ButtonComponent from './components/ButtonComponent';
-import TextInputComponent from './components/TextInputComponent';
-import useGoogleSignIn from './components/GoogleSignIn';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {StyleGuide} from '../Utils/StyleGuide';
-import {Divider} from 'react-native-paper';
-import ImagePicker from 'react-native-image-crop-picker';
+import React, { useState } from 'react';
+import ButtonComponent from '../components/ButtonComponent';
+import TextInputComponent from '../components/TextInputComponent';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { StyleGuide } from '../../Utils/StyleGuide';
+import { Divider } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import storage from '@react-native-firebase/storage';
-import * as Progress from 'react-native-progress';
-import {Avatar} from 'native-base';
-import 'react-native-get-random-values';
-import {v4 as uuidv4} from 'uuid';
-import uuid from 'react-native-uuid';
-import firestore from '@react-native-firebase/firestore';
 
-const RegisterScreen = ({navigation}) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [Password, setPassword] = useState('');
-  const {onGoogleButtonPress} = useGoogleSignIn();
-  const [image, setImage] = useState();
-  const [uploading, setUploading] = useState(false);
-  const [transferred, setTransferred] = useState(0);
-  const [error, setError] = useState();
-  const [showPassword, setShowPassword] = useState(false);
-  const [userProfieImage, setUserProfileImage] = useState('');
+import { Avatar } from 'native-base';
+import { useRegister } from './useRegister';
 
-  const uploadImage = async () => {};
+const RegisterScreen = ({ navigation }) => {
+  const {
+    name,
+    setName,
+    image,
+    email, setEmail,
+    error,
+    setError,
+    uploading,
+    Password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    createNewAccount,
+    selectImage,
+    onGoogleButtonPress
+  } = useRegister()
 
-  const selectImage = async () => {
-    ImagePicker.openPicker({
-      width: 300,
-      height: 400,
-      cropping: true,
-    }).then(image => {
-      setImage(image.path);
-      console.log(image.path);
-      let fileName = `${uuidv4()}${image.path.substr(
-        image.path.lastIndexOf('.'),
-      )}`;
-      const ref = storage().ref(fileName);
-      ref.putFile(image.path).then(s => {
-        ref.getDownloadURL().then(x => {
-          console.log(x, 'x url');
-          setUserProfileImage(x);
-        });
-      });
-    });
-
-    console.log(image, 'uri....');
- 
-  };
-
-  const writeUserData = user => {
-    firestore()
-      .collection('users')
-      .doc(user.uid)
-      .set(user)
-      .then(() => {
-        console.log('user added!');
-      });
-
-    Alert.alert('registered');
-    setImage('');
-    setEmail('');
-    setName('');
-    setPassword('');
-  };
-
-  console.log(userProfieImage, 'ksdfhdajs');
-
-  const createNewAccount = async () => {
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (image === '' || image === undefined) {
-      setError('Please Select an Image');
-    } else if (email === '') {
-      setError('Please Enter the Email');
-    } else if (!reg.test(email)) {
-      setError('Please Enter the Valid Email');
-    } else if (name === '') {
-      setError('Please Enter the Name');
-    } else if (Password === '') {
-      setError('Please Enter the Password');
-    } else {
-      try {
-        const userAuth = await auth().createUserWithEmailAndPassword(
-          email,
-          Password,
-        );
-        console.log(userAuth, 'userAuth');
-        console.log(userAuth.email);
-        if (userAuth) {
-          uploadImage();
-        }
-        var user = {
-          name: name,
-          image: userProfieImage,
-          uid: userAuth.user._user.uid,
-          email: userAuth.user._user.email,
-          isLogin: false,
-        };
-        writeUserData(user);
-      } catch (error) {
-        console.log(error.message);
-      }
-    }
-  };
 
   return (
     <SafeAreaView style={styles.SafeAreaView}>
@@ -125,7 +42,6 @@ const RegisterScreen = ({navigation}) => {
         style={{
           padding: 0,
           marginVertical: 100,
-          textAlign: 'center',
           justifyContent: 'center',
           alignContent: 'center',
         }}>
@@ -155,29 +71,31 @@ const RegisterScreen = ({navigation}) => {
           </View>
         </View>
 
-        <View style={{padding: 0, marginVertical: 10, marginTop: 15}}>
+        <View style={{ padding: 0, marginVertical: 10, marginTop: 15 }}>
           <TextInputComponent
+            setShowPassword={(e:boolean)=>{e}}
             value={name}
             setValue={setName}
-            placeholder="Enter Name"
+            placeholder={"Enter Name"}
             mode="outlined"
             label="Name"
             setError={setError}
             name={'person'}
           />
         </View>
-        <View style={{padding: 0, marginVertical: 5}}>
+        <View style={{ padding: 0, marginVertical: 5 }}>
           <TextInputComponent
+            setShowPassword={(e:boolean)=>{e}}
             value={email}
             setValue={setEmail}
-            placeholder="Enter Email"
+            placeholder={"Enter Email"}
             mode="outlined"
             label="Email"
             setError={setError}
             name={'email'}
           />
         </View>
-        <View style={{padding: 0, marginVertical: 5}}>
+        <View style={{ padding: 0, marginVertical: 5 }}>
           <TextInputComponent
             value={Password}
             setValue={setPassword}
@@ -193,7 +111,7 @@ const RegisterScreen = ({navigation}) => {
           />
         </View>
 
-        <View style={{padding: 10, marginVertical: 5}}>
+        <View style={{ padding: 10, marginVertical: 5 }}>
           <Text style={styles.errorMessage}>{error}</Text>
           <ButtonComponent
             disabled={
@@ -209,11 +127,11 @@ const RegisterScreen = ({navigation}) => {
             color="#f5e7ea"
             backgroundColor={
               uploading ||
-              name === '' ||
-              email === '' ||
-              Password === '' ||
-              image === '' ||
-              image === undefined
+                name === '' ||
+                email === '' ||
+                Password === '' ||
+                image === '' ||
+                image === undefined
                 ? 'grey'
                 : StyleGuide.color.primary
             }
@@ -226,7 +144,7 @@ const RegisterScreen = ({navigation}) => {
           <Divider style={styles.DividerStyle} />
         </View>
 
-        <View style={{padding: 10}}>
+        <View style={{ padding: 10 }}>
           <ButtonComponent
             buttonTitle="Sign In with Google"
             btnType="google"

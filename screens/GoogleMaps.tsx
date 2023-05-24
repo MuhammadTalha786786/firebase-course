@@ -14,7 +14,7 @@ import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
 import {API_KEY} from '../Utils/Constants';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import {GooglePlaceData, GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 console.log(API_KEY, 'api key');
 import {
   check,
@@ -38,7 +38,7 @@ interface Geometry {
   lng?: number;
 }
 const GoogleMaps = () => {
-  let cityDetails: any = {};
+  let cityDetails:any = {};
   const window = useWindowDimensions();
   const [currentLocation, setCurrentLocation] = useState<IGeolocation | null>();
   const [geometry, setGeometry] = useState<IGeolocation>();
@@ -69,7 +69,6 @@ const GoogleMaps = () => {
     }
   };
 
-  console.warn(currentLocation, 'lat longitude');
 
   const setMarkerToCurrent = () => {
     checkLocationPermissions();
@@ -115,7 +114,6 @@ const GoogleMaps = () => {
     }
   };
   const getCityDetails = () => {
-    console.log(cityDetails);
     if (cityDetails) {
       fetch(
         `https://maps.googleapis.com/maps/api/place/details/json?placeid=${cityDetails?.place_id}&key=${API_KEY}`,
@@ -157,7 +155,6 @@ const GoogleMaps = () => {
           description: {color: 'black'},
         }}
         keepResultsAfterBlur={true}
-        keyboardAppearance={'light'}
         placeholder="Search"
         fetchDetails={true}
         nearbyPlacesAPI="GooglePlacesSearch"

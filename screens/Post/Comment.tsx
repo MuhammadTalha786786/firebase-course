@@ -6,6 +6,7 @@ import {
   FlatList,
   Alert,
   TouchableOpacity,
+  ListRenderItem,
 } from 'react-native';
 import React, {useEffect, useState, useLayoutEffect} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -18,14 +19,23 @@ import moment from 'moment';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useComment} from './useComment';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+
+interface commentsI {
+  comment:string
+  commentCreated:FirebaseFirestoreTypes.Timestamp
+  commentID:string
+  postID:string
+  userID:string
+  userImage:string
+  userProfileName:string
+}
 
 const Comment = () => {
   const {
     DeleteComment,
     getComments,
     comments,
-    comment,
-    setComment,
     isFetchingComments,
     mode,
     id,
@@ -61,7 +71,7 @@ const Comment = () => {
               data={comments}
               onRefresh={getComments}
               refreshing={isFetchingComments}
-              renderItem={({item}: any) => {
+              renderItem={({item}:{item:commentsI}) => {
                 {
                 }
                 return (
@@ -112,7 +122,7 @@ const Comment = () => {
                         </View>
                         <View>
                           <Text style={styles.dateStyle}>
-                            {moment(item?.commentCreated.toDate()).fromNow()}
+                            {moment(item?.commentCreated?.toDate()).fromNow()}
                           </Text>
                         </View>
                       </View>

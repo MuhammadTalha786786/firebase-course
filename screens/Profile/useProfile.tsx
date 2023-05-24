@@ -10,17 +10,27 @@ import {setSignIn} from '../../Redux/Auth/AuthReducer';
 import auth from '@react-native-firebase/auth';
 import { backArrow } from '../../Utils/SvgAssests';
 import Svg from '../components/Svg';
-
+interface userAuthI{
+  email:string,
+ isLoggedIn:boolean
+ userName:string
+ uid:string 
+ photoURL:string
+ mode:boolean
+}
+interface authStateI {
+  userAuthReducer:userAuthI
+}
 
 export const useProfile = () => {
-  const authState:any = useSelector((state) => state);
+  const authState = useSelector((state:authStateI) => state);
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [dateOfBirth, setDateOfBirth] = useState<Date>(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [confirm, setConfirm] = useState<any>(null);
+  const [confirm, setConfirm] = useState<number>(null);
   const [code, setCode] = useState<string>('');
   const [ishow, setShow] = useState<boolean>(false);
   const [verified, setVerified] = useState<boolean>(false);
@@ -111,7 +121,7 @@ export const useProfile = () => {
       setLoader(false);
       Alert.alert('please Enter the Phone Number');
     } else {
-      const confirmation:any = await auth().verifyPhoneNumber(phoneNumber);
+      const confirmation = await auth().verifyPhoneNumber(phoneNumber);
       console.log(confirmation, 'confirmation');
       if (confirmation) {
         // setLoader(false);
@@ -133,7 +143,7 @@ export const useProfile = () => {
     console.log("function called...")
     console.log(code);
     try {
-      const credential: credential = auth.PhoneAuthProvider.credential(
+      const credential = auth.PhoneAuthProvider.credential(
         confirm?.verificationId,
         code,
       );

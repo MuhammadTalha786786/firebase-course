@@ -15,9 +15,9 @@ interface ButtonProps {
   buttonTitle: string;
   btnType: string;
   color: string;
-  disabled:boolean;
+  disabled?:boolean;
   backgroundColor: string;
-  uploading: boolean;
+  uploading?: boolean;
   // setUploading: () => void;
   onPress: () => void;
 }

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import {StyleGuide} from '../../../../StyleGuide';
 type IModalProps = {
+  
   isVisible: boolean;
   animationType?: 'slide' | 'fade' | 'none';
   setVisibility?: (item: boolean) => void;

@@ -59,10 +59,10 @@ const ProfileScreen = () => {
         colors={['#FFFFFF', '#E5FFE3', '#4E924A']}
         style={styles.linearGradient}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : ''}
-          style={styles.container}>
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+         >
           <ScrollView>
-            <View style={styles.container}>
+            <View >
               <View style={[styles.header]}>
                 <Text style={styles.userText}> User Profile</Text>
               </View>
@@ -91,7 +91,7 @@ const ProfileScreen = () => {
                 />
               </View>
 
-              <View style={styles.body}>
+              <View >
                 <View style={{marginVertical: 10}}>
                   <TextInputComponent
                     value={email}

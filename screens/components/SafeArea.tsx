@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 
   interface Props {
     children: React.ReactNode;
-    style?: any;
+    style?: ViewStyle;
   }
 const SafeArea = (props:Props) => {
 

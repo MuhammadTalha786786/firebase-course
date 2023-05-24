@@ -1,5 +1,6 @@
 import { createSlice, configureStore } from '@reduxjs/toolkit'
 
+
 const AuthSlice = createSlice({
     name: 'userAuth',
     initialState: {
@@ -18,8 +19,6 @@ const AuthSlice = createSlice({
             state.userName = action.payload.userName;
             state.uid = action.payload.uid;
             state.photoURL = action.payload.photoURL;
-
-
         },
         setSignOut: (state) => {
             state.email = null;
@@ -27,8 +26,6 @@ const AuthSlice = createSlice({
             state.isLoggedIn = false;
             state.uid = null;
             state.photoURL = null;
-
-
         },
         setDarkMode: (state, action) => {
             state.mode = action.payload.mode

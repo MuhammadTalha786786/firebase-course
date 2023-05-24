@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import LoginScreen from './screens/Login/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
 import OnBoardingScreen from './screens/OnBoardingScreen';
 import Home from './screens/Home/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +12,8 @@ import messaging from '@react-native-firebase/messaging';
 import ChatScreen from './screens/Chat/ChatScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
 import UserProfile from './screens/UserProfile';
+import RegisterScreen from './screens/Register/RegisterScreen';
+
 
 const AppStack = createStackNavigator();
 

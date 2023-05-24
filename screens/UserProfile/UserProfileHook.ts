@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useNavigation, useRoute } from '@react-navigation/native'
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 
 
@@ -9,7 +9,7 @@ export const UserProfileHook = () => {
     const route  = useRoute();
     const id =  route?.params?.id;
     const navigation = useNavigation();
-    const [userData, setUserData] =useState([])
+    const [userData, setUserData] =useState<FirebaseFirestoreTypes.DocumentData>([])
     console.warn(id)
 
 
@@ -36,6 +36,19 @@ export const UserProfileHook = () => {
   
   ]
 
+  interface userDocumentI{
+    data:{
+      dateOfBirth: Date,
+      email:string,
+      image:string,
+      isLogin:boolean,
+      name:string,
+      numberVerified:boolean,
+      phoneNumbe:string,
+      uid:string
+    }
+  }
+ 
 
     useEffect(() => {
       firestore()
@@ -43,9 +56,10 @@ export const UserProfileHook = () => {
         .where('uid', '==', id)
         .get()
         .then(res => {
-          let userData:string[] | any = [];
-          res.forEach(documentSnap => {
-            let data= documentSnap.data();
+          let userData:FirebaseFirestoreTypes.DocumentData  = [];
+          res.forEach((documentSnap )=> {
+            console.log((documentSnap),"document snap")
+            let data :FirebaseFirestoreTypes.DocumentData = documentSnap.data();
             userData.push(data);
           });
           setUserData(userData);

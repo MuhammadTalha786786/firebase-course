@@ -24,23 +24,23 @@ import { setSignOut } from '../../Redux/Auth/AuthReducer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import uuid from 'react-native-uuid';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { windowHeight, windowWidth } from '../../Utils/Dimesnions';
+import { reducerType } from '../../Utils/types';
 
 const Post = ({ navigation }) => {
-  const [image, setImage] = useState('');
-  const [title, setTitle] = useState('');
-  const [textAreaValue, setTextAreaValue] = useState('');
-  const [error, setError] = useState('');
-  const [imageError, setImageError] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [transferred, setTransferred] = useState(0);
-  const [postImage, setPostImage] = useState('');
-  const authState:any = useSelector((state) => state);
-  const [loginState, setLoginState] = useState();
+  const [image, setImage] = useState<string>('');
+  const [title, setTitle] = useState<string>('');
+  const [textAreaValue, setTextAreaValue] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [imageError, setImageError] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [postImage, setPostImage] = useState<string>('');
+  const [loginState, setLoginState] = useState<boolean>(false);
   const [imageText, selectImageText] = useState('');
 
  
+  const authState = useSelector((state:reducerType) => state);
 
   let uid = authState.userAuthReducer.uid;
 
@@ -76,7 +76,7 @@ const Post = ({ navigation }) => {
           .collection('users')
           .doc(user.uid)
           .get()
-          .then((documentSnapshot:any) => {
+          .then((documentSnapshot:FirebaseFirestoreTypes.DocumentData) => {
             console.log(documentSnapshot.data().isLogin, 'mdfdas');
 
             setLoginState(documentSnapshot.data().isLogin);

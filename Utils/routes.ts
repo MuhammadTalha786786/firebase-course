@@ -1,11 +1,20 @@
 export type StackParamList ={
     ChatsScreen:{
         receiverName: string,
-        receiverImage: any,
+        receiverImage: string,
         receiverLogin: string,
-        receiverID: boolean,
+        receiverID: string,
     }
     UserProfile:{
         id:string
     }
+    Comment:{
+        postData:  string[] ,
+        comments: string [],
+        setGetData: (e:string []) =>void,
+        postID: string,
+        mode: boolean,
+    }
+
+    
 }

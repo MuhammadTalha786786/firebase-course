@@ -47,9 +47,8 @@ const FriendListCard = ({ item, mode }) => {
             <Image
              
               style={{ marginVertical: 20, marginHorizontal: 5, width: 50, height: 50 }}
-              source={require("../../images/chat.png")}>
+              source={require("../../images/chat.png")}/>
 
-            </Image>
           </TouchableOpacity>
         </View>
       </View>

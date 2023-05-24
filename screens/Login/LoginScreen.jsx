@@ -1,14 +1,13 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  Image,
-  SafeAreaView,
-} from 'react-native';
+  import {
+    View,
+    Text,
+    StyleSheet,
+    StatusBar,
+    TouchableOpacity,
+    Image,
+    SafeAreaView,
+  } from 'react-native';
 import React, {useEffect, useState} from 'react';
-import database from '@react-native-firebase/database';
 import ButtonComponent from '../components/ButtonComponent';
 import {StyleGuide} from '../../Utils/StyleGuide';
 import {Divider} from 'react-native-paper';

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import useGoogleSignIn from '../components/GoogleSignIn';
 import auth from '@react-native-firebase/auth';
@@ -63,8 +63,7 @@ export const useLogin = () => {
       .collection('users')
       .doc(uid)
       .get()
-      .then((snapshot:any) => {
-        console.log(snapshot.data().image, 'dasdad');
+      .then((snapshot:FirebaseFirestoreTypes.DocumentData) => {
         LoginUser.userName = snapshot.data().name;
         LoginUser.photoURL = snapshot.data().image;
         dispatch(setSignIn(LoginUser));
@@ -83,10 +82,11 @@ export const useLogin = () => {
       setLoader(true);
       auth()
         .signInWithEmailAndPassword(email, Password)
-        .then((loggedInUser:any) => {
+        .then((loggedInUser:FirebaseFirestoreTypes.DocumentData) => {
+          console.warn("user login")
           if (loggedInUser) {
             setLoader(false);
-            console.log(loggedInUser, 'user login here');
+            console.warn(loggedInUser, 'user login here');
             updateLogin(loggedInUser.user._user.uid);
             //  getUserData(loggedInUser.user._user.uid);
             LoginUser.email = loggedInUser.user._user.email;

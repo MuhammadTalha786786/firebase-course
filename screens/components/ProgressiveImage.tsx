@@ -1,7 +1,16 @@
+import { StyledProps } from 'native-base';
 import React from 'react';
-import {View, StyleSheet, Animated} from 'react-native';
+import {View, StyleSheet, Animated, ViewStyle, ImageStyle, ImageSourcePropType, StyleProp} from 'react-native';
 
-class ProgressiveImage extends React.Component {
+
+  interface   progressiveImagePropsI {
+    
+    source?:ImageSourcePropType, 
+    style:StyleProp<ImageStyle>
+   
+}
+class ProgressiveImage extends React.Component<progressiveImagePropsI> {
+  
   defaultImageAnimated = new Animated.Value(0);
   imageAnimated = new Animated.Value(0);
 
@@ -20,22 +29,17 @@ class ProgressiveImage extends React.Component {
   };
 
   render() {
-    const {defaultImageSource, source, style, ...props} = this.props;
+  // const { source, style,...props}: Readonly<progressiveImagePropsI> = this.props;
     return (
       <View style={styles.container}>
         <Animated.Image
-          {...props}
-          source={defaultImageSource}
-          style={[style, {opacity: this.defaultImageAnimated}]}
+          {...this.props}
+          source={this.props.source}
+          style={[this.props.style, {opacity: this.defaultImageAnimated}]}
           onLoad={this.handleDefaultImageLoad}
           blurRadius={1}
         />
-        <Animated.Image
-          {...props}
-          source={source}
-          style={[style, {opacity: this.imageAnimated}, styles.imageOverlay]}
-          onLoad={this.handleImageLoad}
-        />
+       
       </View>
     );
   }

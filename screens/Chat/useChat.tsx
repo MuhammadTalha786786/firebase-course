@@ -1,53 +1,56 @@
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import React,{useState, useEffect} from 'react'
-import { useRoute, useNavigation, ParamListBase } from '@react-navigation/native';
+import React,{useState, useLayoutEffect} from 'react'
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import {useSelector} from 'react-redux';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import moment from 'moment';
 import {useFocusEffect} from '@react-navigation/native';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import {Icon} from 'react-native-elements';
+import { StackParamList } from '../../Utils/routes';
+import { reducerType } from '../../Utils/types';
 
 
-   type RoutesParams ={
-     receiverName: string;
-     receiverImage: string;
-     receiverLogin: string;
-     receiverID: string;
-     params: any;
-   }
 
-   interface reduxObject {
-     userAuthReducer: {};
-     darkModeReducer: {};
-   }
+   
+type Props = RouteProp<StackParamList, 'ChatsScreen'>;
 
 export const useChat = () => {
 
  
-const route: RoutesParams = useRoute<ParamListBase>();
+
+
+
+const [messageSend, setMesssageSend] = useState<boolean>(false);
+const [messages, setMessages] = useState<FirebaseFirestoreTypes.DocumentData>([]);
+const [inputMessage, setInputMessage] = useState<string>('');
+
+
+const route = useRoute<Props>();
 const {receiverName, receiverImage, receiverLogin, receiverID} = route?.params;
-const authState: any = useSelector(
-  (state: reduxObject) => state.userAuthReducer,
+const authState = useSelector(
+  (state:reducerType) => state.userAuthReducer,
 );
-const modeReducer: any = useSelector(
-  (state: reduxObject) => state.darkModeReducer,
+const modeReducer = useSelector(
+  (state: reducerType) => state.darkModeReducer,
 );
 const navigation =useNavigation()   
 const mode = modeReducer.mode;
-console.warn(mode, 'mode');
-const [messageSend, setMesssageSend] = useState<boolean>(false);
-const [messages, setMessages] = useState<string[]>([]);
-const [inputMessage, setInputMessage] = useState<string>('');
+
+
 let senderName = authState.userName;
 let senderID = authState.uid;
+
+
 const sendMessage = () => {
   setMesssageSend(!messageSend);
   if (inputMessage === '') {
     return setInputMessage('');
   }
-  let id: string | undefined = uuid.v4();
+  let id = uuid.v4() as string
+
+
   const messageData = {
     senderName: senderName,
     senderID: senderID,
@@ -70,7 +73,7 @@ const sendMessage = () => {
     });
 };
 
-useEffect(() => {
+useLayoutEffect(() => {
   navigation.setOptions({
     title: '',
     headerStyle: {
@@ -118,8 +121,6 @@ useEffect(() => {
   });
 }, []);
 
-console.log(receiverID);
-console.warn(senderID);
 
 useFocusEffect(
   React.useCallback(() => {
@@ -133,10 +134,10 @@ const getMessages = () => {
     .orderBy('timeofSend')
     .get()
     .then(res => {
-      let tempArray: any = [];
+      let tempArray:FirebaseFirestoreTypes.DocumentData= [];
       console.log(res);
-      res.forEach(documentSnapshot => {
-        let data: any = documentSnapshot.data();
+      res.forEach((documentSnapshot:FirebaseFirestoreTypes.DocumentData) => {
+        let data:FirebaseFirestoreTypes.DocumentData= documentSnapshot.data();
 
         if (
           [senderID, receiverID].includes(data.senderID) &&

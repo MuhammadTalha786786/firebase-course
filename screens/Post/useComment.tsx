@@ -1,17 +1,39 @@
 import { View, Text, Alert } from 'react-native'
 import  {useEffect, useState, useLayoutEffect} from 'react';
 import { useSelector } from 'react-redux';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StyleGuide } from '../../Utils/StyleGuide';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { reducerType } from '../../Utils/types';
+import { StackParamList } from '../../Utils/routes';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+interface commentsI {
+  comment:string
+  commentCreated:FirebaseFirestoreTypes.Timestamp
+  commentID:string
+  postID:string
+  userID:string
+  userImage:string
+  userProfileName:string
+}
+
+type commentType   = commentsI []
+
+type Props = RouteProp<StackParamList, 'Comment'>;
+
+
 
 export const useComment = () => {
-const [comments, setComments] = useState([]);
-  const [comment, setComment] = useState('');
-  const [isFetchingComments, setIsFetchingComments] = useState(false);
-  const authState: any = useSelector(state => state);
-  const route:any = useRoute();
+  const [comments, setComments] = useState<commentType>([]);
+  const [comment, setComment] = useState<string>('');
+  const [isFetchingComments, setIsFetchingComments] = useState<boolean>(false);
+  const authState = useSelector((state:reducerType) => state);
+  const route = useRoute<Props>();
   const navigation = useNavigation();
+
+
+
   let id = authState.userAuthReducer.uid;
   let postId = route?.params?.postID;
   console.log(postId, 'post id is here');
@@ -39,13 +61,12 @@ const [comments, setComments] = useState([]);
       .doc(postId)
 
       .get()
-      .then((querySnapshot: any) => {
-        console.log(querySnapshot.data().comments);
+      .then((querySnapshot: FirebaseFirestoreTypes.DocumentData) => {
+
+        setIsFetchingComments(true)
         setComments(querySnapshot.data().comments);
-        /* ... */
       });
   };
-  console.log(comments, 'comemnts');
   const DeleteComment = (commentID, postID) => {
     Alert.alert(
       'Are you sure to delete?',
@@ -68,14 +89,13 @@ const [comments, setComments] = useState([]);
     );
   };
 
-  const userCommentDeleted = (commentID: string, postID) => {
-    console.log(commentID, 'on ');
+  const userCommentDeleted = (cid:string, postID) => {
 
     firestore()
       .collection('posts')
       .doc(postID)
       .update({
-        comments: comments.filter((c: any) => c.commentID !== commentID),
+        comments: comments.filter((c) => c.commentID !== cid),
       })
       .then(() => {
         Alert.alert('your comment has been Deleted...');
@@ -86,7 +106,6 @@ const [comments, setComments] = useState([]);
       });
   };
 
-  console.log(comments, 'length');
 
 
 
