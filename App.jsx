@@ -22,6 +22,7 @@ const App = () => {
   const UserLogin = authState.userAuthReducer.isLoggedIn;
   console.log(UserLogin, 'UserLogin');
   const [firstLaunch, setFirstLaunch] = useState(null);
+  
   useEffect(() => {
     async function setData() {
       const appData = await AsyncStorage.getItem('appLaunched');
@@ -33,7 +34,7 @@ const App = () => {
       }
     }
     setData();
-  }, []);
+  }, [UserLogin]);
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {

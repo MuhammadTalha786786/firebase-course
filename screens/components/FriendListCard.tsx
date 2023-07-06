@@ -6,17 +6,19 @@ import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import { StackParamList } from '../../Utils/routes';
+import Svg from './Svg';
+import { chatIcon } from '../../Utils/SvgAssests';
 
 
 const FriendListCard = ({ item, mode }) => {
   const navigation =useNavigation<NativeStackNavigationProp<StackParamList>>();
   return (
-    <View style={{ padding: 10 }}>
+    <View style={{ p}}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View
           style={[
             styles.listItem,
-            { backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa' },
+            { backgroundColor: mode ? 'rgb(40, 42, 54)' : 'red' },
           ]}>
           <Avatar
             size={'lg'}
@@ -44,10 +46,11 @@ const FriendListCard = ({ item, mode }) => {
               })
             }
           >
-            <Image
+            <Svg xml={chatIcon} rest={{width:60, height:60}}/>
+            {/* <Image
              
               style={{ marginVertical: 20, marginHorizontal: 5, width: 50, height: 50 }}
-              source={require("../../images/chat.png")}/>
+              source={require("../../images/chat.png")}/> */}
 
           </TouchableOpacity>
         </View>
@@ -70,7 +73,8 @@ const styles = StyleSheet.create({
   listItem: {
     padding: 30,
     marginTop: 10,
-    paddingVertical: 20,
+    width:"90%",
+    // paddingVertical: 20,
     paddingHorizontal: 20,
     flexDirection: 'row',
     borderRadius: 12,

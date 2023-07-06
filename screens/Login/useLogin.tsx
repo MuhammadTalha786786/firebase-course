@@ -1,56 +1,83 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import useGoogleSignIn from '../components/GoogleSignIn';
 import auth from '@react-native-firebase/auth';
-import {useDispatch} from 'react-redux';
-import {setSignIn} from '../../Redux/Auth/AuthReducer';
+import { useDispatch } from 'react-redux';
+import { setSignIn } from '../../Redux/Auth/AuthReducer';
+import {
+
+  AccessToken,
+  AuthenticationToken,
+  LoginButton,
+  LoginManager,
+  Profile,
+} from 'react-native-fbsdk-next'
+import { useNavigation } from '@react-navigation/native';
+
 
 interface loginUser {
-  isLogin:boolean
-  email:string
-  uid:string
+  isLogin: boolean
+  email: string
+  uid: string
   isLoggedIn: boolean;
   userName: string;
   photoURL: string;
 }
 export const useLogin = () => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('user2@gmail.com');
+  const [email, setEmail] = useState('');
   const [Password, setPassword] = useState('123456');
-  const [userLoginName, setUserLoginName] = useState();
   const [confirm, setConfirm] = useState(null);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState<string>('');
   const [error, setError] = useState<string>();
-  const {onGoogleButtonPress} = useGoogleSignIn();
-  const [photoUrl, setPhotoUrl] = useState();
+  const { onGoogleButtonPress } = useGoogleSignIn();
+  const [photoUrl, setPhotoUrl] = useState<string>();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [forgotEmail, setForgotEmail] = useState<string>('');
   const [forgotEmailError, setForgotEmailError] = useState<string>();
   const [loader, setLoader] = useState<boolean>(false);
+  const [otp, setOtp] = useState('')
 
-//   async function signInWithPhoneNumber(phoneNumber) {
-//     const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
-//     setConfirm(confirmation);
-//   }
 
-//   const confirmingCode = async () => {
-//     console.log('verifying the code');
-//     try {
-//       const codeVerify = await confirm.confirm(code);
-//       let userData = await auth().currentUser.linkWithCredential(credential);
-//       console.warn(codeVerify, 'verify ');
-//       if (codeVerify) {
-//         navigation.navigate('Home');
-//       }
-//     } catch (error) {
-//       console.log('Invalid code.');
-//     }
-//   };
+  useEffect(() => {
+    if (otp.length === 4) {
+      confirmingCode()
+    }
+
+  }, [])
+
+
+  const navigation = useNavigation()
+
+  async function phoneLogin() {
+    console.log("called")
+    const confirmation = await auth().signInWithPhoneNumber(email);
+
+    setConfirm(confirmation);
+    //  if(confirm){
+    //   confirmingCode()
+    //  }
+  }
+
+
+  const confirmingCode = async () => {
+    console.log('verifying the code');
+    try {
+      const codeVerify = await confirm.confirm(code);
+      // let userData = await auth().currentUser.linkWithCredential(credential);
+      console.warn(codeVerify, 'verify ');
+      if (codeVerify) {
+        navigation.navigate('Home');
+      }
+    } catch (error) {
+      console.log('Invalid code.');
+    }
+  };
 
   const LoginUser: loginUser = {
-    isLogin:true,
+    isLogin: true,
     isLoggedIn: true,
     userName: '',
     photoURL: '',
@@ -63,7 +90,7 @@ export const useLogin = () => {
       .collection('users')
       .doc(uid)
       .get()
-      .then((snapshot:FirebaseFirestoreTypes.DocumentData) => {
+      .then((snapshot: FirebaseFirestoreTypes.DocumentData) => {
         LoginUser.userName = snapshot.data().name;
         LoginUser.photoURL = snapshot.data().image;
         dispatch(setSignIn(LoginUser));
@@ -72,17 +99,13 @@ export const useLogin = () => {
   console.log(photoUrl, 'photos....');
   const login = async () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (email === '') {
-      setError('Please Enter the Email');
-    } else if (reg.test(email) === false) {
-      setError('Please Enter the Valid Email');
-    } else if (Password === '') {
+    if (Password === '') {
       setError('Please Enter the Password');
     } else {
       setLoader(true);
       auth()
         .signInWithEmailAndPassword(email, Password)
-        .then((loggedInUser:FirebaseFirestoreTypes.DocumentData) => {
+        .then((loggedInUser: FirebaseFirestoreTypes.DocumentData) => {
           console.warn("user login")
           if (loggedInUser) {
             setLoader(false);
@@ -138,7 +161,7 @@ export const useLogin = () => {
   useEffect(() => {
     messaging()
       .getInitialNotification()
-      .then(remoteMessage => {});
+      .then(remoteMessage => { });
   }, []);
 
   const checkToken = async () => {
@@ -178,6 +201,76 @@ export const useLogin = () => {
       });
   }, []);
 
+
+  const writeUserData = user => {
+    console.log(user)
+    firestore()
+      .collection('users')
+      .doc(user.uid)
+      .set(user)
+      .then(() => {
+        console.warn('user added!');
+      });
+
+
+  };
+
+  async function onFacebookButtonPress() {
+    setLoader(true)
+    // Attempt login with permissions
+    const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+    if (result.isCancelled) {
+      throw 'User cancelled the login process';
+    }
+    // Once signed in, get the users AccesToken
+    const data = await AccessToken.getCurrentAccessToken();
+    console.log(data, "data")
+    if (!data) {
+      throw 'Something went wrong obtaining access token';
+    }
+
+    // Create a Firebase credential with the AccessToken
+    const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+    console.log(facebookCredential, "facebook")
+
+
+    const currentProfile = Profile.getCurrentProfile().then(
+      function (currentProfile) {
+
+        const userData = {
+          isLogin: true,
+          email: currentProfile?.email,
+          name: `${currentProfile?.firstName}  ${currentProfile?.lastName}`,
+          uid: currentProfile?.userID,
+          image: currentProfile?.imageURL,
+
+        };
+
+
+        const LoginUser = {
+          isLogin: true,
+          email: currentProfile?.email,
+          userName: `${currentProfile?.firstName}  ${currentProfile?.lastName}`,
+          uid: currentProfile?.userID,
+          photoURL: currentProfile?.imageURL,
+          isLoggedIn: true
+        };
+
+        if (currentProfile) {
+          writeUserData(userData)
+          dispatch(setSignIn(LoginUser))
+          setLoader(false)
+
+        }
+      }
+    ).catch((err) => {
+      setLoader(false)
+      console.warn(err)
+    })
+    // Sign-in the user with the credential
+    return auth().signInWithCredential(facebookCredential);
+  }
+
   console.log(photoUrl);
   return {
     login,
@@ -191,12 +284,16 @@ export const useLogin = () => {
     forgotEmailError,
     setForgotEmail,
     setForgotEmailError,
-    modalVisible, 
+    modalVisible,
     setModalVisible,
     Password,
     forgotPassword,
     loader,
     showPassword,
-    setShowPassword
+    setShowPassword,
+    onFacebookButtonPress,
+    phoneLogin,
+    otp,
+    setOtp
   };
 };

@@ -2,8 +2,8 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {useDispatch} from 'react-redux';
 import {setSignIn} from '../../Redux/Auth/AuthReducer';
 import auth from '@react-native-firebase/auth';
-import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
+import { useState } from 'react';
 
 
 GoogleSignin.configure({
@@ -35,9 +35,12 @@ interface _userI {
 
 
 
+
 const useGoogleSignIn = () => {
+  const [loading, setLoader] = useState<boolean>(false)
   const dispatch = useDispatch();
   async function onGoogleButtonPress() {
+    setLoader(true)
     const {idToken} = await GoogleSignin.signIn();
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     console.log(googleCredential)
@@ -64,6 +67,7 @@ const useGoogleSignIn = () => {
         }
 
         if (response) {
+          setLoader(false)
           writeUserData(userData);
          dispatch(setSignIn(LoginUser));
         }
@@ -74,6 +78,7 @@ const useGoogleSignIn = () => {
   }
   return {
     onGoogleButtonPress,
+    loading
   };
 };
 export default useGoogleSignIn;

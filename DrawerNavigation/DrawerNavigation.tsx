@@ -17,7 +17,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import GoogleMaps from '../screens/GoogleMaps';
 import VideoComponent from '../screens/VideoComponent';
 import Svg from '../screens/components/Svg';
-import { logout } from '../Utils/SvgAssests';
+import { logout, newLogout } from '../Utils/SvgAssests';
 import firestore from '@react-native-firebase/firestore';
 import { setSignOut } from '../Redux/Auth/AuthReducer';
 
@@ -92,12 +92,12 @@ const DrawerNavigation = () => {
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-              <Avatar
+              {/* <Avatar
                 bg="indigo.500"
                 alignSelf="center"
                 size="xl"
                 source={require('../images/logo.png')}
-              />
+              /> */}
             </View>
             <DrawerItemList {...props} />
             <View
@@ -155,7 +155,7 @@ const DrawerNavigation = () => {
               onPress={logoutUser}
               style={{flexDirection: 'row'}}>
               <Svg
-                xml={logout}
+                xml={newLogout}
                 rest={{
                   height: 30,
                   width: 30,

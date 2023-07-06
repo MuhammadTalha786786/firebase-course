@@ -7,6 +7,7 @@ import {
   Alert,
   StatusBar,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import React, { useState, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -27,6 +28,7 @@ import uuid from 'react-native-uuid';
 import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { windowHeight, windowWidth } from '../../Utils/Dimesnions';
 import { reducerType } from '../../Utils/types';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const Post = ({ navigation }) => {
   const [image, setImage] = useState<string>('');
@@ -152,6 +154,10 @@ const Post = ({ navigation }) => {
               : StyleGuide.color.light,
           },
         ]}>
+          <KeyboardAvoidingView  style={{flex:1}}  behavior='height' >
+            <ScrollView>
+
+          
         <>
           <View style={styles.heading}>
             <Text style={styles.headingText}>Create Post</Text>
@@ -213,6 +219,12 @@ const Post = ({ navigation }) => {
             </View>
           </View>
         </>
+        </ScrollView>
+
+
+
+        </KeyboardAvoidingView>
+
       </SafeAreaView>
     </>
   );

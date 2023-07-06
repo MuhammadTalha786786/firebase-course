@@ -1,25 +1,34 @@
-  import {
-    View,
-    Text,
-    StyleSheet,
-    StatusBar,
-    TouchableOpacity,
-    Image,
-    SafeAreaView,
-  } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  StatusBar,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
 import ButtonComponent from '../components/ButtonComponent';
-import {StyleGuide} from '../../Utils/StyleGuide';
-import {Divider} from 'react-native-paper';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
+import { StyleGuide } from '../../Utils/StyleGuide';
+import { Divider } from 'react-native-paper';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 import TextInputComponent from '../components/TextInputComponent';
 import ForgotModal from '../components/ForgotModal';
-import {Avatar} from 'native-base';
+import { Avatar } from 'native-base';
 import { useLogin } from './useLogin.tsx';
 import useGoogleSignIn from '../components/GoogleSignIn';
 import SafeArea from '../components/SafeArea';
-const LoginScreen = ({navigation}) => {
-  const {onGoogleButtonPress} =useGoogleSignIn()
+
+import auth from '@react-native-firebase/auth';
+import { LoginManager, AccessToken, Profile } from 'react-native-fbsdk-next';
+
+
+const LoginScreen = ({ navigation }) => {
+  const { onGoogleButtonPress, loading } = useGoogleSignIn()
+
+
+
+
 
   const {
     login,
@@ -39,7 +48,11 @@ const LoginScreen = ({navigation}) => {
     forgotPassword,
     loader,
     showPassword,
-    setShowPassword
+    setShowPassword,
+    onFacebookButtonPress,
+    phoneLogin,
+    otp,
+    setOtp
   } = useLogin();
 
   return (
@@ -53,12 +66,12 @@ const LoginScreen = ({navigation}) => {
         <SafeArea>
           <View>
             <View style={styles.loginTxtView}>
-              <Avatar
+              {/* <Avatar
                 bg="indigo.500"
                 alignSelf="center"
                 size="xl"
                 source={require('../../images/logo.png')}
-              />
+              /> */}
               {/* <Text style={styles.loginText}>Login</Text> */}
             </View>
             <View
@@ -69,7 +82,7 @@ const LoginScreen = ({navigation}) => {
                 justifyContent: 'center',
                 alignContent: 'center',
               }}>
-              <View style={{padding: 0}}>
+              <View style={{ padding: 0 }}>
                 <TextInputComponent
                   value={email}
                   setValue={setEmail}
@@ -80,29 +93,48 @@ const LoginScreen = ({navigation}) => {
                   name={'email'}
                 />
               </View>
-              <View style={{padding: 0, marginVertical: 10}}>
-                <TextInputComponent
-                  value={Password}
-                  setValue={setPassword}
-                  placeholder="Enter Password"
-                  mode="outlined"
-                  label="password"
-                  setError={setError}
-                  name={'visibility'}
-                  showPassword={showPassword}
-                  setShowPassword={setShowPassword}
-                  IsPassword={true}
-                />
-              </View>
-              <View style={{padding: 10}}>
-                <Text style={{color: 'red', fontSize: 12}}>{error}</Text>
+              {
+                email.includes('+92') ? <>
+                  <View style={{ padding: 0, marginVertical: 10 }}>
+                    <TextInputComponent
+                      value={otp}
+                      setValue={setOtp}
+                      placeholder="Enter OTP"
+                      mode="outlined"
+                      label="password"
+                      setError={setError}
+                      
+                    />
+                  </View>
+                </> :
+
+                  <View style={{ padding: 0, marginVertical: 10 }}>
+                    <TextInputComponent
+                      value={Password}
+                      setValue={setPassword}
+                      placeholder="Enter Password"
+                      mode="outlined"
+                      label="password"
+                      setError={setError}
+                      name={'visibility'}
+                      showPassword={showPassword}
+                      setShowPassword={setShowPassword}
+                      IsPassword={true}
+                    />
+                  </View>
+              }
+
+
+
+              <View style={{ padding: 10 }}>
+                <Text style={{ color: 'red', fontSize: 12 }}>{error}</Text>
                 <ButtonComponent
                   buttonTitle="SIGN IN"
                   btnType="sign-in"
                   color="#f5e7ea"
                   backgroundColor={loader ? 'grey' : StyleGuide.color.primary}
-                  onPress={login}
-                  uploading={loader}
+                  onPress={email.includes('+92') ? phoneLogin : login}
+                  uploading={loader  || loading}
                 />
                 <Text
                   style={styles.forgotPassword}
@@ -173,13 +205,46 @@ const LoginScreen = ({navigation}) => {
               </Button>
             </View> */}
 
-              <View style={{padding: 10}}>
+              <View style={{ padding: 10 }}>
                 <ButtonComponent
                   buttonTitle="Sign In with Google"
                   btnType="google"
                   color="#f5e7ea"
                   backgroundColor="#de4d41"
                   onPress={onGoogleButtonPress}
+                  uploading={loading}
+                />
+
+
+                {/* <LoginButton
+          onLoginFinished={(error, result) => {
+            if (error) {
+              console.log('login has error: ' + result.error);
+            } else if (result.isCancelled) {
+              console.log('login is cancelled.');
+            } else {
+              if (Platform.OS === 'ios') {
+                AuthenticationToken.getAuthenticationTokenIOS().then((data) => {
+                  console.log(data?.authenticationToken);
+                });
+              } else {
+                AccessToken.getCurrentAccessToken().then((data) => {
+                  console.log(data?.accessToken.toString());
+                });
+              }
+            }
+          }}
+          onLogoutFinished={() => console.log('logout.')}
+          loginTrackingIOS={'limited'}
+          nonceIOS={'my_nonce'}
+        /> */}
+
+                <ButtonComponent
+                  buttonTitle="Sign In with Facebook"
+                  btnType="facebook"
+                  color="#f5e7ea"
+                  backgroundColor="#007FFF"
+                  onPress={onFacebookButtonPress}
                 />
                 <View style={styles.accountView}>
                   <Text style={styles.accountText}>

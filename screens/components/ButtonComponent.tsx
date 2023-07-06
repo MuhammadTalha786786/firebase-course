@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontWeight: 'bold',
+
   },
   btnTxtWrapper: {
     flex: 1,

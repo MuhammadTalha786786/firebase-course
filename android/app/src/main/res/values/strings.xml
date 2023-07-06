@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SociaBea</string>
+    <string name="facebook_app_id">907624887205431</string>
+    <string name="facebook_client_token">7f3d9c0ae890b529a16b08696a8d3104</string>
 </resources>

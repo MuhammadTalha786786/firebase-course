@@ -9,17 +9,17 @@ import {
   TouchableHighlight,
   Pressable,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import {StyleGuide} from '../../Utils/StyleGuide';
-import {Card, Paragraph} from 'react-native-paper';
-import {Avatar} from 'native-base';
+import React, { useState, useEffect } from 'react';
+import { StyleGuide } from '../../Utils/StyleGuide';
+import { Card, Paragraph } from 'react-native-paper';
+import { Avatar } from 'native-base';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 import moment from 'moment';
 import uuid from 'react-native-uuid';
 import Share from 'react-native-share';
@@ -28,6 +28,8 @@ import ProgressiveImage from '../components/ProgressiveImage';
 import { StackParamList } from '../../Utils/routes';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { reducerType } from '../../Utils/types';
+import Svg from '../components/Svg';
+import { commentIcon, sendIcon } from '../../Utils/SvgAssests';
 
 const CardUI = ({
   item,
@@ -38,7 +40,7 @@ const CardUI = ({
   setGetData,
   getDataofUserPost,
 }) => {
-  const authState = useSelector((state:reducerType) => state);
+  const authState = useSelector((state: reducerType) => state);
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState('');
   const [imageBase64URL, setImageBase64URL] = useState('');
@@ -48,6 +50,18 @@ const CardUI = ({
   let userID = authState.userAuthReducer.uid;
 
   const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setTempLikes(item.likes),
+        likeStatus(item.likes);
+
+    }, []),
+  );
+
+
+
+
   const likeStatus = tempLikes => {
     let status = false;
     if (tempLikes?.length > 0) {
@@ -63,19 +77,14 @@ const CardUI = ({
     }
   };
 
-   useFocusEffect(
-   React.useCallback(() => {
-    likeStatus(item.likes),
-    setTempLikes(item.likes);
-    }, []),
-   );
+
   // useEffect(() => {}, []);
 
   // useEffect(() => {
   // postData()
   // }, [isPostLiked]);
 
-  
+
   const addPostLiked = tempLikes => {
     // console.warn(tempLikes.length, "initial array")
     // console.log(arrayLikes);
@@ -87,11 +96,19 @@ const CardUI = ({
       if (findCurrent != undefined) {
         setIsPostLiked(!isPostLiked);
         let array = [];
-        tempLikes = tempLikes.filter(el => userID !== el.userID);
-        console.warn(array);
-        setTempLikes(tempLikes);
+        //  tempLikes = tempLikes.filter(el => userID !== el.userID);
+        const upd_obj = tempLikes.map(obj => {
+
+          if (obj.userID == userID) {
+            obj.isLike = !obj.isLike;
+          }
+          return obj;
+        })
+
+
+        setTempLikes(upd_obj);
         // console.warn(tempLikes.length, "filterArray");
-        likeStatus(tempLikes);
+        // likeStatus([...tempLikes]);
         firestore()
           .collection('posts')
           .doc(item.postID)
@@ -110,6 +127,7 @@ const CardUI = ({
           userName: item.userName,
           userProfileImaege: userProfileImage,
           timeLiked: new Date(),
+          isLike: true
         });
         // setIsPostLiked(!isPostLiked);
         firestore()
@@ -134,6 +152,7 @@ const CardUI = ({
         userName: item.userName,
         userProfileImaege: userProfileImage,
         timeLiked: new Date(),
+        isLike: true
       });
       likeStatus(tempLikes);
       setIsPostLiked(!isPostLiked);
@@ -219,7 +238,7 @@ const CardUI = ({
           style: 'destructive',
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
   };
   const UserPostDeleted = postID => {
@@ -265,33 +284,39 @@ const CardUI = ({
 
   console.log(item.postImage, 'post url');
 
-  const progressiveImageURL  = require('../../images/default-img.jpeg')
+  const progressiveImageURL = require('../../images/default-img.jpeg')
+  const likesLength = tempLikes.filter(x => x.isLike === true)
+  const result = tempLikes.find(x => x.userID === userID)
+  // const isliked  = result.includes(x => x.isLike ==  true)
+  console.warn(result, "value")
+
+
 
   return (
     <View>
-      <View style={{padding: 10}}>
+      <View style={{ padding: 10 }}>
         <Card
-          style={{backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa'}}
+          style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa' }}
           mode="elevated">
           <View
             style={{
               justifyContent: 'space-between',
               flexDirection: 'row',
             }}>
-            <View style={{flexDirection: 'row'}}>
+            <View style={{ flexDirection: 'row' }}>
               <TouchableHighlight
                 activeOpacity={0.6}
                 underlayColor="#DDDDDD"
                 onPress={() => {
-                  navigation.navigate('UserProfile', {id: item.userID});
+                  navigation.navigate('UserProfile', { id: item.userID });
                 }}>
                 <Avatar
-                  style={{marginVertical: 10, marginHorizontal: 10}}
-                  source={{uri: item.userImage}}>
+                  style={{ marginVertical: 10, marginHorizontal: 10 }}
+                  source={{ uri: item.userImage }}>
                   <Avatar.Badge bg={item.isLogin ? 'green.500' : 'red.500'} />
                 </Avatar>
               </TouchableHighlight>
-              <View style={{marginVertical: 15}}>
+              <View style={{ marginVertical: 15 }}>
                 <Text
                   style={{
                     color: mode ? '#ffff' : 'black',
@@ -316,7 +341,7 @@ const CardUI = ({
             {item?.userID === userID ? (
               <View>
                 <MaterialCommunityIcons
-                  style={{marginHorizontal: 10, marginVertical: 15}}
+                  style={{ marginHorizontal: 10, marginVertical: 15 }}
                   name={'delete'}
                   color={'red'}
                   size={22}
@@ -329,39 +354,39 @@ const CardUI = ({
           </View>
 
           {item.postImage == undefined ||
-          item.postImage == null ||
-          item.postImage == '' ? (
+            item.postImage == null ||
+            item.postImage == '' ? (
             <ProgressiveImage
               source={progressiveImageURL}
-              style={{width: '100%', height: 250}}
+              style={{ width: '100%', height: 250 }}
             />
           ) : (
-            <Card.Cover source={{uri: item.postImage}} />
+            <Card.Cover source={{ uri: item.postImage }} />
           )}
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row' }}>
               <Pressable
                 onPress={() => {
                   addPostLiked(tempLikes), setIsPostLiked(!isPostLiked);
                 }}
-                android_ripple={{color: 'red', borderless: false}}
-                // style={({pressed}) => [
-                //   {
-                //     backgroundColor: pressed ? 'rgb(210, 230, 255)' : '',
-                //   },
-                // ]}>
+                android_ripple={{ color: 'red', borderless: false }}
+              // style={({pressed}) => [
+              //   {
+              //     backgroundColor: pressed ? 'rgb(210, 230, 255)' : '',
+              //   },
+              // ]}>
               >
                 <AntDesign
-                  style={{marginHorizontal: 10, marginVertical: 15}}
-                  name={likeStatus(tempLikes) ? 'heart' : 'hearto'}
+                  style={{ marginHorizontal: 10, marginVertical: 15 }}
+                  name={result?.isLike ? 'heart' : 'hearto'}
                   color={
-                    likeStatus(tempLikes) ? 'red' : mode ? '#ffff' : 'black'
+                    result?.isLike ? 'red' : mode ? '#ffff' : 'black'
                   }
                   size={20}
                 />
               </Pressable>
               <View>
-                {item?.likes?.length > 0 && (
+                {likesLength.length > 0 && (
                   <Text
                     style={{
                       marginVertical: 15,
@@ -369,7 +394,7 @@ const CardUI = ({
                       color: mode ? '#ffff' : 'black',
                       fontSize: widthPercentageToDP('3.5%'),
                       fontFamily: StyleGuide.fontFamily.medium,
-                    }}>{`${tempLikes.length} likes`}</Text>
+                    }}>{`${likesLength.length} likes`}</Text>
                 )}
               </View>
             </View>
@@ -379,10 +404,9 @@ const CardUI = ({
                 marginHorizontal: 10,
                 marginVertical: 15,
               }}>
-              <FontAwesome5
-                name={'comment'}
-                color={mode ? '#ffff' : 'black'}
-                size={20}
+
+              <Pressable android_ripple={{ color: StyleGuide.color.primary, borderless: false }}
+
                 onPress={() => {
                   navigation.navigate('Comment', {
                     postData: postData,
@@ -392,7 +416,11 @@ const CardUI = ({
                     mode: mode,
                   });
                 }}
-              />
+              >
+                <Svg xml={commentIcon} rest={{ width: 22, height: 22, color: '#fff' }} />
+
+              </Pressable>
+
               <Text
                 style={{
                   marginHorizontal: 5,
@@ -410,37 +438,30 @@ const CardUI = ({
               flexDirection: 'row',
               height: 40,
             }}>
-            <Text
-              style={{
-                marginVertical: 0,
-                marginHorizontal: 10,
-                color: mode ? 'white' : 'black',
-                fontSize: widthPercentageToDP('3%'),
-                fontFamily: StyleGuide.fontFamily.bold,
-              }}>
-              {item.userName}
-            </Text>
+          
             <Paragraph
               style={{
                 width: '70%',
                 marginVertical: 0,
+                paddingHorizontal:10,
+
 
                 color: mode ? '#ffff' : 'black',
                 fontSize: widthPercentageToDP('3%'),
-                fontFamily: StyleGuide.fontFamily.regular,
+                fontFamily: StyleGuide.fontFamily.medium,
               }}>
               {item.postDetail?.charAt(0).toUpperCase() +
                 item?.postDetail?.slice(1)}
             </Paragraph>
           </View>
 
-          <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
-            <View style={{flexDirection: 'row'}}>
+          <View style={{ justifyContent: 'space-between', flexDirection: 'row' }}>
+            <View style={{ flexDirection: 'row' }}>
               <View>
                 <Avatar
                   size="sm"
-                  style={{marginVertical: 10, marginHorizontal: 5}}
-                  source={{uri: userProfileImage}}>
+                  style={{ marginVertical: 10, marginHorizontal: 5 }}
+                  source={{ uri: userProfileImage }}>
                   <Avatar.Badge bg={isLogin ? 'green.500' : 'red.500'} />
                 </Avatar>
               </View>
@@ -450,7 +471,7 @@ const CardUI = ({
                   width: '75%',
                 }}>
                 <TextInput
-                  style={[styles.input, {color: mode ? 'white' : 'black'}]}
+                  style={[styles.input, { color: mode ? 'white' : 'black' }]}
                   placeholderTextColor={mode ? 'white' : 'black'}
                   value={comment}
                   onChangeText={text => setComment(text)}
@@ -460,7 +481,7 @@ const CardUI = ({
             </View>
             <View>
               <TouchableOpacity style={styles.postButton} onPress={postComment}>
-                <Text style={styles.buttonText}>Post</Text>
+              <Svg  xml={sendIcon} rest={{width:20, height:20}} /> 
               </TouchableOpacity>
             </View>
           </View>
@@ -473,21 +494,19 @@ const CardUI = ({
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    margin: 12,
+    margin: 20,
     borderBottomColor: 'grey',
-    borderBottomWidth: 1,
-    padding: 10,
+    borderBottomWidth: 0.5,
+    // padding: 10,
     marginVertical: 10,
     marginHorizontal: 5,
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: widthPercentageToDP('3%'),
   },
   postButton: {
-    height: 50,
-    width: 50,
-    borderRadius: 5.5,
-    marginHorizontal: 5,
-    marginVertical: 10,
+   
+    marginHorizontal: 20,
+     marginVertical: 25,
   },
   buttonText: {
     textAlign: 'center',

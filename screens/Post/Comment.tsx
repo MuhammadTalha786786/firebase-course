@@ -69,8 +69,8 @@ const Comment = () => {
           ) : (
             <FlatList
               data={comments}
-              onRefresh={getComments}
-              refreshing={isFetchingComments}
+              // onRefresh={getComments}
+              // refreshing={isFetchingComments}
               renderItem={({item}:{item:commentsI}) => {
                 {
                 }

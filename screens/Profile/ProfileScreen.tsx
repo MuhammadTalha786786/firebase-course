@@ -170,7 +170,6 @@ const ProfileScreen = () => {
                     darkMode={mode}
                   />
 
-                  {phoneNumber == '' && (
                     <View
                       style={{
                         justifyContent: 'flex-end',
@@ -189,7 +188,6 @@ const ProfileScreen = () => {
                         <Text style={styles.otpText}>Send OTP</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
                 </View>
                 {ishow && (
                   <View style={{marginVertical: 10}}>

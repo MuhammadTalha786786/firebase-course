@@ -11,11 +11,14 @@ import ButtonComponent from '../components/ButtonComponent';
 import TextInputComponent from '../components/TextInputComponent';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { StyleGuide } from '../../Utils/StyleGuide';
-import { Divider } from 'react-native-paper';
+import { ActivityIndicator, Divider } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { Avatar } from 'native-base';
 import { useRegister } from './useRegister';
+import ModalComponent from '../components/Modal';
+import { close } from '../../Utils/SvgAssests';
+import Svg from '../components/Svg';
 
 const RegisterScreen = ({ navigation }) => {
   const {
@@ -32,7 +35,12 @@ const RegisterScreen = ({ navigation }) => {
     setShowPassword,
     createNewAccount,
     selectImage,
-    onGoogleButtonPress
+    onGoogleButtonPress,
+    showPickerModal,
+    handleCamera,
+    setShowPickerModal,
+    loading,
+    registerLoading
   } = useRegister()
 
 
@@ -49,31 +57,35 @@ const RegisterScreen = ({ navigation }) => {
 
         <View style={styles.cameraStyle}>
           <View>
-            <Avatar
-              bg="indigo.500"
-              alignSelf="center"
-              size="xl"
-              source={{
-                uri:
-                  image === undefined || image === ''
-                    ? 'https://cdn.pixabay.com/photo/2013/07/13/12/07/avatar-159236_1280.png'
-                    : image,
-              }}
-            />
+            {
+              loading ? <ActivityIndicator size={100} color={StyleGuide.color.primary} /> :
+
+                <Avatar
+                  bg="indigo.500"
+                  alignSelf="center"
+                  size="xl"
+                  source={{
+                    uri:
+                      image === undefined || image === ''
+                        ? 'https://cdn.pixabay.com/photo/2013/07/13/12/07/avatar-159236_1280.png'
+                        : image,
+                  }}
+                />
+            }
           </View>
           <View style={styles.cameraIcon}>
             <MaterialCommunityIcons
               name="image-edit-outline"
               size={20}
               color="#6A0DAD"
-              onPress={selectImage}
+              onPress={() => { setShowPickerModal(true) }}
             />
           </View>
         </View>
 
         <View style={{ padding: 0, marginVertical: 10, marginTop: 15 }}>
           <TextInputComponent
-            setShowPassword={(e:boolean)=>{e}}
+            setShowPassword={(e: boolean) => { e }}
             value={name}
             setValue={setName}
             placeholder={"Enter Name"}
@@ -85,7 +97,7 @@ const RegisterScreen = ({ navigation }) => {
         </View>
         <View style={{ padding: 0, marginVertical: 5 }}>
           <TextInputComponent
-            setShowPassword={(e:boolean)=>{e}}
+            setShowPassword={(e: boolean) => { e }}
             value={email}
             setValue={setEmail}
             placeholder={"Enter Email"}
@@ -114,6 +126,7 @@ const RegisterScreen = ({ navigation }) => {
         <View style={{ padding: 10, marginVertical: 5 }}>
           <Text style={styles.errorMessage}>{error}</Text>
           <ButtonComponent
+              uploading={registerLoading}
             disabled={
               uploading ||
               name === '' ||
@@ -168,6 +181,57 @@ const RegisterScreen = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
           </View>
+
+
+          <ModalComponent
+            // styleModal={{bottom: 60}}
+            isVisible={showPickerModal}
+            setVisibility={setShowPickerModal}
+            styleModal={{
+              paddingTop: 0,
+              paddingHorizontal: 0,
+              paddingBottom: 0,
+              flex: 1,
+            }}
+            component={
+              <View style={{ flex: 1 }}>
+                <View
+                  style={{
+                    backgroundColor: StyleGuide.color.primary,
+                    justifyContent: 'space-between',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 10,
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                    paddingTop: 15,
+                  }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <Text >Choose Profile Image</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setShowPickerModal(false)}
+                    style={{ alignItems: 'flex-end', marginRight: '3%' }}>
+                    <Svg xml={close} rest={{ height: 16, width: 16 }} />
+                  </TouchableOpacity>
+                </View>
+                <View style={{ padding: 10 }} >
+                  <ButtonComponent btnType='' buttonTitle='Choose from Gallery' backgroundColor='#FFFAEF' color='black' onPress={() => { handleCamera('Gallery') }} />
+
+                  <ButtonComponent btnType='' buttonTitle='Open Camera' color={'#fff'}
+                    backgroundColor={StyleGuide.color.primary} onPress={() => { handleCamera('Camera') }} />
+
+                </View>
+
+              </View>
+            }
+          />
+
         </View>
       </View>
     </SafeAreaView>
@@ -200,6 +264,7 @@ const styles = StyleSheet.create({
     bottom: -10,
   },
   SignInText: {
+
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: StyleGuide.fontSize.small,
     textAlign: 'center',

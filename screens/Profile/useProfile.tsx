@@ -30,7 +30,7 @@ export const useProfile = () => {
   const [dateOfBirth, setDateOfBirth] = useState<Date>(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [confirm, setConfirm] = useState<number>(null);
+  const [confirm, setConfirm] = useState<number>(0);
   const [code, setCode] = useState<string>('');
   const [ishow, setShow] = useState<boolean>(false);
   const [verified, setVerified] = useState<boolean>(false);
@@ -134,7 +134,6 @@ export const useProfile = () => {
     }
   };
 
-  console.log(name === '', 'confirm');
   interface credential{
     verificationId: string;
   }
@@ -170,7 +169,7 @@ export const useProfile = () => {
       .then(snapshot => {
         console.log(snapshot.data());
         let data = snapshot.data();
-        console.log(data, dateOfBirth);
+        console.warn(data, dateOfBirth);
         setName(data?.name);
         setEmail(data?.email);
         if (data?.phoneNumber !== undefined) {
@@ -185,14 +184,13 @@ export const useProfile = () => {
   useLayoutEffect(()=>{
        navigation.setOptions({
          headerLeft: () => (
-           <TouchableOpacity>
+           <TouchableOpacity style={{marginLeft:10}} onPress={()=>{navigation.goBack()}}  >
              <Svg xml={backArrow} rest={{width: 20, height: 20}} />
            </TouchableOpacity>
          ),
        });
   },[])
   const mode = authState.userAuthReducer;
-  console.log(mode, 'mode reducer');
 
   return {
     email,

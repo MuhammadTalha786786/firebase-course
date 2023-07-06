@@ -20,7 +20,8 @@ interface TextProps {
   name: string,
   setShowPassword: (e: boolean) => void,
   IsPassword?: boolean,
-  darkMode?: boolean,
+  darkMode?:  any | boolean,
+
 }
 
 const TextInputComponent = (props: TextProps) => {
