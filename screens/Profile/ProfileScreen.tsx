@@ -54,10 +54,8 @@ const ProfileScreen = () => {
   } = useProfile();
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <LinearGradient
-        colors={['#FFFFFF', '#E5FFE3', '#4E924A']}
-        style={styles.linearGradient}>
+    <SafeAreaView style={{flex: 1, backgroundColor:mode ? StyleGuide.color.dark:StyleGuide.color.light}}>
+  
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
          >
@@ -101,6 +99,7 @@ const ProfileScreen = () => {
                     name={'email'}
                     isReadOnly={true}
                     darkMode={mode}
+                    
                   />
                 </View>
                 <View style={{marginVertical: 10}}>
@@ -117,7 +116,7 @@ const ProfileScreen = () => {
                   />
                 </View>
 
-                <View style={{marginVertical: 10, padding: 10}}>
+                <View style={{marginVertical: 10, padding: 10 }}>
                   <TouchableOpacity
                     style={styles.ButtonStyle}
                     onPress={() => setDatePickerVisibility(true)}>
@@ -126,8 +125,8 @@ const ProfileScreen = () => {
                         <EvilIcons
                           name="calendar"
                           size={20}
-                          color={StyleGuide.color.dark}
-                          style={{marginVertical: 20, marginHorizontal: 10}}
+                          color={mode ? StyleGuide.color.light:    StyleGuide.color.dark}
+                          style={{marginVertical: 17, marginHorizontal: 10}}
                         />
                       </View>
                       <View>
@@ -135,10 +134,10 @@ const ProfileScreen = () => {
                           style={[
                             styles.dateOfBirthText,
                             {
-                              color: StyleGuide.color.dark,
+                              color: mode ? StyleGuide.color.light:    StyleGuide.color.dark,
                             },
                           ]}>
-                          {dateOfBirth === ''
+                          {dateOfBirth == undefined
                             ? 'Select Your DOB'
                             : moment(dateOfBirth).format('LL')}
                         </Text>
@@ -155,6 +154,7 @@ const ProfileScreen = () => {
                   onCancel={() => {
                     setDatePickerVisibility(false);
                   }}
+                  date={dateOfBirth != undefined ?  dateOfBirth :new Date()}
                   maximumDate={new Date()}
                 />
                 <View style={{marginVertical: 10}}>
@@ -227,20 +227,20 @@ const ProfileScreen = () => {
                   <ButtonComponent
                     buttonTitle="Update"
                     btnType="upload"
-                    color={'#111'}
+                    color={'#fff'}
                     backgroundColor={
-                      uploading ? 'grey' : StyleGuide.color.paragraph
+                      loader ? 'grey' : StyleGuide.color.primary
                     }
+                    // loading={}
                     onPress={updateProfile}
-                    disabled={uploading}
-                    //   uploading={loader}
+                    disabled={loader}
+                     uploading={loader}
                   />
                 </View>
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -317,11 +317,14 @@ const styles = StyleSheet.create({
     borderWidth: 0.85,
     borderRadius: 3.5,
     borderColor: 'lightgrey',
+    // alignItems:"center"
   },
   dateOfBirthText: {
+    alignItems:"center",
     textAlign: 'center',
-    marginVertical: 18,
-    marginHorizontal: 5,
+    alignSelf:"center",
+     marginVertical: 14,
+     marginHorizontal: 5,
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: widthPercentageToDP('3.7%'),
   },

@@ -117,7 +117,7 @@ const CardUI = ({
           })
           .then(() => {
             likeStatus(tempLikes);
-            console.log('post updated!');
+            console.log('post updated!, called');
           });
       } else {
         setIsPostLiked(!isPostLiked);
@@ -296,8 +296,8 @@ const CardUI = ({
     <View>
       <View style={{ padding: 10 }}>
         <Card
-          style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa' }}
-          mode="elevated">
+          style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#fff' }}
+          mode="contained">
           <View
             style={{
               justifyContent: 'space-between',

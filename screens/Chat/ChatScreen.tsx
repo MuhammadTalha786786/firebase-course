@@ -19,11 +19,23 @@ import { useChat } from './useChat';
 
 
 
+type messageType= {
 
+      message:string
+      messageID:string
+      receiverID:string
+      receiverName:string
+      senderID:string
+      senderName:string
+      timeofsend:string
+      createdAt:Date
 
-export default function ChatScreen({navigation}) {
+  }
+
+  export default function ChatScreen({navigation}) {
   const {mode, messages, inputMessage, setInputMessage, sendMessage, senderID} =
     useChat();
+
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -44,16 +56,16 @@ export default function ChatScreen({navigation}) {
           }}
           inverted={true}
           data={JSON.parse(JSON.stringify(messages)).reverse()}
-          renderItem={({item}) => (
+          renderItem={({item}:{item:messageType}) => (
             <TouchableWithoutFeedback>
               <View style={{marginTop: 6}}>
                 <View
                   style={{
                     maxWidth: Dimensions.get('screen').width * 0.8,
                     backgroundColor:
-                      item.senderID === senderID ? '#3a6ee8' : '#2E3359',
+                      item?.senderID === senderID ? '#3a6ee8' : '#2E3359',
                     alignSelf:
-                      item.senderID === senderID ? 'flex-end' : 'flex-start',
+                      item?.senderID === senderID ? 'flex-end' : 'flex-start',
                     marginHorizontal: 10,
                     padding: 10,
                     borderRadius: 8,
@@ -66,7 +78,7 @@ export default function ChatScreen({navigation}) {
                       fontSize: 16,
                       fontFamily: StyleGuide.fontFamily.medium,
                     }}>
-                    {item.message}
+                    {item?.message}
                   </Text>
                   <Text
                     style={{
@@ -75,7 +87,9 @@ export default function ChatScreen({navigation}) {
                       alignSelf: 'flex-end',
                       fontFamily: StyleGuide.fontFamily.medium,
                     }}>
-                    {item.timeofSend}
+
+                      {item?.timeofsend}
+                     
                   </Text>
                 </View>
               </View>
@@ -87,16 +101,16 @@ export default function ChatScreen({navigation}) {
           <View
             style={{
               ...styles.messageInputView,
-              backgroundColor: 'rgb(57, 58, 52)',
+              backgroundColor:  mode ? '#fff':'#000',
             }}>
             <TextInput
               defaultValue={inputMessage}
-              style={{...styles.messageInput, color: StyleGuide.color.light}}
+              style={{...styles.messageInput, color: mode ? StyleGuide.color.dark:StyleGuide.color.light}}
               placeholder="Message"
               onChangeText={text => setInputMessage(text)}
-              onSubmitEditing={() => {
-                sendMessage();
-              }}
+              // onSubmitEditing={() => {
+              //   sendMessage();
+              // }}
             />
             <TouchableOpacity
               style={styles.messageSendView}
@@ -106,7 +120,7 @@ export default function ChatScreen({navigation}) {
               <Icon
                 name="send"
                 type="material"
-                color={StyleGuide.color.light}
+                color=  { mode ? StyleGuide.color.dark:StyleGuide.color.light }
               />
             </TouchableOpacity>
           </View>
@@ -133,7 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 10,
     borderRadius: 3.3,
-    height: 50,
+    height: 55,
   },
   messageInput: {
     height: 50,

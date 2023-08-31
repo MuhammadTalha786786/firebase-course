@@ -55,7 +55,7 @@ const TextInputComponent = (props: TextProps) => {
               height: windowHeight / 15,
               fontFamily: 'Poppins-Regular',
               fontSize: widthPercentageToDP('3.7'),
-              color: StyleGuide.color.dark,
+              color: props?.darkMode ? StyleGuide.color.light:    StyleGuide.color.dark,
             }}
           />
         </View>
@@ -79,7 +79,7 @@ const TextInputComponent = (props: TextProps) => {
             height: windowHeight / 15,
             fontFamily: 'Poppins-Regular',
             fontSize: widthPercentageToDP('3.7'),
-            color: StyleGuide.color.dark,
+            color:props?.darkMode ? StyleGuide.color.light:    StyleGuide.color.dark,
           }}
         />
       )}

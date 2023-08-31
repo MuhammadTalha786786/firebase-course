@@ -7,55 +7,56 @@ import { useNavigation } from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import { StackParamList } from '../../Utils/routes';
 import Svg from './Svg';
-import { chatIcon } from '../../Utils/SvgAssests';
+import { chatIcon, chatIconWhite, close } from '../../Utils/SvgAssests';
 
 
 const FriendListCard = ({ item, mode }) => {
   const navigation =useNavigation<NativeStackNavigationProp<StackParamList>>();
   return (
-    <View style={{ p}}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View
           style={[
             styles.listItem,
-            { backgroundColor: mode ? 'rgb(40, 42, 54)' : 'red' },
+            { backgroundColor: mode ? 'rgb(40, 42, 54)' : '#fff' },
           ]}>
-          <Avatar
+            <View   style={{flexDirection:"row", justifyContent:'center'}} >
+            <Avatar
             size={'lg'}
             style={{ marginVertical: 10, marginHorizontal: 10 }}
-            source={{ uri: item.image }}>
-            <Avatar.Badge bg={item.isLogin ? 'green.500' : 'red.500'} />
+            source={{ uri: item?.image }}>
+            <Avatar.Badge bg={item?.isLogin ? 'green.500' : 'red.500'} />
           </Avatar>
 
           <View   >
+            
             <Text
               style={[
                 styles.title,
                 { color: mode ? StyleGuide.color.light : StyleGuide.color.dark },
               ]}>
-              {item.name.charAt(0).toUpperCase() + item.name.slice(1)}{' '}
+              {item?.name.charAt(0).toUpperCase() + item?.name.slice(1)}{' '}
             </Text>
           </View>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('ChatsScreen', {
-                receiverName: item.name,
-                receiverImage: item.image,
-                receiverLogin: item.isLogin,
-                receiverID: item.uid
+                receiverName: item?.name,
+                receiverImage: item?.image,
+                receiverLogin: item?.isLogin,
+                receiverID: item?.uid
               })
             }
+            style={{ alignSelf:"center"}}
           >
-            <Svg xml={chatIcon} rest={{width:60, height:60}}/>
+            <Svg xml={mode  ? chatIconWhite: chatIcon} rest={{width:30, height:30}}/>
             {/* <Image
              
               style={{ marginVertical: 20, marginHorizontal: 5, width: 50, height: 50 }}
               source={require("../../images/chat.png")}/> */}
 
           </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+            </View>
+            </View>
+          
   );
 };
 
@@ -71,15 +72,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   listItem: {
-    padding: 30,
+    padding: 10,
     marginTop: 10,
-    width:"90%",
-    // paddingVertical: 20,
+    width:"100%",
     paddingHorizontal: 20,
     flexDirection: 'row',
     borderRadius: 12,
     color: 'red',
-    // color: 'rgb(57, 58, 52)',
     shadowColor: 'grey',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.5,

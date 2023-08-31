@@ -29,10 +29,10 @@ import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firest
 import { windowHeight, windowWidth } from '../../Utils/Dimesnions';
 import { reducerType } from '../../Utils/types';
 import { ScrollView } from 'react-native-gesture-handler';
+import ImagePickerModal from '../components/ImagePickerModal';
 
 const Post = ({ navigation }) => {
   const [image, setImage] = useState<string>('');
-  const [title, setTitle] = useState<string>('');
   const [textAreaValue, setTextAreaValue] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [imageError, setImageError] = useState<string>('');
@@ -40,16 +40,35 @@ const Post = ({ navigation }) => {
   const [postImage, setPostImage] = useState<string>('');
   const [loginState, setLoginState] = useState<boolean>(false);
   const [imageText, selectImageText] = useState('');
-
- 
+  const [imagePickerModal, setImagePickerModal] = useState<boolean>(false)
   const authState = useSelector((state:reducerType) => state);
-
   let uid = authState.userAuthReducer.uid;
 
-  const selectImage = () => {
+  const selectImage = (action:'Gallery'| 'Camera') => {
     selectImageText('Please Wait While your Image is Uploading');
 
-    ImagePicker.openPicker({
+    if(action == 'Gallery'){
+      ImagePicker.openPicker({
+        width: 300,
+        height: 400,
+      }).then(image => {
+        setImage(image.path);
+        let fileName = `${uuidv4()}${image.path.substr(
+          image.path.lastIndexOf('.'),
+        )}`;
+        const ref = storage().ref(fileName);
+        ref.putFile(image.path).then(s => {
+          ref.getDownloadURL().then(x => {
+            console.log(x, 'x url');
+            setPostImage(x);
+          });
+        }).catch((error)=>{
+          console.log(error,"error....")
+        });
+      });
+    }
+   else {
+    ImagePicker.openCamera({
       width: 300,
       height: 400,
     }).then(image => {
@@ -67,6 +86,9 @@ const Post = ({ navigation }) => {
         console.log(error,"error....")
       });
     });
+   }
+
+
   };
 
   console.log(postImage === '', 'postImage');
@@ -100,7 +122,6 @@ const Post = ({ navigation }) => {
         setUploading(false);
         setImage(''); // uploadImage()
         setPostImage('');
-        setTitle('');
         setTextAreaValue('');
       })
       .catch(error => {
@@ -173,7 +194,7 @@ const Post = ({ navigation }) => {
           </View>
           <View style={styles.ImageSelectView}>
             <Entypo
-              onPress={selectImage}
+              onPress={()=>{setImagePickerModal(true)}}
               style={styles.imageIconSelect}
               color={StyleGuide.color.primary}
               size={30}
@@ -187,6 +208,7 @@ const Post = ({ navigation }) => {
               style={{
                 fontFamily: StyleGuide.fontFamily.regular,
                 fontSize: widthPercentageToDP('3.7'),
+                color:mode ? StyleGuide.color.light:StyleGuide.color.dark
               }}
               h={40}
               placeholder="What's in your mind?"
@@ -224,6 +246,12 @@ const Post = ({ navigation }) => {
 
 
         </KeyboardAvoidingView>
+
+      <ImagePickerModal
+        modalVisible={imagePickerModal}
+        setModalVisible={setImagePickerModal}
+        imagePicker={selectImage}
+      />
 
       </SafeAreaView>
     </>

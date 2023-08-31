@@ -31,6 +31,7 @@ interface commentsI {
   userProfileName:string
 }
 
+
 const Comment = () => {
   const {
     DeleteComment,
@@ -40,6 +41,9 @@ const Comment = () => {
     mode,
     id,
   } = useComment();
+
+
+  console.warn(mode,"mode")
   return (
     <SafeAreaView
       style={[
@@ -51,15 +55,15 @@ const Comment = () => {
         },
       ]}>
       <View style={{flex: 1}}>
-        {/* <View style={styles.mainView}>
-                    <Text style={styles.mainViewContent}>Comments</Text>
-                </View> */}
+        <View style={styles.mainView}>
+                    <Text style={[styles.mainViewContent,{color:mode ? StyleGuide.color.light:StyleGuide.color.dark  }]}>Comments</Text>
+                </View>
 
         <View style={{width: '100%'}}>
           {comments.length === 0 ? (
             <Text
               style={{
-                color: mode ? 'white' : 'black',
+                color: mode ? StyleGuide.color.light : StyleGuide.color.dark,
                 textAlign: 'center',
                 marginVertical: 20,
                 fontFamily: StyleGuide.fontFamily.regular,
@@ -91,7 +95,7 @@ const Comment = () => {
                               source={{uri: item.userImage}}
                             />
                           </View>
-                          <Text style={styles.userProfileName}>
+                          <Text style={[styles.userProfileName,{color:mode ? StyleGuide.color.light:StyleGuide.color.dark  }]}>
                             {item.userProfileName}
                           </Text>
                         </View>
@@ -116,12 +120,12 @@ const Comment = () => {
                           flexDirection: 'row',
                         }}>
                         <View>
-                          <Text style={styles.commentStyle}>
+                          <Text style={[styles.commentStyle,{color:mode ? StyleGuide.color.light:StyleGuide.color.dark  }]}>
                             {item?.comment}
                           </Text>
                         </View>
                         <View>
-                          <Text style={styles.dateStyle}>
+                          <Text style={[styles.dateStyle,{color:mode ? StyleGuide.color.light:StyleGuide.color.dark  }]}>
                             {moment(item?.commentCreated?.toDate()).fromNow()}
                           </Text>
                         </View>
@@ -167,7 +171,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     fontSize: 18,
     fontWeight: '600',
-    color: 'black',
+    // color: 'black',
   },
 
   userImageView: {
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
   userProfileName: {
     marginVertical: 10,
     marginHorizontal: 10,
-    color: 'black',
+    // color: 'black',
     fontFamily: StyleGuide.fontFamily.medium,
     fontSize: StyleGuide.fontSize.small,
   },
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   dateStyle: {
-    color: 'black',
+    // color: 'black',
     fontSize: widthPercentageToDP('2.5%'),
     fontFamily: StyleGuide.fontFamily.regular,
     marginVertical: 10,
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
   },
 
   commentStyle: {
-    color: 'black',
+    // color: 'black',
     fontSize: widthPercentageToDP('3.5%'),
     marginVertical: 5,
     marginHorizontal: 20,

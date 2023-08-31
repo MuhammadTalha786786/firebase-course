@@ -6,7 +6,6 @@ import {widthPercentageToDP} from 'react-native-responsive-screen';
 import moment from 'moment';
 
 const NotificationCard = ({item, mode}) => {
-  console.log(mode, 'user item');
   let likedTime = item.timeLiked.toDate();
   return (
     <View style={{padding: 10}}>
@@ -28,7 +27,7 @@ const NotificationCard = ({item, mode}) => {
                 styles.title,
                 {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
               ]}>
-              {item.userName.charAt(0).toUpperCase() + item.userName.slice(1)}{' '}
+              {item?.userName.charAt(0).toUpperCase() + item?.userName.slice(1)}{' '}
             </Text>
           </View>
           <View style={{marginVertical: 10}}>
@@ -47,7 +46,7 @@ const NotificationCard = ({item, mode}) => {
               styles.postDetail,
               {color: mode ? StyleGuide.color.light : StyleGuide.color.dark},
             ]}>
-            Liked Your Post {item.postDetail}
+            Liked Your Post {item?.postDetail}
           </Text>
         </View>
       </View>

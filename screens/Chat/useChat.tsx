@@ -37,6 +37,7 @@ export const useChat = () => {
   );
   const navigation = useNavigation()
   const mode = modeReducer.mode;
+  console.warn(mode,"mode")
 
 
   let senderName = authState.userName;
@@ -55,8 +56,9 @@ export const useChat = () => {
       receiverName: receiverName,
       receiverID: receiverID,
       messageID: id,
-      timeofSend: moment(new Date()).format('LT'),
+      createdAt: new Date(),
       message: inputMessage,
+      timeofsend:moment(new Date()).format('LT')
     };
 
     firestore()
@@ -64,7 +66,7 @@ export const useChat = () => {
       .doc(id)
       .set(messageData)
       .then(() => {
-        console.log('Message added!');
+        console.warn('Message added!');
         setInputMessage('')
       })
       .catch(error => {
@@ -131,7 +133,7 @@ export const useChat = () => {
   const getMessages = () => {
     firestore()
       .collection('messages')
-      .orderBy('timeofSend')
+      .orderBy('createdAt')
       .get()
       .then(res => {
         let tempArray: FirebaseFirestoreTypes.DocumentData = [];

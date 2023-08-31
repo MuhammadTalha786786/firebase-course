@@ -236,29 +236,30 @@ export const useLogin = () => {
 
     const currentProfile = Profile.getCurrentProfile().then(
       function (currentProfile) {
+        console.warn(currentProfile,"current profile")
 
         const userData = {
           isLogin: true,
           email: currentProfile?.email,
-          name: `${currentProfile?.firstName}  ${currentProfile?.lastName}`,
+          name: `${currentProfile?.firstName}`,
           uid: currentProfile?.userID,
           image: currentProfile?.imageURL,
 
         };
 
 
-        const LoginUser = {
+        const faceBookUser = {
           isLogin: true,
           email: currentProfile?.email,
-          userName: `${currentProfile?.firstName}  ${currentProfile?.lastName}`,
+          userName: `${currentProfile?.firstName}`,
           uid: currentProfile?.userID,
           photoURL: currentProfile?.imageURL,
-          isLoggedIn: true
+          // isLoggedIn: true
         };
 
         if (currentProfile) {
           writeUserData(userData)
-          dispatch(setSignIn(LoginUser))
+          dispatch(setSignIn(faceBookUser))
           setLoader(false)
 
         }
@@ -268,7 +269,9 @@ export const useLogin = () => {
       console.warn(err)
     })
     // Sign-in the user with the credential
-    return auth().signInWithCredential(facebookCredential);
+    return auth().signInWithCredential(facebookCredential).catch((err)=>{
+      console.warn(err)
+    });
   }
 
   console.log(photoUrl);

@@ -27,7 +27,7 @@ export const useProfile = () => {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [dateOfBirth, setDateOfBirth] = useState<Date>(new Date());
+  const [dateOfBirth, setDateOfBirth] = useState<Date>();
   const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [confirm, setConfirm] = useState<number>(0);
