@@ -53,6 +53,7 @@ const Post = ({ navigation }) => {
         height: 400,
       }).then(image => {
         setImage(image.path);
+        setImagePickerModal(false)
         let fileName = `${uuidv4()}${image.path.substr(
           image.path.lastIndexOf('.'),
         )}`;
@@ -63,6 +64,7 @@ const Post = ({ navigation }) => {
             setPostImage(x);
           });
         }).catch((error)=>{
+          setImagePickerModal(false)
           console.log(error,"error....")
         });
       });
@@ -73,6 +75,7 @@ const Post = ({ navigation }) => {
       height: 400,
     }).then(image => {
       setImage(image.path);
+      setImagePickerModal(false)
       let fileName = `${uuidv4()}${image.path.substr(
         image.path.lastIndexOf('.'),
       )}`;
@@ -83,6 +86,7 @@ const Post = ({ navigation }) => {
           setPostImage(x);
         });
       }).catch((error)=>{
+        setImagePickerModal(false)
         console.log(error,"error....")
       });
     });

@@ -61,6 +61,7 @@ export const useProfile = () => {
       Alert.alert('Your Number has not been  Verified');
     } else {
       setLoader(true);
+      
 
       firestore()
         .collection('users')
@@ -69,21 +70,28 @@ export const useProfile = () => {
           dateOfBirth: dateOfBirth,
           name: name,
           phoneNumber: phoneNumber,
-          image: updateImage === '' ? userProfileImage : updateImage,
+          image: updateImage == '' ? userProfileImage : updateImage,
           numberVerified: true,
         })
         .then(() => {
           setLoader(false);
           Alert.alert('Your Data has been updated...');
-          console.log('User data has been updated!');
+
         });
+
+      
       dispatch(
         setSignIn({
           ...authState.userAuthReducer,
           photoURL: image === '' ? userProfileImage : updateImage,
           userName: name,
         }),
+
+
       );
+      if(updateImage  !== ''){
+        
+      }
     }
   };
 

@@ -67,7 +67,7 @@ const ImagePickerModal = (props: IModalProps) => {
             <Text  style={{fontFamily:StyleGuide.fontFamily.medium, color:StyleGuide.color.light}} >Choose Profile Image</Text>
           </View>
           <TouchableOpacity
-            onPress={() => props?.setModalVisible(false)}
+            onPress={() => props?.setModalVisible?.(false)}
             style={{ alignItems: 'flex-end', marginRight: '3%' }}>
             <Svg xml={close} rest={{ height: 16, width: 16 }} />
           </TouchableOpacity>

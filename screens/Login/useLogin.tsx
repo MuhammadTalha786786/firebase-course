@@ -27,7 +27,7 @@ interface loginUser {
 export const useLogin = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
-  const [Password, setPassword] = useState('123456');
+  const [Password, setPassword] = useState('');
   const [confirm, setConfirm] = useState(null);
   const [code, setCode] = useState<string>('');
   const [error, setError] = useState<string>();
@@ -245,9 +245,7 @@ export const useLogin = () => {
           uid: currentProfile?.userID,
           image: currentProfile?.imageURL,
 
-        };
-
-
+        };d
         const faceBookUser = {
           isLogin: true,
           email: currentProfile?.email,

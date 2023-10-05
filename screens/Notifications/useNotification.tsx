@@ -4,12 +4,15 @@ import {useDispatch, useSelector} from 'react-redux';
 import { reducerType } from '../../Utils/types';
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 export const useNotification = () => {
+
   const authState = useSelector((state: reducerType) => state);
   const [likedPeople, setLikedPeople] = useState<FirebaseFirestoreTypes.DocumentData>();
   const uid = authState.userAuthReducer.uid;
   const [visible, setVisible] = useState(false);
   const mode = authState.darkModeReducer.mode;
-  console.log(uid, 'uid');
+
+
+
   useEffect(() => {
     setVisible(true);
     firestore()
@@ -40,7 +43,6 @@ export const useNotification = () => {
 
   let flatArray = [].concat.apply([], likedPeople);
 
-  console.log(likedPeople, 'liked people');
     return {
       flatArray,
       mode,

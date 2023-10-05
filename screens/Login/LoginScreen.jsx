@@ -63,16 +63,17 @@ const LoginScreen = ({ navigation }) => {
         backgroundColor="transparent"
       />
       <SafeAreaView style={styles.SafeAreaView}>
-        <SafeArea>
+        {/* <SafeArea> */}
           <View>
             <View style={styles.loginTxtView}>
-              {/* <Avatar
+
+              <Avatar
                 bg="indigo.500"
                 alignSelf="center"
                 size="xl"
                 source={require('../../images/logo.png')}
-              /> */}
-              {/* <Text style={styles.loginText}>Login</Text> */}
+              />
+              <Text style={styles.loginText}>Login</Text>
             </View>
             <View
               style={{
@@ -214,31 +215,6 @@ const LoginScreen = ({ navigation }) => {
                   onPress={onGoogleButtonPress}
                   uploading={loading}
                 />
-
-
-                {/* <LoginButton
-          onLoginFinished={(error, result) => {
-            if (error) {
-              console.log('login has error: ' + result.error);
-            } else if (result.isCancelled) {
-              console.log('login is cancelled.');
-            } else {
-              if (Platform.OS === 'ios') {
-                AuthenticationToken.getAuthenticationTokenIOS().then((data) => {
-                  console.log(data?.authenticationToken);
-                });
-              } else {
-                AccessToken.getCurrentAccessToken().then((data) => {
-                  console.log(data?.accessToken.toString());
-                });
-              }
-            }
-          }}
-          onLogoutFinished={() => console.log('logout.')}
-          loginTrackingIOS={'limited'}
-          nonceIOS={'my_nonce'}
-        /> */}
-
                 <ButtonComponent
                   buttonTitle="Sign In with Facebook"
                   btnType="facebook"
@@ -267,7 +243,7 @@ const LoginScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-        </SafeArea>
+        {/* </SafeArea> */}
       </SafeAreaView>
     </>
   );

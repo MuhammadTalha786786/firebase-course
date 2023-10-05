@@ -19,6 +19,8 @@ import { useRegister } from './useRegister';
 import ModalComponent from '../components/Modal';
 import { close } from '../../Utils/SvgAssests';
 import Svg from '../components/Svg';
+import TouchID from 'react-native-touch-id';
+
 
 const RegisterScreen = ({ navigation }) => {
   const {
@@ -42,6 +44,30 @@ const RegisterScreen = ({ navigation }) => {
     loading,
     registerLoading
   } = useRegister()
+
+
+  const fingerPrintAuthentication = () => {
+    const optionalConfigObject = {
+        title: 'Authentication Required', // Android
+        imageColor: '#e00606', // Android
+        imageErrorColor: '#ff0000', // Android
+        sensorDescription: 'Touch sensor', // Android
+        sensorErrorDescription: 'Failed', // Android
+        cancelText: 'Cancel', // Android
+        fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
+        unifiedErrors: false, // use unified error messages (default false)
+        passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
+    };
+    TouchID.authenticate('to demo this react-native component', optionalConfigObject)
+      .then(success => {
+        // Success code
+        console.warn(success)
+      })
+      .catch(error => {
+        console.warn(error)
+        // Failure code
+      });
+  }
 
 
   return (
@@ -126,7 +152,7 @@ const RegisterScreen = ({ navigation }) => {
         <View style={{ padding: 10, marginVertical: 5 }}>
           <Text style={styles.errorMessage}>{error}</Text>
           <ButtonComponent
-              uploading={registerLoading}
+            uploading={registerLoading}
             disabled={
               uploading ||
               name === '' ||
@@ -158,13 +184,21 @@ const RegisterScreen = ({ navigation }) => {
         </View>
 
         <View style={{ padding: 10 }}>
-          <ButtonComponent
-            buttonTitle="Sign In with Google"
-            btnType="google"
-            color="#de4d41"
-            backgroundColor="#f5e7ea"
-            onPress={onGoogleButtonPress}
-          />
+                   <ButtonComponent
+                  buttonTitle="Sign In with Google"
+                  btnType="google"
+                  color="#f5e7ea"
+                  backgroundColor="#de4d41"
+                  onPress={onGoogleButtonPress}
+                  uploading={loading}
+                />
+                <ButtonComponent
+                  buttonTitle="Sign In with Facebook"
+                  btnType="facebook"
+                  color="#f5e7ea"
+                  backgroundColor="#007FFF"
+                  onPress={()=>{}}
+                />
           <View style={styles.accountView}>
             <Text style={styles.accountText}>Already have an account? </Text>
             <TouchableOpacity
@@ -180,6 +214,7 @@ const RegisterScreen = ({ navigation }) => {
                 Login
               </Text>
             </TouchableOpacity>
+
           </View>
 
 

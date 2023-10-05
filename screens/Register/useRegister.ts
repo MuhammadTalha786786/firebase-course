@@ -61,6 +61,7 @@ export const useRegister = () => {
         multiple: false
       }).then(image => {
         setImage(image.path);
+2
         console.log(image.path);
         let fileName = `${uuidv4()}${image.path.substr(
           image.path.lastIndexOf('.'),
@@ -76,6 +77,8 @@ export const useRegister = () => {
         setLoading(false)
       }).catch((err)=>{
         setLoading(false)
+        setShowPickerModal(false)
+
       })
     }
   }
@@ -87,17 +90,17 @@ export const useRegister = () => {
       height: 400,
       cropping: true,
     }).then(image => {
-      setImage(image.path);
-      console.log(image.path);
+      setImage(image?.path);
+      console.log(image?.path);
       let fileName = `${uuidv4()}${image.path.substr(
         image.path.lastIndexOf('.'),
       )}`;
       const ref = storage().ref(fileName);
-      ref.putFile(image.path).then(s => {
+      ref.putFile(image?.path).then(s => {
         ref.getDownloadURL().then(x => {
           console.log(x, 'x url');
           setUserProfileImage(x);
-        });
+        })
       });
     });
 
@@ -129,11 +132,14 @@ export const useRegister = () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
     if (image === '' || image === undefined) {
       setError('Please Select an Image');
-    } else if (email === '') {
+    }
+     else if (email === '') {
       setError('Please Enter the Email');
-    } else if (!reg.test(email)) {
+    }
+     else if (!reg.test(email)) {
       setError('Please Enter the Valid Email');
-    } else if (name === '') {
+    }
+     else if (name === '') {
       setError('Please Enter the Name');
     } else if (Password === '') {
       setError('Please Enter the Password');
@@ -143,16 +149,15 @@ export const useRegister = () => {
           email,
           Password,
         );
-        console.log(userAuth, 'userAuth');
-        console.log(userAuth.email);
+     
         if (userAuth) {
           uploadImage();
         }
         var user = {
           name: name,
           image: userProfieImage,
-          uid: userAuth.user._user.uid,
-          email: userAuth.user._user.email,
+          uid: userAuth.user?._user?.uid,
+          email: userAuth.user?._user?.email,
           isLogin: false,
         };
         writeUserData(user);
@@ -184,7 +189,7 @@ export const useRegister = () => {
     setShowPickerModal,
     handleCamera,
     loading,
-     registerLoading
+    registerLoading
 
 
 

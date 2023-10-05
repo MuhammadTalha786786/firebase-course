@@ -3,7 +3,6 @@ import Onboarding from 'react-native-onboarding-swiper';
 import useOnboarding from './useOnboarding';
 const OnBoardingScreen = ({navigation}) => {
   const {firstLaunch, setFirstLaunch} = useOnboarding()
-  console.log(firstLaunch, "first launch")
   return (
     <Onboarding
       containerStyles={{padding: 30}}
