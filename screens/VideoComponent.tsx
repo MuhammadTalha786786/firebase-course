@@ -5,7 +5,8 @@ import CameraComponent from './components/CameraComponent'
 const VideoComponent = () => {
   return (
     <>
-      <Text>VideoComponent</Text>
+      <CameraComponent>
+    </CameraComponent>
     </>
   )
 }

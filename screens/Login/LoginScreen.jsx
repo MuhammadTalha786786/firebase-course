@@ -24,12 +24,6 @@ import { LoginManager, AccessToken, Profile } from 'react-native-fbsdk-next';
 
 
 const LoginScreen = ({ navigation }) => {
-  const { onGoogleButtonPress, loading } = useGoogleSignIn()
-
-
-
-
-
   const {
     login,
     updateLogin,
@@ -52,8 +46,15 @@ const LoginScreen = ({ navigation }) => {
     onFacebookButtonPress,
     phoneLogin,
     otp,
-    setOtp
+    setOtp,
+    setLoader
   } = useLogin();
+  const { onGoogleButtonPress, loading } = useGoogleSignIn({setLoader})
+
+
+
+
+
 
   return (
     <>
@@ -130,6 +131,7 @@ const LoginScreen = ({ navigation }) => {
               <View style={{ padding: 10 }}>
                 <Text style={{ color: 'red', fontSize: 12 }}>{error}</Text>
                 <ButtonComponent
+                  disabled={loader || loading}
                   buttonTitle="SIGN IN"
                   btnType="sign-in"
                   color="#f5e7ea"

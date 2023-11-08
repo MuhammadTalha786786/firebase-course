@@ -14,6 +14,8 @@ import {
   Profile,
 } from 'react-native-fbsdk-next'
 import { useNavigation } from '@react-navigation/native';
+import {Toast} from 'react-native-toast-message/lib/src/Toast';
+
 
 
 interface loginUser {
@@ -99,9 +101,22 @@ export const useLogin = () => {
   console.log(photoUrl, 'photos....');
   const login = async () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (Password === '') {
-      setError('Please Enter the Password');
-    } else {
+    if (email === '') {
+      Toast.show({
+        text2: "Enter your email",
+        type: 'error',
+        position: 'bottom',
+      });
+    } 
+    else if(Password == ''){
+      Toast.show({
+        text2: "Enter your Password",
+        type: 'error',
+        position: 'bottom',
+      }); 
+    }
+   
+    else {
       setLoader(true);
       auth()
         .signInWithEmailAndPassword(email, Password)
@@ -109,16 +124,18 @@ export const useLogin = () => {
           console.warn("user login")
           if (loggedInUser) {
             setLoader(false);
-            console.warn(loggedInUser, 'user login here');
             updateLogin(loggedInUser.user._user.uid);
-            //  getUserData(loggedInUser.user._user.uid);
             LoginUser.email = loggedInUser.user._user.email;
             LoginUser.uid = loggedInUser.user._user.uid;
           }
         })
         .catch(eror => {
           setLoader(false);
-          console.warn('Login fail!!', eror.message);
+          Toast.show({
+            text2: eror?.message,
+            type: 'error',
+            position: 'bottom',
+          });
         });
     }
   };
@@ -139,7 +156,11 @@ export const useLogin = () => {
           setForgotEmail('');
         })
         .catch(function (e) {
-          console.log(e);
+          Toast.show({
+            text2: e,
+            type: 'error',
+            position: 'bottom',
+          });
         });
     }
   };
@@ -209,7 +230,7 @@ export const useLogin = () => {
       .doc(user.uid)
       .set(user)
       .then(() => {
-        console.warn('user added!');
+        dispatch(setSignIn(user))
       });
 
 
@@ -236,7 +257,6 @@ export const useLogin = () => {
 
     const currentProfile = Profile.getCurrentProfile().then(
       function (currentProfile) {
-        console.warn(currentProfile,"current profile")
 
         const userData = {
           isLogin: true,
@@ -245,7 +265,7 @@ export const useLogin = () => {
           uid: currentProfile?.userID,
           image: currentProfile?.imageURL,
 
-        };d
+        };
         const faceBookUser = {
           isLogin: true,
           email: currentProfile?.email,
@@ -255,20 +275,24 @@ export const useLogin = () => {
           // isLoggedIn: true
         };
 
-        if (currentProfile) {
           writeUserData(userData)
-          dispatch(setSignIn(faceBookUser))
+        
           setLoader(false)
 
-        }
+        
       }
     ).catch((err) => {
       setLoader(false)
-      console.warn(err)
+      // console.warn(err)
     })
+
     // Sign-in the user with the credential
     return auth().signInWithCredential(facebookCredential).catch((err)=>{
-      console.warn(err)
+      Toast.show({
+        text2: err?.message,
+        type: 'error',
+        position: 'bottom',
+      });
     });
   }
 
@@ -295,6 +319,7 @@ export const useLogin = () => {
     onFacebookButtonPress,
     phoneLogin,
     otp,
-    setOtp
+    setOtp,
+    setLoader
   };
 };
