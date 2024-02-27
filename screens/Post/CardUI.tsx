@@ -9,7 +9,7 @@ import {
   TouchableHighlight,
   Pressable,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { Card, Paragraph } from 'react-native-paper';
 import { Avatar } from 'native-base';
@@ -30,6 +30,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { reducerType } from '../../Utils/types';
 import Svg from '../components/Svg';
 import { commentIcon, sendIcon } from '../../Utils/SvgAssests';
+import Video from 'react-native-video';
+
 
 const CardUI = ({
   item,
@@ -290,6 +292,10 @@ const CardUI = ({
   // const isliked  = result.includes(x => x.isLike ==  true)
   console.warn(result, "value")
 
+  const videoPlayer = useRef
+    ()
+
+
 
 
   return (
@@ -352,17 +358,34 @@ const CardUI = ({
               </View>
             ) : null}
           </View>
+          {
+            item?.isVideo ? item?.postedVideo ?
+              <Video source={{ uri: item?.postedVideo }}   // Can be a URL or a local file.
+                ref={(ref) => {
+                  videoPlayer
+                }}
+                fullscreen={false}
+                controls={true}
 
-          {item.postImage == undefined ||
-            item.postImage == null ||
-            item.postImage == '' ? (
-            <ProgressiveImage
-              source={progressiveImageURL}
-              style={{ width: '100%', height: 250 }}
-            />
-          ) : (
-            <Card.Cover source={{ uri: item.postImage }} />
-          )}
+
+                // Store reference
+                //  onBuffer={this.onBuffer}                // Callback when remote video is buffering
+                //  onError={this.videoError}               // Callback when video cannot be loaded
+                style={styles.backgroundVideo}
+              /> : null :
+
+
+
+              item.postImage == undefined ||
+                item.postImage == null ||
+                item.postImage == '' ? (
+                <ProgressiveImage
+                  source={progressiveImageURL}
+                  style={{ width: '100%', height: 250 }}
+                />
+              ) : (
+                <Card.Cover source={{ uri: item.postImage }} />
+              )}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View style={{ flexDirection: 'row' }}>
               <Pressable
@@ -438,12 +461,12 @@ const CardUI = ({
               flexDirection: 'row',
               height: 40,
             }}>
-          
+
             <Paragraph
               style={{
                 width: '70%',
                 marginVertical: 0,
-                paddingHorizontal:10,
+                paddingHorizontal: 10,
 
 
                 color: mode ? '#ffff' : 'black',
@@ -481,7 +504,7 @@ const CardUI = ({
             </View>
             <View>
               <TouchableOpacity style={styles.postButton} onPress={postComment}>
-              <Svg  xml={sendIcon} rest={{width:20, height:20}} /> 
+                <Svg xml={sendIcon} rest={{ width: 20, height: 20 }} />
               </TouchableOpacity>
             </View>
           </View>
@@ -504,9 +527,9 @@ const styles = StyleSheet.create({
     fontSize: widthPercentageToDP('3%'),
   },
   postButton: {
-   
+
     marginHorizontal: 20,
-     marginVertical: 25,
+    marginVertical: 25,
   },
   buttonText: {
     textAlign: 'center',
@@ -514,6 +537,11 @@ const styles = StyleSheet.create({
     color: 'blue',
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: widthPercentageToDP('3%'),
+  },
+  backgroundVideo: {
+    flex: 1,
+    height: 300,
+    width: "100%"
   },
 });
 
