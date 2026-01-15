@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import React, {useEffect, useState} from 'react';
+import firestore, {
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import useGoogleSignIn from '../components/GoogleSignIn';
 import auth from '@react-native-firebase/auth';
-import { useDispatch } from 'react-redux';
-import { setSignIn } from '../../Redux/Auth/AuthReducer';
+import {useDispatch, useSelector} from 'react-redux';
+import {setSignIn} from '../../Redux/Auth/AuthReducer';
 import {
-
   AccessToken,
   AuthenticationToken,
   LoginButton,
   LoginManager,
   Profile,
-} from 'react-native-fbsdk-next'
-import { useNavigation } from '@react-navigation/native';
+} from 'react-native-fbsdk-next';
+import {useNavigation} from '@react-navigation/native';
 import {Toast} from 'react-native-toast-message/lib/src/Toast';
-
-
+import ApiCall from '../../services/services';
 
 interface loginUser {
-  isLogin: boolean
-  email: string
-  uid: string
+  isLogin: boolean;
+  email: string;
+  uid: string;
   isLoggedIn: boolean;
   userName: string;
   photoURL: string;
@@ -33,28 +33,29 @@ export const useLogin = () => {
   const [confirm, setConfirm] = useState(null);
   const [code, setCode] = useState<string>('');
   const [error, setError] = useState<string>();
-  const { onGoogleButtonPress } = useGoogleSignIn();
+  const {onGoogleButtonPress} = useGoogleSignIn();
   const [photoUrl, setPhotoUrl] = useState<string>();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [forgotEmail, setForgotEmail] = useState<string>('');
   const [forgotEmailError, setForgotEmailError] = useState<string>();
   const [loader, setLoader] = useState<boolean>(false);
-  const [otp, setOtp] = useState('')
+  const [otp, setOtp] = useState('');
 
+  const authState = useSelector(state => state);
+  const UserLogin = authState.userAuthReducer;
+  console.log(UserLogin, 'UserLogin');
 
   useEffect(() => {
     if (otp.length === 4) {
-      confirmingCode()
+      confirmingCode();
     }
+  }, []);
 
-  }, [])
-
-
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   async function phoneLogin() {
-    console.log("called")
+    console.log('called');
     const confirmation = await auth().signInWithPhoneNumber(email);
 
     setConfirm(confirmation);
@@ -62,7 +63,6 @@ export const useLogin = () => {
     //   confirmingCode()
     //  }
   }
-
 
   const confirmingCode = async () => {
     console.log('verifying the code');
@@ -103,40 +103,35 @@ export const useLogin = () => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
     if (email === '') {
       Toast.show({
-        text2: "Enter your email",
+        text2: 'Enter your email',
         type: 'error',
         position: 'bottom',
       });
-    } 
-    else if(Password == ''){
+    } else if (Password == '') {
       Toast.show({
-        text2: "Enter your Password",
+        text2: 'Enter your Password',
         type: 'error',
         position: 'bottom',
-      }); 
-    }
-   
-    else {
+      });
+    } else {
       setLoader(true);
-      auth()
-        .signInWithEmailAndPassword(email, Password)
-        .then((loggedInUser: FirebaseFirestoreTypes.DocumentData) => {
-          console.warn("user login")
-          if (loggedInUser) {
-            setLoader(false);
-            updateLogin(loggedInUser.user._user.uid);
-            LoginUser.email = loggedInUser.user._user.email;
-            LoginUser.uid = loggedInUser.user._user.uid;
-          }
-        })
-        .catch(eror => {
-          setLoader(false);
-          Toast.show({
-            text2: eror?.message,
-            type: 'error',
-            position: 'bottom',
-          });
-        });
+      let body = {
+        email: email,
+        password: Password,
+      };
+      const response = await ApiCall(
+        'post',
+        'api/auth/login',
+        body,
+        dispatch,
+        false,
+      );
+      console.log(response)
+      setLoader(false);
+      if (response?.data) {
+        dispatch(setSignIn(response.data));
+      }
+     
     }
   };
 
@@ -182,7 +177,7 @@ export const useLogin = () => {
   useEffect(() => {
     messaging()
       .getInitialNotification()
-      .then(remoteMessage => { });
+      .then(remoteMessage => {});
   }, []);
 
   const checkToken = async () => {
@@ -222,49 +217,48 @@ export const useLogin = () => {
       });
   }, []);
 
-
   const writeUserData = user => {
-    console.log(user)
+    console.log(user);
     firestore()
       .collection('users')
       .doc(user.uid)
       .set(user)
       .then(() => {
-        dispatch(setSignIn(user))
+        dispatch(setSignIn(user));
       });
-
-
   };
 
   async function onFacebookButtonPress() {
-    setLoader(true)
+    setLoader(true);
     // Attempt login with permissions
-    const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+    const result = await LoginManager.logInWithPermissions([
+      'public_profile',
+      'email',
+    ]);
     if (result.isCancelled) {
       throw 'User cancelled the login process';
     }
     // Once signed in, get the users AccesToken
     const data = await AccessToken.getCurrentAccessToken();
-    console.log(data, "data")
+    console.log(data, 'data');
     if (!data) {
       throw 'Something went wrong obtaining access token';
     }
 
     // Create a Firebase credential with the AccessToken
-    const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
-    console.log(facebookCredential, "facebook")
+    const facebookCredential = auth.FacebookAuthProvider.credential(
+      data.accessToken,
+    );
+    console.log(facebookCredential, 'facebook');
 
-
-    const currentProfile = Profile.getCurrentProfile().then(
-      function (currentProfile) {
-
+    const currentProfile = Profile.getCurrentProfile()
+      .then(function (currentProfile) {
         const userData = {
           isLogin: true,
           email: currentProfile?.email,
           name: `${currentProfile?.firstName}`,
           uid: currentProfile?.userID,
           image: currentProfile?.imageURL,
-
         };
         const faceBookUser = {
           isLogin: true,
@@ -275,25 +269,25 @@ export const useLogin = () => {
           // isLoggedIn: true
         };
 
-          writeUserData(userData)
-        
-          setLoader(false)
+        writeUserData(userData);
 
-        
-      }
-    ).catch((err) => {
-      setLoader(false)
-      // console.warn(err)
-    })
+        setLoader(false);
+      })
+      .catch(err => {
+        setLoader(false);
+        // console.warn(err)
+      });
 
     // Sign-in the user with the credential
-    return auth().signInWithCredential(facebookCredential).catch((err)=>{
-      Toast.show({
-        text2: err?.message,
-        type: 'error',
-        position: 'bottom',
+    return auth()
+      .signInWithCredential(facebookCredential)
+      .catch(err => {
+        Toast.show({
+          text2: err?.message,
+          type: 'error',
+          position: 'bottom',
+        });
       });
-    });
   }
 
   console.log(photoUrl);
@@ -320,6 +314,6 @@ export const useLogin = () => {
     phoneLogin,
     otp,
     setOtp,
-    setLoader
+    setLoader,
   };
 };

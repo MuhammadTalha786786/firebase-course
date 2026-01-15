@@ -15,14 +15,13 @@ const OnBoardingScreen = ({navigation}) => {
         {
           backgroundColor: '#a6e4d0',
           image: <Image source={require('../images/onBoarding1.jpeg')} />,
-          title: 'Welcome to Tech App',
-          subtitle: 'The World of Technology',
-        },
+          title: 'Welcome to SociaBea',
+          subtitle: ' Connect. Share. Blossom Together.',        },
         {
           backgroundColor: '#e9bcbe',
           image: <Image source={require('../images/onBoarding1.jpeg')} />,
-          title: 'Welcome to Tech App',
-          subtitle: 'The World of Technology',
+          title: ' Discover New Communities',
+          subtitle: 'Find friends, join groups, and thrive socially.',
         },
       ]}
     />

@@ -282,7 +282,6 @@ const CardUI = ({
   let isLogin = authState.userAuthReducer.isLoggedIn;
   let PostedDate = item.dateCreated.toDate();
 
-  console.log(item.postImage, 'post url');
 
   const progressiveImageURL = require('../../images/default-img.jpeg')
   const likesLength = tempLikes.filter(x => x.isLike === true)

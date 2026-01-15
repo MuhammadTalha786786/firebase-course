@@ -42,7 +42,8 @@ const RegisterScreen = ({ navigation }) => {
     handleCamera,
     setShowPickerModal,
     loading,
-    registerLoading
+    registerLoading, 
+    userProfieImage
   } = useRegister()
 
 
@@ -154,7 +155,7 @@ const RegisterScreen = ({ navigation }) => {
           <ButtonComponent
             uploading={registerLoading}
             disabled={
-              uploading ||
+              userProfieImage == ''   ||
               name === '' ||
               email === '' ||
               Password === '' ||

@@ -32,6 +32,8 @@ export const useHome = () => {
       });
   }
 
+  console.log('data::',data)
+
 
   useEffect(()=>{
   getPostData();

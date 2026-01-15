@@ -46,6 +46,8 @@ const Home = () => {
    getDataofUserPost,
  } = useHome();
 
+ console.log("data",data)
+
   return (
     <>
       <SafeAreaView

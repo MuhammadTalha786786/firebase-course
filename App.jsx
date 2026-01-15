@@ -19,7 +19,7 @@ const AppStack = createStackNavigator();
 
 const App = () => {
   const authState = useSelector((state) => state);
-  const UserLogin = authState.userAuthReducer.isLoggedIn;
+  const UserLogin = authState.userAuthReducer;
   console.log(UserLogin, 'UserLogin');
   const [firstLaunch, setFirstLaunch] = useState(null);
   
@@ -77,7 +77,7 @@ const App = () => {
           screenOptions={{
             headerShown: false,
           }}>
-          {UserLogin ? (
+          {UserLogin.userData?.token ? (
             <>
               <AppStack.Screen
                 name="Main"

@@ -38,8 +38,8 @@ const DrawerNavigation = () => {
   let uid = authState.userAuthReducer.uid;
 
    const logoutUser = () => {
-     UpdateLogin();
-     getDataofUserPost();
+    //  UpdateLogin();
+    //  getDataofUserPost();
      dispatch(setSignOut());
    };
 
