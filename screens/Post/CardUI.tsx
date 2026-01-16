@@ -1,419 +1,519 @@
 import {
-    Alert,
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    Button,
-    TouchableOpacity,
-    TouchableHighlight,
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  TouchableOpacity,
+  TouchableHighlight,
+  Pressable,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { StyleGuide } from '../../Utils/StyleGuide';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import { Card, Paragraph } from 'react-native-paper';
 import { Avatar } from 'native-base';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useDispatch, useSelector } from 'react-redux';
-import database from '@react-native-firebase/database';
+import { useSelector } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import { useNavigation } from '@react-navigation/native';
-import { IconButton, MD3Colors } from 'react-native-paper';
-import { Item } from 'react-native-paper/lib/typescript/components/List/List';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import moment from 'moment';
-import { background } from 'native-base/lib/typescript/theme/styled-system';
 import uuid from 'react-native-uuid';
-import { Popover } from 'native-base';
+import Share from 'react-native-share';
+import ImgToBase64 from 'react-native-image-base64';
+import ProgressiveImage from '../components/ProgressiveImage';
+import { StackParamList } from '../../Utils/routes';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { reducerType } from '../../Utils/types';
+import Svg from '../components/Svg';
+import { commentIcon, sendIcon } from '../../Utils/SvgAssests';
 
 const CardUI = ({
-    mode,
-    userName,
-    userImage,
-    postImage,
-    title,
-    subtitle,
-    postID,
-    arrayLikes,
-    isPostLiked,
-    setIsPostLiked,
-    comments,
-    date,
-    getPostData,
-    postData,
-    setGetData,
-    PostedUser,
-    loginState,
+  item,
+  mode,
+  isPostLiked,
+  setIsPostLiked,
+  postData,
+  setGetData,
+  getDataofUserPost,
 }) => {
-    const authState = useSelector((state: AppState) => state);
-    const [showComment, setShowComment] = useState(false);
-    const [comment, setComment] = useState('');
+  const authState = useSelector((state: reducerType) => state);
+  const [showComment, setShowComment] = useState(false);
+  const [comment, setComment] = useState('');
+  const [imageBase64URL, setImageBase64URL] = useState('');
+  const [tempLikes, setTempLikes] = useState(item.likes);
+  // console.warn(tempLikes,"temp likes")
 
-    let userID = authState.userAuthReducer.uid;
-    console.log(
-        postID,
-        'userID',
-        PostedUser,
-        'postedUserid',
-        userID === PostedUser,
-    );
-    const navigation = useNavigation();
-    const likeStatus = arrayLikes => {
-        if (arrayLikes?.length > 0) {
-            let status = false;
-            arrayLikes?.map(item => {
-                console.log(item.userID === userID, "user ID")
-                if (item.userID == userID) {
-                    status = true;
-                } else {
-                    status = false;
-                }
-            });
-            return status;
-        }
-    };
+  let userID = authState.userAuthReducer.uid;
 
-    const addPostLiked = arrayLikes => {
-        console.log('arrayLikes', arrayLikes);
+  const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
 
-        setIsPostLiked(!isPostLiked);
-        if (arrayLikes?.length > 0) {
-            let findCurrent = arrayLikes.find(item => item.userID === userID);
-            console.log(findCurrent);
-            if (findCurrent) {
-                arrayLikes = arrayLikes.filter(el => userID !== el.userID);
-            } else {
-                arrayLikes?.push({
-                    userID: userID,
-                    postDetail: subtitle,
-                    userName: userName,
-                    userProfileImaege: userProfileImaege,
-                    timeLiked: new Date(),
-                });
-            }
+  useFocusEffect(
+    React.useCallback(() => {
+      setTempLikes(item.likes),
+        likeStatus(item.likes);
+
+    }, []),
+  );
+
+
+
+
+  const likeStatus = tempLikes => {
+    let status = false;
+    if (tempLikes?.length > 0) {
+      tempLikes?.map(item => {
+        console.log(item.userID === userID, 'user ID');
+        if (item.userID == userID) {
+          status = true;
         } else {
-            arrayLikes?.push({
-                userID: userID,
-                postDetail: subtitle,
-                userName: userName,
-                userProfileImaege: userProfileImaege,
-                timeLiked: new Date(),
-            });
+          status = false;
         }
-        console.log('arrayLikes', arrayLikes);
-        firestore()
-            .collection('posts')
-            .doc(postID)
-            .update({
-                likes: arrayLikes,
-            })
-            .then(() => {
-                console.log('post updated!');
-            });
-    };
+      });
+      return status;
+    }
+  };
 
-    let PostedDate = date.toDate();
 
-    const postComment = () => {
-        let commentID = uuid.v4();
-        let userID = authState.userAuthReducer.uid;
-        let userProfileName = authState.userAuthReducer.userName;
-        let userProfileImaege = authState.userAuthReducer.photoURL;
-        let tempComments = comments;
-        tempComments.push({
-            userID: userID,
-            userImage: userProfileImaege,
-            userProfileName: userProfileName,
-            comment: comment,
-            commentCreated: new Date(),
-            postID: postID,
-            commentID: commentID,
-        });
-        firestore()
-            .collection('posts')
-            .doc(postID)
-            .update({
-                comments: tempComments,
-            })
-            .then(() => {
-                Alert.alert('your comment has been posted...');
-                setComment('');
-                setShowComment(false);
-            })
-            .catch(error => {
-                console.log(error);
-            });
-    };
+  // useEffect(() => {}, []);
 
-    const DeletePost = postID => {
-        Alert.alert(
-            'Are you sure to delete?',
-            'never recover',
-            [
-                {
-                    text: 'Cancel',
-                    onPress: () => console.log('Cancel Pressed'),
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    onPress: () => {
-                        UserPostDeleted(postID);
-                    },
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: false },
-        );
-    };
-    const UserPostDeleted = postID => {
+  // useEffect(() => {
+  // postData()
+  // }, [isPostLiked]);
+
+
+  const addPostLiked = tempLikes => {
+    // console.warn(tempLikes.length, "initial array")
+    // console.log(arrayLikes);
+    // likeStatus(arrayLikes);
+    // setIsPostLiked(!isPostLiked);
+    if (tempLikes?.length > 0) {
+      let findCurrent = tempLikes.find(item => item.userID === userID);
+      // console.warn(findCurrent != undefined, 'findCurrent');
+      if (findCurrent != undefined) {
         setIsPostLiked(!isPostLiked);
+        let array = [];
+        //  tempLikes = tempLikes.filter(el => userID !== el.userID);
+        const upd_obj = tempLikes.map(obj => {
 
+          if (obj.userID == userID) {
+            obj.isLike = !obj.isLike;
+          }
+          return obj;
+        })
+
+
+        setTempLikes(upd_obj);
+        // console.warn(tempLikes.length, "filterArray");
+        // likeStatus([...tempLikes]);
         firestore()
-            .collection('posts')
-            .doc(postID)
-            .delete()
-            .then(() => {
-                Alert.alert('Your post has been deleted');
-            });
-    };
-    let userProfileImaege = authState.userAuthReducer.photoURL;
-    let isLogin = authState.userAuthReducer.isLoggedIn;
+          .collection('posts')
+          .doc(item.postID)
+          .update({
+            likes: tempLikes,
+          })
+          .then(() => {
+            likeStatus(tempLikes);
+            console.log('post updated!, called');
+          });
+      } else {
+        setIsPostLiked(!isPostLiked);
+        tempLikes?.push({
+          userID: userID,
+          postDetail: item.postDetail,
+          userName: item.userName,
+          userProfileImaege: userProfileImage,
+          timeLiked: new Date(),
+          isLike: true
+        });
+        // setIsPostLiked(!isPostLiked);
+        firestore()
+          .collection('posts')
+          .doc(item.postID)
+          .update({
+            likes: tempLikes,
+          })
+          .then(() => {
+            likeStatus(tempLikes);
 
-    return (
-        <View>
-            <View style={{ padding: 10 }}>
-                <Card
-                    style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#f6f8fa' }}
-                    mode="elevated">
-                    <View
-                        style={{
-                            justifyContent: 'space-between',
-                            flexDirection: 'row',
-                        }}>
-                        <View style={{ flexDirection: 'row' }}>
-                            <TouchableHighlight
-                                activeOpacity={0.6}
-                                underlayColor="#DDDDDD"
-                                onPress={() => {
-                                    navigation.navigate('Profile', { id: PostedUser });
-                                }}>
-                                <Avatar
-                                    style={{ marginVertical: 10, marginHorizontal: 10 }}
-                                    source={userImage}>
-                                    <Avatar.Badge bg={loginState ? 'green.500' : 'red.500'} />
-                                </Avatar>
-                            </TouchableHighlight>
-                            <Text
-                                style={{
-                                    color: mode ? '#ffff' : 'black',
-                                    marginVertical: 20,
-                                    marginHorizontal: 5,
-                                    fontFamily: StyleGuide.fontFamily.medium,
-                                }}>
-                                {userName?.charAt(0).toUpperCase() + userName?.slice(1)}
-                            </Text>
-                        </View>
-                        <View>
-                            {console.log(date)}
-                            <Text
-                                style={{
-                                    color: mode ? '#ffff' : 'black',
-                                    marginVertical: 20,
-                                    fontSize: widthPercentageToDP('3%'),
-                                    fontFamily: StyleGuide.fontFamily.regular,
-                                    marginHorizontal: 10,
-                                }}>
-                                {moment(PostedDate).fromNow(false)}
-                            </Text>
-                        </View>
-                    </View>
+            console.log('post updated!');
+          });
+        likeStatus(tempLikes);
+      }
+    } else {
+      setIsPostLiked(!isPostLiked);
 
-                    <Card.Cover source={postImage} />
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <View style={{ flexDirection: 'row' }}>
-                            <AntDesign
-                                style={{ marginHorizontal: 10, marginVertical: 15 }}
-                                name={likeStatus(arrayLikes) ? 'heart' : 'hearto'}
-                                color={
-                                    likeStatus(arrayLikes) ? 'red' : mode ? '#ffff' : 'black'
-                                }
-                                size={20}
-                                onPress={() => {
-                                    addPostLiked(arrayLikes);
-                                }}
-                            />
-                            <View>
-                                {arrayLikes.length > 0 && (
-                                    <Text
-                                        style={{
-                                            marginVertical: 15,
-                                            marginHorizontal: 5,
-                                            color: mode ? '#ffff' : 'black',
-                                            fontSize: widthPercentageToDP('3.5%'),
-                                            fontFamily: StyleGuide.fontFamily.medium,
-                                        }}>{`${arrayLikes.length} likes`}</Text>
-                                )}
-                            </View>
+      tempLikes?.push({
+        userID: userID,
+        postDetail: item.postDetail,
+        userName: item.userName,
+        userProfileImaege: userProfileImage,
+        timeLiked: new Date(),
+        isLike: true
+      });
+      likeStatus(tempLikes);
+      setIsPostLiked(!isPostLiked);
 
-                            <FontAwesome5
-                                style={{ marginHorizontal: 10, marginVertical: 15 }}
-                                name={'comment'}
-                                color={mode ? '#ffff' : 'black'}
-                                size={20}
-                                onPress={() => {
-                                    navigation.navigate('Comment', {
-                                        postData: postData,
-                                        comments: comments,
-                                        setGetData: setGetData,
-                                        postID: postID,
-                                        mode: mode,
-                                    });
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    marginVertical: 15,
-                                    marginHorizontal: 5,
-                                    color: mode ? '#ffff' : 'black',
-                                    fontSize: widthPercentageToDP('3.5%'),
-                                    fontFamily: StyleGuide.fontFamily.medium,
-                                }}>
-                                {comments.length} comments
-                            </Text>
-                        </View>
-                        {PostedUser === userID ? (
-                            <View>
-                                <MaterialCommunityIcons
-                                    style={{ marginHorizontal: 10, marginVertical: 15 }}
-                                    name={'delete'}
-                                    color={'red'}
-                                    size={22}
-                                    onPress={() => {
-                                        DeletePost(postID);
-                                    }}
-                                />
-                            </View>
-                        ) : null}
-                    </View>
+      firestore()
+        .collection('posts')
+        .doc(item.postID)
+        .update({
+          likes: tempLikes,
+        })
+        .then(() => {
+          likeStatus(tempLikes);
 
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            height: 40,
-                        }}>
-                        <Text
-                            style={{
-                                marginVertical: 0,
-                                marginHorizontal: 10,
-                                color: mode ? 'white' : 'black',
-                                fontSize: widthPercentageToDP('3%'),
-                                fontFamily: StyleGuide.fontFamily.bold,
-                            }}>
-                            {userName}
-                        </Text>
-                        <Paragraph
-                            style={{
-                                width: '70%',
-                                marginVertical: 0,
+          console.log('post updated!');
+        });
+    }
+    // console.log('arrayLikes', arrayLikes);
+    // firestore()
+    //   .collection('posts')
+    //   .doc(item.postID)
+    //   .update({
+    //     likes: arrayLikes,
+    //   })
+    //   .then(() => {
+    //     likeStatus(arrayLikes);
 
-                                color: mode ? '#ffff' : 'black',
-                                fontSize: widthPercentageToDP('3%'),
-                                fontFamily: StyleGuide.fontFamily.regular,
-                            }}>
-                            {subtitle?.charAt(0).toUpperCase() + subtitle?.slice(1)}
-                        </Paragraph>
-                    </View>
-                    {/* {comments.length == 0 ? null : (
-                        <View style={{
-                            marginVertical: 5, marginHorizontal: 10,
-                        }} >
-                            <Text
-                                onPress={() => {
-                                    navigation.navigate("Comment", {
-                                        postData: postData,
-                                        comments: comments,
-                                        setGetData: setGetData
-                                    })
-                                }}
-                                style={{
-                                    color: 'black',
-                                    fontFamily: StyleGuide.fontFamily.regular,
-                                    fontSize: widthPercentageToDP('3%'),
-                                    borderBottomColor: 'grey',
-                                    borderBottomWidth: 1, width: '40%'
+    //     console.log('post updated!');
+    //   });
+  };
 
+  // let PostedDate = item.dateCreated.toDate();
 
-                                }}>
-                                View all {comments.length} comments
-                            </Text>
-                        </View>
-                    )} */}
+  const postComment = () => {
+    if (comment !== '') {
+      let commentID = uuid.v4();
+      let userID = authState.userAuthReducer.uid;
+      let userProfileName = authState.userAuthReducer.userName;
+      let userProfileImage = authState.userAuthReducer.photoURL;
+      let tempComments = item.comments;
+      tempComments.push({
+        userID: userID,
+        userImage: userProfileImage,
+        userProfileName: userProfileName,
+        comment: comment,
+        commentCreated: new Date(),
+        postID: item.postID,
+        commentID: commentID,
+      });
+      firestore()
+        .collection('posts')
+        .doc(item.postID)
+        .update({
+          comments: tempComments,
+        })
+        .then(() => {
+          Alert.alert('your comment has been posted...');
+          setComment('');
+          setShowComment(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      Alert.alert('Please Enter the Comment...');
+    }
+  };
 
-                    <View style={{ justifyContent: 'space-between', flexDirection: 'row' }}>
-                        <View style={{ flexDirection: 'row' }}>
-                            <View>
-                                <Avatar
-                                    size="sm"
-                                    style={{ marginVertical: 10, marginHorizontal: 5 }}
-                                    source={{ uri: userProfileImaege }}>
-                                    {' '}
-                                    <Avatar.Badge bg={isLogin ? 'green.500' : 'red.500'} />
-                                </Avatar>
-                            </View>
-
-                            <View
-                                style={{
-                                    width: '75%',
-                                }}>
-                                <TextInput
-                                    style={[styles.input, { color: mode ? 'white' : 'black' }]}
-                                    placeholderTextColor={mode ? 'white' : 'black'}
-                                    value={comment}
-                                    onChangeText={text => setComment(text)}
-                                    placeholder="Add a comment..."
-                                />
-                            </View>
-                        </View>
-                        <View>
-                            <TouchableOpacity style={styles.postButton} onPress={postComment}>
-                                <Text style={styles.buttonText}>Post</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Card>
-            </View>
-        </View>
+  const DeletePost = postID => {
+    Alert.alert(
+      'Are you sure to delete?',
+      'never recover',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: () => {
+            UserPostDeleted(postID);
+          },
+          style: 'destructive',
+        },
+      ],
+      { cancelable: false },
     );
+  };
+  const UserPostDeleted = postID => {
+    setIsPostLiked(!isPostLiked);
+
+    firestore()
+      .collection('posts')
+      .doc(postID)
+      .delete()
+      .then(() => {
+        Alert.alert('Your post has been deleted');
+      });
+  };
+
+  const convertImage = async (name, image, title) => {
+    console.log(image, title, 'share clicked');
+
+    ImgToBase64.getBase64String(image.uri)
+      .then(base64String => {
+        console.log(base64String, 'base64');
+        setImageBase64URL(base64String), sharePost(name, image, title);
+      })
+      .catch(err => console.log(err));
+  };
+
+  const sharePost = (name, image, title) => {
+    console.warn(imageBase64URL, 'url of the image in share post');
+    const options = {
+      message: title,
+      url: imageBase64URL,
+    };
+    Share.open(options)
+      .then(res => {
+        console.log(res);
+      })
+      .catch(err => {
+        err && console.log(err.message);
+      });
+  };
+  let userProfileImage = authState.userAuthReducer.photoURL;
+  let isLogin = authState.userAuthReducer.isLoggedIn;
+  let PostedDate = item.dateCreated.toDate();
+
+
+  const progressiveImageURL = require('../../images/default-img.jpeg')
+  const likesLength = tempLikes.filter(x => x.isLike === true)
+  const result = tempLikes.find(x => x.userID === userID)
+  // const isliked  = result.includes(x => x.isLike ==  true)
+  console.warn(result, "value")
+
+
+
+  return (
+    <View>
+      <View style={{ padding: 10 }}>
+        <Card
+          style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#fff' }}
+          mode="contained">
+          <View
+            style={{
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+            }}>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableHighlight
+                activeOpacity={0.6}
+                underlayColor="#DDDDDD"
+                onPress={() => {
+                  navigation.navigate('UserProfile', { id: item.userID });
+                }}>
+                <Avatar
+                  style={{ marginVertical: 10, marginHorizontal: 10 }}
+                  source={{ uri: item.userImage }}>
+                  <Avatar.Badge bg={item.isLogin ? 'green.500' : 'red.500'} />
+                </Avatar>
+              </TouchableHighlight>
+              <View style={{ marginVertical: 15 }}>
+                <Text
+                  style={{
+                    color: mode ? '#ffff' : 'black',
+                    marginHorizontal: 5,
+                    fontFamily: StyleGuide.fontFamily.medium,
+                  }}>
+                  {item.userName?.charAt(0).toUpperCase() +
+                    item.userName?.slice(1)}
+                </Text>
+                <Text
+                  style={{
+                    color: mode ? '#ffff' : 'black',
+                    marginHorizontal: 5,
+
+                    fontFamily: StyleGuide.fontFamily.medium,
+                  }}>
+                  {moment(PostedDate).fromNow(false)}
+                </Text>
+              </View>
+            </View>
+
+            {item?.userID === userID ? (
+              <View>
+                <MaterialCommunityIcons
+                  style={{ marginHorizontal: 10, marginVertical: 15 }}
+                  name={'delete'}
+                  color={'red'}
+                  size={22}
+                  onPress={() => {
+                    DeletePost(item?.postID);
+                  }}
+                />
+              </View>
+            ) : null}
+          </View>
+
+          {item.postImage == undefined ||
+            item.postImage == null ||
+            item.postImage == '' ? (
+            <ProgressiveImage
+              source={progressiveImageURL}
+              style={{ width: '100%', height: 250 }}
+            />
+          ) : (
+            <Card.Cover source={{ uri: item.postImage }} />
+          )}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row' }}>
+              <Pressable
+                onPress={() => {
+                  addPostLiked(tempLikes), setIsPostLiked(!isPostLiked);
+                }}
+                android_ripple={{ color: 'red', borderless: false }}
+              // style={({pressed}) => [
+              //   {
+              //     backgroundColor: pressed ? 'rgb(210, 230, 255)' : '',
+              //   },
+              // ]}>
+              >
+                <AntDesign
+                  style={{ marginHorizontal: 10, marginVertical: 15 }}
+                  name={result?.isLike ? 'heart' : 'hearto'}
+                  color={
+                    result?.isLike ? 'red' : mode ? '#ffff' : 'black'
+                  }
+                  size={20}
+                />
+              </Pressable>
+              <View>
+                {likesLength.length > 0 && (
+                  <Text
+                    style={{
+                      marginVertical: 15,
+                      marginHorizontal: 5,
+                      color: mode ? '#ffff' : 'black',
+                      fontSize: widthPercentageToDP('3.5%'),
+                      fontFamily: StyleGuide.fontFamily.medium,
+                    }}>{`${likesLength.length} likes`}</Text>
+                )}
+              </View>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginHorizontal: 10,
+                marginVertical: 15,
+              }}>
+
+              <Pressable android_ripple={{ color: StyleGuide.color.primary, borderless: false }}
+
+                onPress={() => {
+                  navigation.navigate('Comment', {
+                    postData: postData,
+                    comments: item.comments,
+                    setGetData: setGetData,
+                    postID: item.postID,
+                    mode: mode,
+                  });
+                }}
+              >
+                <Svg xml={commentIcon} rest={{ width: 22, height: 22, color: '#fff' }} />
+
+              </Pressable>
+
+              <Text
+                style={{
+                  marginHorizontal: 5,
+                  color: mode ? '#ffff' : 'black',
+                  fontSize: widthPercentageToDP('3.5%'),
+                  fontFamily: StyleGuide.fontFamily.medium,
+                }}>
+                {item?.comments?.length} comments
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              height: 40,
+            }}>
+          
+            <Paragraph
+              style={{
+                width: '70%',
+                marginVertical: 0,
+                paddingHorizontal:10,
+
+
+                color: mode ? '#ffff' : 'black',
+                fontSize: widthPercentageToDP('3%'),
+                fontFamily: StyleGuide.fontFamily.medium,
+              }}>
+              {item.postDetail?.charAt(0).toUpperCase() +
+                item?.postDetail?.slice(1)}
+            </Paragraph>
+          </View>
+
+          <View style={{ justifyContent: 'space-between', flexDirection: 'row' }}>
+            <View style={{ flexDirection: 'row' }}>
+              <View>
+                <Avatar
+                  size="sm"
+                  style={{ marginVertical: 10, marginHorizontal: 5 }}
+                  source={{ uri: userProfileImage }}>
+                  <Avatar.Badge bg={isLogin ? 'green.500' : 'red.500'} />
+                </Avatar>
+              </View>
+
+              <View
+                style={{
+                  width: '75%',
+                }}>
+                <TextInput
+                  style={[styles.input, { color: mode ? 'white' : 'black' }]}
+                  placeholderTextColor={mode ? 'white' : 'black'}
+                  value={comment}
+                  onChangeText={text => setComment(text)}
+                  placeholder="Add a comment..."
+                />
+              </View>
+            </View>
+            <View>
+              <TouchableOpacity style={styles.postButton} onPress={postComment}>
+              <Svg  xml={sendIcon} rest={{width:20, height:20}} /> 
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Card>
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    input: {
-        height: 40,
-        margin: 12,
-        borderBottomColor: 'grey',
-        borderBottomWidth: 1,
-        padding: 10,
-        marginVertical: 10,
-        marginHorizontal: 5,
-        fontFamily: StyleGuide.fontFamily.regular,
-        fontSize: widthPercentageToDP('3%'),
-    },
-    postButton: {
-        height: 50,
-        width: 50,
-        borderRadius: 5.5,
-        marginHorizontal: 5,
-        marginVertical: 10,
-    },
-    buttonText: {
-        textAlign: 'center',
-        marginVertical: 15,
-        color: 'blue',
-        fontFamily: StyleGuide.fontFamily.regular,
-        fontSize: widthPercentageToDP('3%'),
-    },
+  input: {
+    height: 40,
+    margin: 20,
+    borderBottomColor: 'grey',
+    borderBottomWidth: 0.5,
+    // padding: 10,
+    marginVertical: 10,
+    marginHorizontal: 5,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: widthPercentageToDP('3%'),
+  },
+  postButton: {
+   
+    marginHorizontal: 20,
+     marginVertical: 25,
+  },
+  buttonText: {
+    textAlign: 'center',
+    marginVertical: 15,
+    color: 'blue',
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: widthPercentageToDP('3%'),
+  },
 });
 
 export default CardUI;

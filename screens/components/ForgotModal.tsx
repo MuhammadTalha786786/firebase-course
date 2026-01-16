@@ -21,6 +21,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import TextInputComponent from './TextInputComponent';
 import ButtonComponent from './ButtonComponent';
 import { StyleGuide } from '../../Utils/StyleGuide';
+import { BlurView } from '@react-native-community/blur';
 
 
 
@@ -38,7 +39,8 @@ const ForgotModal = ({
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.centeredView}>
-                <Modal
+                <Modal       
+                    style={{height:700, backgroundColor:'green'}}
                     animationType="slide"
                     statusBarTranslucent={true}
                     transparent={true}
@@ -55,12 +57,19 @@ const ForgotModal = ({
                                 position: 'absolute',
                                 height: '100%',
                                 width: '100%',
-                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                //  backgroundColor: 'rgba(255, 0, 0, 0.5)',
                             }}
                         />
+                        <BlurView
+        style={styles.blurView}
+        blurType="light"
+        blurAmount={9}
+        reducedTransparencyFallbackColor="white"
+      />
                         <View style={styles.centeredView}>
+                            
                             <View style={styles.modalView}>
-                                <View
+                            <View
                                     style={{
                                         flexDirection: 'row',
                                         justifyContent: 'space-between',
@@ -70,7 +79,7 @@ const ForgotModal = ({
                                             textAlign: 'center',
                                             fontSize: wp('3.3%'),
                                             fontFamily: StyleGuide.fontFamily.regular,
-                                            marginBottom: 10,
+                                            marginBottom: 0,
                                             color: 'black',
                                         }}>
                                         Forgot Password
@@ -101,21 +110,16 @@ const ForgotModal = ({
                                         label="email"
                                         name={'email'}
                                         setError={setError}
-
                                     />
                                 </View>
-
-
                                 <View style={{ padding: 10 }}>
                                     <Text style={{ color: 'red', fontFamily: StyleGuide.fontFamily.regular, fontSize: widthPercentageToDP("2.5%") }} >{forgotEmailError}</Text>
                                     <ButtonComponent
-
                                         buttonTitle="SIGN IN"
                                         btnType="sign-in"
                                         color="#f5e7ea"
-                                        backgroundColor="#6A0DAD"
+                                        backgroundColor={StyleGuide.color.primary}
                                         onPress={forgotPassword}
-
                                     />
                                 </View>
 
@@ -132,7 +136,13 @@ const styles = StyleSheet.create({
     safeAreaView: {
         flex: 1,
     },
-
+    blurView:{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0
+      },
 
     titles: {
         // marginTop: 5,
@@ -142,6 +152,8 @@ const styles = StyleSheet.create({
     },
 
     centeredView: {
+       
+        // backgroundColor:'red',
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -149,6 +161,7 @@ const styles = StyleSheet.create({
         // backgroundColor: '#ffff',
     },
     modalView: {
+        height:"50%",
         margin: 20,
         backgroundColor: '#ffff',
         borderRadius: 4,
@@ -162,7 +175,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
-        width: '80%'
+        width: '95%',
+        justifyContent:'center',
+        // alignItems:'center'
+
 
     },
     button: {

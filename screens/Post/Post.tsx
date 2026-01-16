@@ -7,8 +7,9 @@ import {
   Alert,
   StatusBar,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import auth from '@react-native-firebase/auth';
@@ -24,75 +25,57 @@ import { setSignOut } from '../../Redux/Auth/AuthReducer';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import uuid from 'react-native-uuid';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { windowHeight, windowWidth } from '../../Utils/Dimesnions';
+import { reducerType } from '../../Utils/types';
+import { ScrollView } from 'react-native-gesture-handler';
+import ImagePickerModal from '../components/ImagePickerModal';
 
 const Post = ({ navigation }) => {
-  const [image, setImage] = useState('');
-  const [title, setTitle] = useState('');
-  const [textAreaValue, setTextAreaValue] = useState('');
-  const [error, setError] = useState('');
-  const [imageError, setImageError] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [transferred, setTransferred] = useState(0);
-  const [postImage, setPostImage] = useState('');
-  const authState = useSelector((state: AppState) => state);
-  const [loginState, setLoginState] = useState();
-  const [imageText, selectImageText] = useState('')
-
-
-  const dispatch = useDispatch();
-  const logout = () => {
-    UpdateLogin()
-    getDataofUserPost()
-    dispatch(setSignOut());
-
-  };
-
+  const [image, setImage] = useState<string>('');
+  const [textAreaValue, setTextAreaValue] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [imageError, setImageError] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [postImage, setPostImage] = useState<string>('');
+  const [loginState, setLoginState] = useState<boolean>(false);
+  const [imageText, selectImageText] = useState('');
+  const [imagePickerModal, setImagePickerModal] = useState<boolean>(false)
+  const authState = useSelector((state:reducerType) => state);
   let uid = authState.userAuthReducer.uid;
 
-  const getDataofUserPost = async () => {
-    const a = await firestore()
-      .collection('posts')
-      .where('userID', '==', uid)
-      .get()
-      .then(res => {
-        console.log(res, 'post data!');
-        res.forEach(documentSnapshot => {
-          documentSnapshot.ref.update({ isLogin: false });
+  const selectImage = (action:'Gallery'| 'Camera') => {
+    selectImageText('Please Wait While your Image is Uploading');
+
+    if(action == 'Gallery'){
+      ImagePicker.openPicker({
+        width: 300,
+        height: 400,
+      }).then(image => {
+        setImage(image.path);
+        setImagePickerModal(false)
+        let fileName = `${uuidv4()}${image.path.substr(
+          image.path.lastIndexOf('.'),
+        )}`;
+        const ref = storage().ref(fileName);
+        ref.putFile(image.path).then(s => {
+          ref.getDownloadURL().then(x => {
+            console.log(x, 'x url');
+            setPostImage(x);
+          });
+        }).catch((error)=>{
+          setImagePickerModal(false)
+          console.log(error,"error....")
         });
       });
-    console.log(a);
-
-    return a;
-  };
-
-
-
-  const UpdateLogin = () => {
-    let userID = authState.userAuthReducer.uid;
-    firestore()
-      .collection('users')
-      .doc(userID)
-      .update({
-        isLogin: false,
-      })
-      .then(() => {
-        console.log('User updated!');
-      });
-  }
-
-
-
-  const selectImage = () => {
-    selectImageText('Please Wait While your Image is Uploading')
-
-    ImagePicker.openPicker({
+    }
+   else {
+    ImagePicker.openCamera({
       width: 300,
       height: 400,
-      cropping: true,
     }).then(image => {
       setImage(image.path);
+      setImagePickerModal(false)
       let fileName = `${uuidv4()}${image.path.substr(
         image.path.lastIndexOf('.'),
       )}`;
@@ -101,13 +84,18 @@ const Post = ({ navigation }) => {
         ref.getDownloadURL().then(x => {
           console.log(x, 'x url');
           setPostImage(x);
-
         });
+      }).catch((error)=>{
+        setImagePickerModal(false)
+        console.log(error,"error....")
       });
     });
+   }
+
+
   };
 
-  console.log(postImage === '', "postImage")
+  console.log(postImage === '', 'postImage');
 
   useEffect(() => {
     auth().onAuthStateChanged(function (user) {
@@ -116,19 +104,16 @@ const Post = ({ navigation }) => {
           .collection('users')
           .doc(user.uid)
           .get()
-          .then(documentSnapshot => {
-            console.log(documentSnapshot.data().isLogin, "mdfdas")
+          .then((documentSnapshot:FirebaseFirestoreTypes.DocumentData) => {
+            console.log(documentSnapshot.data().isLogin, 'mdfdas');
 
             setLoginState(documentSnapshot.data().isLogin);
           });
-
       } else {
         console.log('not login');
       }
     });
   }, [navigation]);
-
-
 
   const postUploaded = (id, postData) => {
     firestore()
@@ -137,16 +122,16 @@ const Post = ({ navigation }) => {
       .set(postData)
       .then(() => {
         console.log('post added!');
-        Alert.alert('uploaded');
+        // Alert.alert('uploaded');
         setUploading(false);
         setImage(''); // uploadImage()
         setPostImage('');
-        setTitle('');
         setTextAreaValue('');
-      }).catch((error) => {
-        console.log(error)
       })
-  }
+      .catch(error => {
+        console.log(error);
+      });
+  };
 
   const uploadPost = () => {
     if (postImage === '') {
@@ -166,15 +151,18 @@ const Post = ({ navigation }) => {
         postID: id,
         likes: [],
         comments: [],
-        isLogin: loginState
+        isLogin: loginState,
       };
-      postUploaded(id, postData)
+      postUploaded(id, postData);
     }
   };
 
+
+
   let disabled = postImage === '' || textAreaValue === '';
   let mode = authState.darkModeReducer.mode;
-  console.log(disabled, "disabled")
+  console.log(disabled, 'disabled');
+
   return (
     <>
       <StatusBar
@@ -182,7 +170,19 @@ const Post = ({ navigation }) => {
         translucent
         backgroundColor="transparent"
       />
-      <SafeAreaView style={[styles.SafeAreaView, { backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light }]}>
+      <SafeAreaView
+        style={[
+          styles.SafeAreaView,
+          {
+            backgroundColor: mode
+              ? StyleGuide.color.dark
+              : StyleGuide.color.light,
+          },
+        ]}>
+          <KeyboardAvoidingView  style={{flex:1}}  behavior='height' >
+            <ScrollView>
+
+          
         <>
           <View style={styles.heading}>
             <Text style={styles.headingText}>Create Post</Text>
@@ -192,13 +192,13 @@ const Post = ({ navigation }) => {
               {image === undefined || image === '' ? (
                 <Text style={styles.selectImageText}>Select Image</Text>
               ) : (
-                <Image source={{ uri: image }} style={styles.PostImage} />
+                <Image source={{uri: image}} style={styles.PostImage} />
               )}
             </View>
           </View>
           <View style={styles.ImageSelectView}>
             <Entypo
-              onPress={selectImage}
+              onPress={()=>{setImagePickerModal(true)}}
               style={styles.imageIconSelect}
               color={StyleGuide.color.primary}
               size={30}
@@ -206,11 +206,13 @@ const Post = ({ navigation }) => {
             />
           </View>
 
-          <View style={{ padding: 10 }}>
+          <View style={{padding: 10}}>
             <TextArea
+              autoCompleteType={true}
               style={{
                 fontFamily: StyleGuide.fontFamily.regular,
                 fontSize: widthPercentageToDP('3.7'),
+                color:mode ? StyleGuide.color.light:StyleGuide.color.dark
               }}
               h={40}
               placeholder="What's in your mind?"
@@ -222,31 +224,39 @@ const Post = ({ navigation }) => {
             />
           </View>
 
-          <View style={{ padding: 10 }}>
+          <View style={{padding: 10}}>
             {image === '' && <Text style={styles.errorText}>{imageError}</Text>}
             <Text style={styles.errorText}>{error}</Text>
-            {postImage === '' && <Text style={styles.errorText}>{imageText}</Text>}
+            {postImage === '' && (
+              <Text style={styles.errorText}>{imageText}</Text>
+            )}
 
-            <ButtonComponent
-              buttonTitle="Post"
-              btnType="check-square"
-              color="#f5e7ea"
-              backgroundColor={disabled ? 'grey' : StyleGuide.color.primary}
-              onPress={uploadPost}
-              disabled={disabled}
-              uploading={uploading}
-              setUploading={setUploading}
-            />
-
-            <ButtonComponent
-              buttonTitle="logout"
-              btnType="check-square"
-              color="#f5e7ea"
-              backgroundColor={StyleGuide.color.primary}
-              onPress={logout}
-            />
+            <View style={{marginVertical:50}}>
+              <ButtonComponent
+              
+                buttonTitle="Post"
+                btnType="check-square"
+                color="#f5e7ea"
+                backgroundColor={disabled ? 'grey' : StyleGuide.color.primary}
+                onPress={uploadPost}
+                disabled={disabled}
+                uploading={uploading}
+              />
+            </View>
           </View>
         </>
+        </ScrollView>
+
+
+
+        </KeyboardAvoidingView>
+
+      <ImagePickerModal
+        modalVisible={imagePickerModal}
+        setModalVisible={setImagePickerModal}
+        imagePicker={selectImage}
+      />
+
       </SafeAreaView>
     </>
   );

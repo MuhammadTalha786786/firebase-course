@@ -2,21 +2,36 @@
   package="com.practicapp">
 
 
-    <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-  <uses-permission android:name="android.permission.CAMERA" />
+ <uses-permission android:name="android.permission.CAMERA" />
   <uses-feature android:name="android.hardware.camera" />
   <uses-feature android:name="android.hardware.camera.autofocus"/>
-
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.RECORD_VIDEO" />
   <uses-permission android:name="android.permission.WAKE_LOCK" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
-   <uses-permission android:name="android.permission.VIBRATE" />
+  <uses-permission android:name="com.shop.addtask.permission.MAPS_RECEIVE"/>
+  <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <uses-permission android:name="android.permission.CAMERA"/>
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<!-- required for react-native-share base64 sharing -->
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.VIBRATE" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+  <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+  <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+  <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+
 
     <application
       android:name=".MainApplication"
@@ -41,8 +56,15 @@
         
       </activity>
 
+ <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+    <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
+
+  <meta-data
+       android:name="com.google.android.geo.API_KEY"
+       android:value="AIzaSyAJGo_mTbk0zcS0pH5pJQno6ASk2hXgygY"/>
      
              <meta-data android:name="com.dieam.reactnativepushnotification.notification_foreground" android:value="false"/>
+      
 
 <meta-data android:name="com.dieam.reactnativepushnotification.notification_color" android:resource="@color/white"/>
 
@@ -90,8 +112,7 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
  </receiver>
-
-
-      
+         
+       
     </application>
 </manifest>

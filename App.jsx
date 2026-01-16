@@ -1,25 +1,28 @@
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
+import LoginScreen from './screens/Login/LoginScreen';
 import OnBoardingScreen from './screens/OnBoardingScreen';
-import Home from './screens/Home';
+import Home from './screens/Home/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import TabNavigation from './TabNavigation/TabNavigation';
 import Comment from './screens/Post/Comment';
-import Profile from './screens/Profile';
 import messaging from '@react-native-firebase/messaging';
-import ChatScreen from './screens/ChatScreen';
+import ChatScreen from './screens/Chat/ChatScreen';
+import ProfileScreen from './screens/Profile/ProfileScreen';
+import UserProfile from './screens/UserProfile';
+import RegisterScreen from './screens/Register/RegisterScreen';
+
 
 const AppStack = createStackNavigator();
 
 const App = () => {
-  const authState = useSelector((state: AppState) => state);
-  const UserLogin = authState.userAuthReducer.isLoggedIn;
+  const authState = useSelector((state) => state);
+  const UserLogin = authState.userAuthReducer;
   console.log(UserLogin, 'UserLogin');
   const [firstLaunch, setFirstLaunch] = useState(null);
+  
   useEffect(() => {
     async function setData() {
       const appData = await AsyncStorage.getItem('appLaunched');
@@ -31,7 +34,7 @@ const App = () => {
       }
     }
     setData();
-  }, []);
+  }, [UserLogin]);
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
@@ -74,23 +77,23 @@ const App = () => {
           screenOptions={{
             headerShown: false,
           }}>
-          {UserLogin ? (
+          {UserLogin.userData?.token ? (
             <>
               <AppStack.Screen
                 name="Main"
                 component={TabNavigation}
                 options={{headerShown: false}}
               />
-
               <AppStack.Screen name="Comment" component={Comment} />
-              <AppStack.Screen
-                name="Profile"
-                component={Profile}
-                options={{headerShown: true}}
-              />
+              <AppStack.Screen name="profile" component={ProfileScreen} />
               <AppStack.Screen
                 name="ChatsScreen"
                 component={ChatScreen}
+                options={{headerShown: true}}
+              />
+              <AppStack.Screen
+                name="UserProfile"
+                component={UserProfile}
                 options={{headerShown: true}}
               />
             </>

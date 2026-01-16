@@ -3,38 +3,46 @@ import React from 'react';
 import { TextInput } from 'react-native-paper';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { windowHeight } from '../../Utils/Dimesnions';
-import { Input, Icon, Pressable } from 'native-base';
+import { Input, Icon, Pressable, IInputProps } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 
-const TextInputComponent = ({
-  value,
-  setValue,
-  setError,
-  showPassword,
-  name,
-  setShowPassword,
-  IsPassword,
-  darkMode,
-  ...reset
-}) => {
+
+interface TextProps {
+  placeholder?: string
+  mode?: string
+  label?: string
+  secureTextEntry?: boolean
+  value: string,
+  setValue: (e: string) => void,
+  setError: (e: string) => void,
+  showPassword?: boolean,
+  name: string,
+  setShowPassword: (e: boolean) => void,
+  IsPassword?: boolean,
+  darkMode?:  any | boolean,
+
+}
+
+const TextInputComponent = (props: TextProps) => {
   return (
     <>
-      {IsPassword ? (
+      {props?.IsPassword ? (
         <View>
           <Input
             mx="3"
-            value={value}
+            {...props}
+            value={props?.value}
             onChangeText={text => {
-              setValue(text), setError('');
+              props?.setValue(text), props?.setError('');
             }}
-            type={showPassword ? 'text' : 'password'}
+            type={props?.showPassword ? 'text' : 'password'}
             InputRightElement={
-              <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Pressable onPress={() => props?.setShowPassword(!props?.showPassword)}>
                 <Icon
                   as={
                     <MaterialIcons
-                      name={showPassword ? 'visibility' : 'visibility-off'}
+                      name={props?.showPassword ? 'visibility' : 'visibility-off'}
                     />
                   }
                   size={5}
@@ -47,21 +55,21 @@ const TextInputComponent = ({
               height: windowHeight / 15,
               fontFamily: 'Poppins-Regular',
               fontSize: widthPercentageToDP('3.7'),
-              color: darkMode ? StyleGuide.color.light : StyleGuide.color.dark
+              color: props?.darkMode ? StyleGuide.color.light:    StyleGuide.color.dark,
             }}
-            {...reset}
           />
         </View>
       ) : (
         <Input
           mx="3"
-          value={value}
+          {...props}
+          value={props?.value}
           onChangeText={text => {
-            setValue(text), setError('');
+            props?.setValue(text), props?.setError('');
           }}
           InputLeftElement={
             <Icon
-              as={<MaterialIcons name={name} />}
+              as={<MaterialIcons name={props?.name} />}
               size={5}
               ml="2"
               color="muted.400"
@@ -71,11 +79,8 @@ const TextInputComponent = ({
             height: windowHeight / 15,
             fontFamily: 'Poppins-Regular',
             fontSize: widthPercentageToDP('3.7'),
-            color: darkMode ? StyleGuide.color.light : StyleGuide.color.dark
-
+            color:props?.darkMode ? StyleGuide.color.light:    StyleGuide.color.dark,
           }}
-
-          {...reset}
         />
       )}
     </>

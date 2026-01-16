@@ -1,15 +1,24 @@
 import { View, Text, SafeAreaView, FlatList, StyleSheet } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
 import Lottie from 'lottie-react-native';
 import NotificationCard from './components/NotificationCard';
 import { StyleGuide } from '../Utils/StyleGuide';
+type AppState =
+{    userAuthReducer:{
+        uid:string
+    }
+    darkModeReducer:{
+        mode:boolean
+    }
 
+}
 const Notifications = () => {
     const authState = useSelector((state: AppState) => state);
-    const [likedPeople, setLikedPeople] = useState();
+    const [likedPeople, setLikedPeople] = useState<string []>([]);
     const uid = authState.userAuthReducer.uid;
+    
     const [visible, setVisible] = useState(false);
     const mode = authState.darkModeReducer.mode;
     console.log(uid, 'uid');
@@ -23,7 +32,7 @@ const Notifications = () => {
                 console.log(res, 'response of posts');
                 let peopleWhoLiked = [];
 
-                res.forEach(documentSnapshot => {
+                res.forEach((documentSnapshot:FirebaseFirestoreTypes.DocumentData) => {
                     console.log(documentSnapshot.data(), 'data');
                     if (documentSnapshot.data().userID === uid) {
                     }
