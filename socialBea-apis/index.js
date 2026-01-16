@@ -33,10 +33,8 @@ async function connectToDatabase() {
     console.log('Creating new database connection...');
     
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGO_URI is not defined in environment variables');
+      throw new Error('MONGODB_URI is not defined in environment variables');
     }
-
-    console.log(process.env.MONGODB_URI)
 
     const db = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
@@ -59,7 +57,7 @@ app.get('/', (req, res) => {
     message: 'API is running',
     timestamp: new Date().toISOString(),
     env: {
-      mongoConfigured: !!process.env.MONGO_URI,
+      mongoConfigured: !!process.env.MONGODB_URI,
       jwtConfigured: !!process.env.JWT_SECRET,
       nodeEnv: process.env.NODE_ENV || 'not set'
     }
@@ -91,7 +89,16 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-// Connect to DB before handling other routes
+// Load and use routes BEFORE the database middleware
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const postRoutes = require('./routes/postRoutes');
+
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+
+// Connect to DB middleware (after routes are registered)
 app.use(async (req, res, next) => {
   try {
     await connectToDatabase();
@@ -105,19 +112,6 @@ app.use(async (req, res, next) => {
     });
   }
 });
-
-// Import routes only after basic setup
-try {
-  const userRoutes = require('./routes/userRoutes');
-  const authRoutes = require('./routes/authRoutes');
-  const postRoutes = require('./routes/postRoutes');
-
-  app.use('/api/users', userRoutes);
-  app.use('/api/auth', authRoutes);
-  app.use('/api/posts', postRoutes);
-} catch (error) {
-  console.error('Error loading routes:', error.message);
-}
 
 // Error handler
 app.use((err, req, res, next) => {
