@@ -1,42 +1,131 @@
-// Load environment variables FIRST - before any other imports
 require('dotenv').config();
-
 const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/postRoutes');
+const mongoose = require('mongoose');
 
-// Initialize Express app
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/posts', postRoutes);
+// CORS - simplified for serverless
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-// Health check route
+// Database connection with error handling
+let cachedDb = null;
+
+async function connectToDatabase() {
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    console.log('Using cached database connection');
+    return cachedDb;
+  }
+
+  try {
+    console.log('Creating new database connection...');
+    
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGO_URI is not defined in environment variables');
+    }
+
+    console.log(process.env.MONGODB_URI)
+
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+
+    cachedDb = db;
+    console.log('Database connected successfully');
+    return db;
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    throw error;
+  }
+}
+
+// Health check
 app.get('/', (req, res) => {
-  res.json({ message: 'User API is running' });
+  res.json({ 
+    status: 'ok',
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+    env: {
+      mongoConfigured: !!process.env.MONGO_URI,
+      jwtConfigured: !!process.env.JWT_SECRET,
+      nodeEnv: process.env.NODE_ENV || 'not set'
+    }
+  });
 });
 
 app.get('/api', (req, res) => {
-  res.json({ message: 'API is working' });
+  res.json({ 
+    status: 'ok',
+    message: 'API endpoint is working'
+  });
 });
 
-// Error handling middleware
+// Test database connection
+app.get('/api/test-db', async (req, res) => {
+  try {
+    await connectToDatabase();
+    res.json({ 
+      status: 'ok',
+      message: 'Database connection successful',
+      dbState: mongoose.connection.readyState
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error',
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
+});
+
+// Connect to DB before handling other routes
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Database middleware error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Database connection error',
+      error: error.message
+    });
+  }
+});
+
+// Import routes only after basic setup
+try {
+  const userRoutes = require('./routes/userRoutes');
+  const authRoutes = require('./routes/authRoutes');
+  const postRoutes = require('./routes/postRoutes');
+
+  app.use('/api/users', userRoutes);
+  app.use('/api/auth', authRoutes);
+  app.use('/api/posts', postRoutes);
+} catch (error) {
+  console.error('Error loading routes:', error.message);
+}
+
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err);
   res.status(500).json({
     success: false,
-    message: 'Something went wrong!',
-    error: err.message
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
   });
 });
 
@@ -44,20 +133,23 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found',
+    path: req.path
   });
 });
 
-// Connect to MongoDB
-connectDB();
-
-// Export for Vercel (serverless)
+// Export for Vercel
 module.exports = app;
 
-// Start server only in development
+// Local development
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  connectToDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  }).catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   });
 }
