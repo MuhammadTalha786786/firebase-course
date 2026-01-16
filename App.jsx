@@ -13,6 +13,8 @@ import ChatScreen from './screens/Chat/ChatScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
 import UserProfile from './screens/UserProfile';
 import RegisterScreen from './screens/Register/RegisterScreen';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
 
 
 const AppStack = createStackNavigator();
@@ -71,6 +73,8 @@ const App = () => {
 
   return (
     firstLaunch != null && (
+      <GestureHandlerRootView style={{flex: 1}}>
+
       <NavigationContainer>
         <AppStack.Navigator
           header="none"
@@ -114,6 +118,8 @@ const App = () => {
           )}
         </AppStack.Navigator>
       </NavigationContainer>
+      </GestureHandlerRootView>
+
     )
   );
 };

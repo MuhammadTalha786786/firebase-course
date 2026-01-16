@@ -1,46 +1,42 @@
 import React, {useState, useEffect} from 'react';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-import {useSelector} from 'react-redux';
-import { reducerType } from '../../Utils/types';
+import firestore, {
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
+import {useDispatch, useSelector} from 'react-redux';
+import {reducerType} from '../../Utils/types';
+import ApiCall from '../../services/services';
 
 export const useHome = () => {
   const [post, setPost] = useState();
-  const authState = useSelector((state:reducerType) => state);
+  const authState = useSelector((state: reducerType) => state);
   const [image, setImage] = useState();
-  const [data, setData] = useState<string []>();
+  const [data, setData] = useState<string[]>();
   const [getData, setGetData] = useState(false);
   const [isPostLiked, setIsPostLiked] = useState(false);
   const [loginState, setLoginState] = useState();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
- const  getPostData =  () => {
-    
-  getDataofUserPost();
-  setGetData(true);
-    firestore()
-      .collection('posts')
-      .get()
-      .then(async (snapshot:FirebaseFirestoreTypes.DocumentData) => {
-        setGetData(false);
-        let postData:string[] = [];
-         await snapshot.forEach((post:FirebaseFirestoreTypes.DocumentData) => {
-          const data   = post.data();
-          postData.unshift(data);
-        });
-        setData(postData);
-      });
-  }
+  const getPostData = async () => {
+    const response = await ApiCall('get', 'api/posts', '', dispatch, false);
 
-  console.log('data::',data)
+    console.log(response,"response:::")
 
+    if (response?.success) {
+      if (response?.data && response?.data.length > 0) {
+        console.log("first")
+        setData(response?.data);
+      }
+    }
 
-  useEffect(()=>{
-  getPostData();
+  };
 
+  console.log('data::', data);
 
-  },[])
-  
+  useEffect(() => {
+    getPostData();
+  }, []);
 
   // useFocusEffect(
   //   React.useCallback(() => {

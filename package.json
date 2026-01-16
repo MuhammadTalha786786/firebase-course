@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@firebase/app": "^0.7.33",
+    "@gorhom/bottom-sheet": "^5.2.8",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-community/blur": "^4.3.2",
     "@react-native-community/datetimepicker": "^6.5.4",
@@ -37,6 +38,7 @@
     "react": "18.1.0",
     "react-native": "0.70.1",
     "react-native-elements": "^3.4.2",
+    "react-native-fast-image": "^8.6.3",
     "react-native-fbsdk-next": "^11.2.1",
     "react-native-floating-action": "^1.22.0",
     "react-native-fs": "^2.20.0",

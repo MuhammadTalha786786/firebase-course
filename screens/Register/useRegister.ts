@@ -9,6 +9,7 @@ import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import ApiCall from '../../services/services';
 import {useDispatch} from 'react-redux';
+import Toast from 'react-native-toast-message';
 
 export const useRegister = () => {
   const dispatch = useDispatch();
@@ -127,6 +128,13 @@ export const useRegister = () => {
 
   console.log(userProfieImage, 'ksdfhdajs');
 
+  const clearData = () => {
+    setImage('');
+    setEmail('');
+    setName('');
+    setPassword('');
+  };
+
   const createNewAccount = async () => {
     setRegisterLoading(true);
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -150,7 +158,7 @@ export const useRegister = () => {
           password: Password,
           isLogin: false,
         };
-        console.log(body)
+        console.log(body);
         const response = await ApiCall(
           'post',
           'api/users',
@@ -161,12 +169,27 @@ export const useRegister = () => {
         console.log(response);
         setRegisterLoading(false);
         if (response?.data) {
-          console.log('user has been successfully created');
-          // dispatch(setSignIn(response.data));
+          Toast.show({
+            text2: response?.message,
+            type: 'success',
+            position: 'bottom',
+          });
+          clearData()
+        } else {
+          Toast.show({
+            text2: 'Something Went Wrong',
+            type: 'error',
+            position: 'bottom',
+          });
         }
       } catch (error) {
         setRegisterLoading(false);
         console.log(error.message);
+        Toast.show({
+          text2: error?.message,
+          type: 'error',
+          position: 'bottom',
+        });
       }
     }
   };

@@ -4,515 +4,554 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  Button,
   TouchableOpacity,
-  TouchableHighlight,
   Pressable,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { StyleGuide } from '../../Utils/StyleGuide';
-import { Card, Paragraph } from 'react-native-paper';
-import { Avatar } from 'native-base';
+import React, {useState, useCallback} from 'react';
+import {StyleGuide} from '../../Utils/StyleGuide';
+import {Avatar} from 'native-base';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useSelector } from 'react-redux';
-import firestore from '@react-native-firebase/firestore';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
 import moment from 'moment';
-import uuid from 'react-native-uuid';
-import Share from 'react-native-share';
-import ImgToBase64 from 'react-native-image-base64';
 import ProgressiveImage from '../components/ProgressiveImage';
-import { StackParamList } from '../../Utils/routes';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { reducerType } from '../../Utils/types';
+import {StackParamList} from '../../Utils/routes';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {reducerType} from '../../Utils/types';
 import Svg from '../components/Svg';
-import { commentIcon, sendIcon } from '../../Utils/SvgAssests';
+import {commentIcon, sendIcon} from '../../Utils/SvgAssests';
+import ApiCall from '../../services/services';
+import FastImage from 'react-native-fast-image';
 
-const CardUI = ({
-  item,
-  mode,
-  isPostLiked,
-  setIsPostLiked,
-  postData,
-  setGetData,
-  getDataofUserPost,
-}) => {
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+
+const CardUI = ({item, mode, setGetData}) => {
+  const dispatch = useDispatch();
   const authState = useSelector((state: reducerType) => state);
-  const [showComment, setShowComment] = useState(false);
+  const userData = authState.userAuthReducer.userData?.user;
+  const userID = userData?._id;
+
   const [comment, setComment] = useState('');
-  const [imageBase64URL, setImageBase64URL] = useState('');
-  const [tempLikes, setTempLikes] = useState(item.likes);
-  // console.warn(tempLikes,"temp likes")
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(
+    item?.comments?.length || 0,
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCommentLoading, setIsCommentLoading] = useState(false);
+  const [showFullCaption, setShowFullCaption] = useState(false);
+  const [likeAnimation, setLikeAnimation] = useState(false);
 
-  let userID = authState.userAuthReducer.uid;
+  const navigation =
+    useNavigation<NativeStackNavigationProp<StackParamList>>();
 
-  const navigation = useNavigation<NativeStackNavigationProp<StackParamList>>();
-
+  // Check if current user has liked the post
   useFocusEffect(
-    React.useCallback(() => {
-      setTempLikes(item.likes),
-        likeStatus(item.likes);
-
-    }, []),
+    useCallback(() => {
+      checkLikeStatus();
+    }, [item]),
   );
 
-
-
-
-  const likeStatus = tempLikes => {
-    let status = false;
-    if (tempLikes?.length > 0) {
-      tempLikes?.map(item => {
-        console.log(item.userID === userID, 'user ID');
-        if (item.userID == userID) {
-          status = true;
-        } else {
-          status = false;
-        }
-      });
-      return status;
+  const checkLikeStatus = () => {
+    if (item?.likes && Array.isArray(item.likes)) {
+      const userLiked = item.likes.includes(userID);
+      setIsLiked(userLiked);
+      setLikesCount(item.likes.length);
+    } else {
+      setIsLiked(false);
+      setLikesCount(0);
     }
   };
 
+  // Toggle like/unlike with animation
+  const handleToggleLike = async () => {
+    if (isLoading) return;
 
-  // useEffect(() => {}, []);
+    setIsLoading(true);
+    setLikeAnimation(true);
 
-  // useEffect(() => {
-  // postData()
-  // }, [isPostLiked]);
+    // Optimistic UI update
+    const previousLiked = isLiked;
+    const previousCount = likesCount;
+    setIsLiked(!isLiked);
+    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
 
+    setTimeout(() => setLikeAnimation(false), 1000);
 
-  const addPostLiked = tempLikes => {
-    // console.warn(tempLikes.length, "initial array")
-    // console.log(arrayLikes);
-    // likeStatus(arrayLikes);
-    // setIsPostLiked(!isPostLiked);
-    if (tempLikes?.length > 0) {
-      let findCurrent = tempLikes.find(item => item.userID === userID);
-      // console.warn(findCurrent != undefined, 'findCurrent');
-      if (findCurrent != undefined) {
-        setIsPostLiked(!isPostLiked);
-        let array = [];
-        //  tempLikes = tempLikes.filter(el => userID !== el.userID);
-        const upd_obj = tempLikes.map(obj => {
+    try {
+      const body = {userID};
+      const response = await ApiCall(
+        'post',
+        `api/posts/${item?.postID}/like`,
+        body,
+        dispatch,
+        false,
+      );
 
-          if (obj.userID == userID) {
-            obj.isLike = !obj.isLike;
-          }
-          return obj;
-        })
-
-
-        setTempLikes(upd_obj);
-        // console.warn(tempLikes.length, "filterArray");
-        // likeStatus([...tempLikes]);
-        firestore()
-          .collection('posts')
-          .doc(item.postID)
-          .update({
-            likes: tempLikes,
-          })
-          .then(() => {
-            likeStatus(tempLikes);
-            console.log('post updated!, called');
-          });
+      if (response?.success) {
+        setIsLiked(response?.data?.liked);
+        setLikesCount(response?.data?.likesCount);
       } else {
-        setIsPostLiked(!isPostLiked);
-        tempLikes?.push({
-          userID: userID,
-          postDetail: item.postDetail,
-          userName: item.userName,
-          userProfileImaege: userProfileImage,
-          timeLiked: new Date(),
-          isLike: true
-        });
-        // setIsPostLiked(!isPostLiked);
-        firestore()
-          .collection('posts')
-          .doc(item.postID)
-          .update({
-            likes: tempLikes,
-          })
-          .then(() => {
-            likeStatus(tempLikes);
-
-            console.log('post updated!');
-          });
-        likeStatus(tempLikes);
+        setIsLiked(previousLiked);
+        setLikesCount(previousCount);
+        Alert.alert('Error', response?.message || 'Failed to update like');
       }
-    } else {
-      setIsPostLiked(!isPostLiked);
-
-      tempLikes?.push({
-        userID: userID,
-        postDetail: item.postDetail,
-        userName: item.userName,
-        userProfileImaege: userProfileImage,
-        timeLiked: new Date(),
-        isLike: true
-      });
-      likeStatus(tempLikes);
-      setIsPostLiked(!isPostLiked);
-
-      firestore()
-        .collection('posts')
-        .doc(item.postID)
-        .update({
-          likes: tempLikes,
-        })
-        .then(() => {
-          likeStatus(tempLikes);
-
-          console.log('post updated!');
-        });
-    }
-    // console.log('arrayLikes', arrayLikes);
-    // firestore()
-    //   .collection('posts')
-    //   .doc(item.postID)
-    //   .update({
-    //     likes: arrayLikes,
-    //   })
-    //   .then(() => {
-    //     likeStatus(arrayLikes);
-
-    //     console.log('post updated!');
-    //   });
-  };
-
-  // let PostedDate = item.dateCreated.toDate();
-
-  const postComment = () => {
-    if (comment !== '') {
-      let commentID = uuid.v4();
-      let userID = authState.userAuthReducer.uid;
-      let userProfileName = authState.userAuthReducer.userName;
-      let userProfileImage = authState.userAuthReducer.photoURL;
-      let tempComments = item.comments;
-      tempComments.push({
-        userID: userID,
-        userImage: userProfileImage,
-        userProfileName: userProfileName,
-        comment: comment,
-        commentCreated: new Date(),
-        postID: item.postID,
-        commentID: commentID,
-      });
-      firestore()
-        .collection('posts')
-        .doc(item.postID)
-        .update({
-          comments: tempComments,
-        })
-        .then(() => {
-          Alert.alert('your comment has been posted...');
-          setComment('');
-          setShowComment(false);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    } else {
-      Alert.alert('Please Enter the Comment...');
+    } catch (error) {
+      setIsLiked(previousLiked);
+      setLikesCount(previousCount);
+      Alert.alert('Error', 'Failed to update like. Please try again.');
+      console.error('Toggle like error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const DeletePost = postID => {
+  // Double tap to like
+  const handleDoubleTap = () => {
+    if (!isLiked) {
+      handleToggleLike();
+    }
+  };
+
+  // Post a comment
+  const postComment = async () => {
+    if (!comment.trim()) {
+      Alert.alert('Validation', 'Please enter a comment');
+      return;
+    }
+
+    if (isCommentLoading) return;
+
+    setIsCommentLoading(true);
+
+    try {
+      const body = {
+        comment: comment.trim(),
+        userID,
+        userImage: userData?.image,
+        userProfileName: userData?.name,
+      };
+
+      const response = await ApiCall(
+        'post',
+        `api/posts/${item?.postID}/comments`,
+        body,
+        dispatch,
+        false,
+      );
+
+      if (response?.success) {
+        setComment('');
+        setCommentsCount(prev => prev + 1);
+
+        if (setGetData) {
+          setGetData(prev => !prev);
+        }
+      } else {
+        Alert.alert('Error', response?.message || 'Failed to post comment');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to post comment. Please try again.');
+      console.error('Post comment error:', error);
+    } finally {
+      setIsCommentLoading(false);
+    }
+  };
+
+  // Delete post
+  const handleDeletePost = () => {
     Alert.alert(
-      'Are you sure to delete?',
-      'never recover',
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
       [
         {
           text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
           style: 'cancel',
         },
         {
           text: 'Delete',
-          onPress: () => {
-            UserPostDeleted(postID);
-          },
           style: 'destructive',
+          onPress: deletePost,
         },
       ],
-      { cancelable: false },
+      {cancelable: true},
     );
   };
-  const UserPostDeleted = postID => {
-    setIsPostLiked(!isPostLiked);
 
-    firestore()
-      .collection('posts')
-      .doc(postID)
-      .delete()
-      .then(() => {
-        Alert.alert('Your post has been deleted');
-      });
+  const deletePost = async () => {
+    try {
+      const response = await ApiCall(
+        'delete',
+        `api/posts/${item?.postID}`,
+        null,
+        dispatch,
+        false,
+      );
+
+      if (response?.success) {
+        Alert.alert('Success', 'Post deleted successfully');
+        if (setGetData) {
+          setGetData(prev => !prev);
+        }
+      } else {
+        Alert.alert('Error', response?.message || 'Failed to delete post');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete post. Please try again.');
+      console.error('Delete post error:', error);
+    }
   };
 
-  const convertImage = async (name, image, title) => {
-    console.log(image, title, 'share clicked');
-
-    ImgToBase64.getBase64String(image.uri)
-      .then(base64String => {
-        console.log(base64String, 'base64');
-        setImageBase64URL(base64String), sharePost(name, image, title);
-      })
-      .catch(err => console.log(err));
+  const navigateToComments = () => {
+    navigation.navigate('Comment', {
+      postID: item.postID,
+      mode,
+      setGetData,
+    });
   };
 
-  const sharePost = (name, image, title) => {
-    console.warn(imageBase64URL, 'url of the image in share post');
-    const options = {
-      message: title,
-      url: imageBase64URL,
-    };
-    Share.open(options)
-      .then(res => {
-        console.log(res);
-      })
-      .catch(err => {
-        err && console.log(err.message);
-      });
+  const navigateToProfile = () => {
+    navigation.navigate('UserProfile', {id: item.userID});
   };
-  let userProfileImage = authState.userAuthReducer.photoURL;
-  let isLogin = authState.userAuthReducer.isLoggedIn;
-  let PostedDate = item.dateCreated.toDate();
 
+  const progressiveImageURL = require('../../images/default-img.jpeg');
+  const PostedDate = item.dateCreated;
+  const userProfileImage = userData?.image;
 
-  const progressiveImageURL = require('../../images/default-img.jpeg')
-  const likesLength = tempLikes.filter(x => x.isLike === true)
-  const result = tempLikes.find(x => x.userID === userID)
-  // const isliked  = result.includes(x => x.isLike ==  true)
-  console.warn(result, "value")
-
-
+  const captionText = item.postDetail || '';
+  const shouldShowMore = captionText.length > 100;
+  const displayCaption = showFullCaption
+    ? captionText
+    : captionText.slice(0, 100);
 
   return (
-    <View>
-      <View style={{ padding: 10 }}>
-        <Card
-          style={{ backgroundColor: mode ? 'rgb(40, 42, 54)' : '#fff' }}
-          mode="contained">
-          <View
-            style={{
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-            }}>
-            <View style={{ flexDirection: 'row' }}>
-              <TouchableHighlight
-                activeOpacity={0.6}
-                underlayColor="#DDDDDD"
-                onPress={() => {
-                  navigation.navigate('UserProfile', { id: item.userID });
-                }}>
-                <Avatar
-                  style={{ marginVertical: 10, marginHorizontal: 10 }}
-                  source={{ uri: item.userImage }}>
-                  <Avatar.Badge bg={item.isLogin ? 'green.500' : 'red.500'} />
-                </Avatar>
-              </TouchableHighlight>
-              <View style={{ marginVertical: 15 }}>
-                <Text
-                  style={{
-                    color: mode ? '#ffff' : 'black',
-                    marginHorizontal: 5,
-                    fontFamily: StyleGuide.fontFamily.medium,
-                  }}>
-                  {item.userName?.charAt(0).toUpperCase() +
-                    item.userName?.slice(1)}
-                </Text>
-                <Text
-                  style={{
-                    color: mode ? '#ffff' : 'black',
-                    marginHorizontal: 5,
-
-                    fontFamily: StyleGuide.fontFamily.medium,
-                  }}>
-                  {moment(PostedDate).fromNow(false)}
-                </Text>
-              </View>
-            </View>
-
-            {item?.userID === userID ? (
-              <View>
-                <MaterialCommunityIcons
-                  style={{ marginHorizontal: 10, marginVertical: 15 }}
-                  name={'delete'}
-                  color={'red'}
-                  size={22}
-                  onPress={() => {
-                    DeletePost(item?.postID);
-                  }}
-                />
-              </View>
-            ) : null}
+    <View style={[styles.container, {backgroundColor: mode ? '#000' : '#fff'}]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.userInfoContainer}
+          activeOpacity={0.7}
+          onPress={navigateToProfile}>
+          <Avatar size="sm" source={{uri: item.userImage}} />
+          <View style={styles.userDetails}>
+            <Text
+              style={[styles.userName, {color: mode ? '#fff' : '#000'}]}
+              numberOfLines={1}>
+              {item.userName?.charAt(0).toUpperCase() +
+                item.userName?.slice(1)}
+            </Text>
           </View>
+        </TouchableOpacity>
 
-          {item.postImage == undefined ||
-            item.postImage == null ||
-            item.postImage == '' ? (
-            <ProgressiveImage
-              source={progressiveImageURL}
-              style={{ width: '100%', height: 250 }}
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={item?.userID === userID ? handleDeletePost : null}>
+          {item?.userID === userID ? (
+            <MaterialCommunityIcons name="delete" color="red" size={24} />
+          ) : (
+            <Feather
+              name="more-vertical"
+              color={mode ? '#fff' : '#000'}
+              size={24}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Post Image */}
+      <Pressable onPress={handleDoubleTap} activeOpacity={1}>
+        <View style={styles.imageContainer}>
+          {item.postImage ? (
+            <FastImage
+              source={{uri: item.postImage}}
+              style={styles.postImage}
+              resizeMode={FastImage.resizeMode.cover}
             />
           ) : (
-            <Card.Cover source={{ uri: item.postImage }} />
+            <ProgressiveImage
+              source={progressiveImageURL}
+              style={styles.postImage}
+            />
           )}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row' }}>
-              <Pressable
-                onPress={() => {
-                  addPostLiked(tempLikes), setIsPostLiked(!isPostLiked);
-                }}
-                android_ripple={{ color: 'red', borderless: false }}
-              // style={({pressed}) => [
-              //   {
-              //     backgroundColor: pressed ? 'rgb(210, 230, 255)' : '',
-              //   },
-              // ]}>
-              >
-                <AntDesign
-                  style={{ marginHorizontal: 10, marginVertical: 15 }}
-                  name={result?.isLike ? 'heart' : 'hearto'}
-                  color={
-                    result?.isLike ? 'red' : mode ? '#ffff' : 'black'
-                  }
-                  size={20}
-                />
-              </Pressable>
-              <View>
-                {likesLength.length > 0 && (
-                  <Text
-                    style={{
-                      marginVertical: 15,
-                      marginHorizontal: 5,
-                      color: mode ? '#ffff' : 'black',
-                      fontSize: widthPercentageToDP('3.5%'),
-                      fontFamily: StyleGuide.fontFamily.medium,
-                    }}>{`${likesLength.length} likes`}</Text>
-                )}
-              </View>
+          {likeAnimation && (
+            <View style={styles.likeAnimationOverlay}>
+              <AntDesign name="heart" size={80} color="white" />
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                marginHorizontal: 10,
-                marginVertical: 15,
-              }}>
+          )}
+        </View>
+      </Pressable>
 
-              <Pressable android_ripple={{ color: StyleGuide.color.primary, borderless: false }}
+      {/* Action Buttons */}
+      <View style={styles.actionsContainer}>
+        <View style={styles.leftActions}>
+          <Pressable
+            onPress={handleToggleLike}
+            disabled={isLoading}
+            style={styles.actionButton}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="red" />
+            ) : (
+              <AntDesign
+                name={isLiked ? 'heart' : 'hearto'}
+                color={isLiked ? '#ff3b30' : mode ? '#fff' : '#000'}
+                size={26}
+              />
+            )}
+          </Pressable>
 
-                onPress={() => {
-                  navigation.navigate('Comment', {
-                    postData: postData,
-                    comments: item.comments,
-                    setGetData: setGetData,
-                    postID: item.postID,
-                    mode: mode,
-                  });
-                }}
-              >
-                <Svg xml={commentIcon} rest={{ width: 22, height: 22, color: '#fff' }} />
-
-              </Pressable>
-
-              <Text
-                style={{
-                  marginHorizontal: 5,
-                  color: mode ? '#ffff' : 'black',
-                  fontSize: widthPercentageToDP('3.5%'),
-                  fontFamily: StyleGuide.fontFamily.medium,
-                }}>
-                {item?.comments?.length} comments
+          <Pressable
+            onPress={navigateToComments}
+            style={styles.actionButtonWithCount}>
+            <Feather
+              name="message-circle"
+              color={mode ? '#fff' : '#000'}
+              size={24}
+            />
+            {commentsCount > 0 && (
+              <Text style={[styles.actionCountText, {color: mode ? '#fff' : '#000'}]}>
+                {commentsCount}
               </Text>
-            </View>
-          </View>
+            )}
+          </Pressable>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              height: 40,
-            }}>
-          
-            <Paragraph
-              style={{
-                width: '70%',
-                marginVertical: 0,
-                paddingHorizontal:10,
+          <Pressable style={styles.actionButton}>
+            <Feather name="send" color={mode ? '#fff' : '#000'} size={24} />
+          </Pressable>
+        </View>
 
+        <Pressable style={styles.actionButton}>
+          <Feather name="bookmark" color={mode ? '#fff' : '#000'} size={24} />
+        </Pressable>
+      </View>
 
-                color: mode ? '#ffff' : 'black',
-                fontSize: widthPercentageToDP('3%'),
-                fontFamily: StyleGuide.fontFamily.medium,
-              }}>
-              {item.postDetail?.charAt(0).toUpperCase() +
-                item?.postDetail?.slice(1)}
-            </Paragraph>
-          </View>
+      {/* Likes Count */}
+      {likesCount > 0 && (
+        <View style={styles.likesContainer}>
+          <Text style={[styles.likesText, {color: mode ? '#fff' : '#000'}]}>
+            {likesCount.toLocaleString()}{' '}
+            {likesCount === 1 ? 'like' : 'likes'}
+          </Text>
+        </View>
+      )}
 
-          <View style={{ justifyContent: 'space-between', flexDirection: 'row' }}>
-            <View style={{ flexDirection: 'row' }}>
-              <View>
-                <Avatar
-                  size="sm"
-                  style={{ marginVertical: 10, marginHorizontal: 5 }}
-                  source={{ uri: userProfileImage }}>
-                  <Avatar.Badge bg={isLogin ? 'green.500' : 'red.500'} />
-                </Avatar>
-              </View>
+      {/* Caption */}
+      {captionText.length > 0 && (
+        <View style={styles.captionContainer}>
+          <Text style={[styles.captionText, {color: mode ? '#fff' : '#000'}]}>
+            <Text style={styles.captionUsername}>
+              {item.userName?.charAt(0).toUpperCase() +
+                item.userName?.slice(1)}{' '}
+            </Text>
+            {displayCaption}
+            {shouldShowMore && !showFullCaption && '... '}
+            {shouldShowMore && (
+              <Text
+                style={styles.moreText}
+                onPress={() => setShowFullCaption(!showFullCaption)}>
+                {showFullCaption ? 'less' : 'more'}
+              </Text>
+            )}
+          </Text>
+        </View>
+      )}
 
-              <View
-                style={{
-                  width: '75%',
-                }}>
-                <TextInput
-                  style={[styles.input, { color: mode ? 'white' : 'black' }]}
-                  placeholderTextColor={mode ? 'white' : 'black'}
-                  value={comment}
-                  onChangeText={text => setComment(text)}
-                  placeholder="Add a comment..."
-                />
-              </View>
-            </View>
-            <View>
-              <TouchableOpacity style={styles.postButton} onPress={postComment}>
-              <Svg  xml={sendIcon} rest={{width:20, height:20}} /> 
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Card>
+      {/* View All Comments */}
+      {commentsCount > 0 && (
+        <TouchableOpacity
+          style={styles.viewCommentsContainer}
+          onPress={navigateToComments}>
+          <Text style={[styles.viewCommentsText, {color: mode ? '#999' : '#666'}]}>
+            View all {commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Timestamp */}
+      <View style={styles.timestampContainer}>
+        <Text style={[styles.timestampText, {color: mode ? '#999' : '#666'}]}>
+          {moment(PostedDate).fromNow()}
+        </Text>
+      </View>
+
+      {/* Add Comment Input */}
+      <View
+        style={[
+          styles.addCommentContainer,
+          {borderTopColor: mode ? '#333' : '#efefef'},
+        ]}>
+        <Avatar size="xs" source={{uri: userProfileImage}} />
+        <TextInput
+          style={[styles.commentInput, {color: mode ? '#fff' : '#000'}]}
+          placeholder="Add a comment..."
+          placeholderTextColor={mode ? '#999' : '#666'}
+          value={comment}
+          onChangeText={setComment}
+          multiline
+          editable={!isCommentLoading}
+        />
+        {comment.trim().length > 0 && (
+          <TouchableOpacity
+            onPress={postComment}
+            disabled={isCommentLoading}
+            style={styles.postCommentButton}>
+            {isCommentLoading ? (
+              <ActivityIndicator size="small" color="#0095f6" />
+            ) : (
+              <Text style={styles.postCommentText}>Post</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    margin: 20,
-    borderBottomColor: 'grey',
-    borderBottomWidth: 0.5,
-    // padding: 10,
-    marginVertical: 10,
-    marginHorizontal: 5,
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: widthPercentageToDP('3%'),
+  container: {
+    marginBottom: 10,
   },
-  postButton: {
-   
-    marginHorizontal: 20,
-     marginVertical: 25,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  buttonText: {
-    textAlign: 'center',
-    marginVertical: 15,
-    color: 'blue',
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userDetails: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  userName: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  moreButton: {
+    padding: 5,
+  },
+  imageContainer: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_WIDTH,
+    backgroundColor: '#f0f0f0',
+    position: 'relative',
+  },
+  postImage: {
+    width: '100%',
+    height: '100%',
+  },
+  likeAnimationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  leftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    paddingRight: 16,
+    paddingVertical: 4,
+  },
+  actionButtonWithCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 16,
+    paddingVertical: 4,
+  },
+  actionCountText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  likesContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  likesText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  captionContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  captionText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: widthPercentageToDP('3%'),
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  captionUsername: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontWeight: '600',
+  },
+  moreText: {
+    color: '#999',
+    fontFamily: StyleGuide.fontFamily.regular,
+  },
+  viewCommentsContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  viewCommentsText: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 14,
+  },
+  timestampContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  timestampText: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 11,
+    textTransform: 'uppercase',
+  },
+  addCommentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 0.5,
+    marginTop: 4,
+  },
+  commentInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 14,
+    maxHeight: 80,
+  },
+  postCommentButton: {
+    paddingHorizontal: 8,
+  },
+  postCommentText: {
+    color: '#0095f6',
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
