@@ -1,41 +1,45 @@
-import { View, Text, Alert } from 'react-native'
-import  {useEffect, useState, useLayoutEffect} from 'react';
-import { useSelector } from 'react-redux';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { StyleGuide } from '../../Utils/StyleGuide';
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-import { reducerType } from '../../Utils/types';
-import { StackParamList } from '../../Utils/routes';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {View, Text, Alert} from 'react-native';
+import {useEffect, useState, useLayoutEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
+import {StyleGuide} from '../../Utils/StyleGuide';
+import firestore, {
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
+import {reducerType} from '../../Utils/types';
+import {StackParamList} from '../../Utils/routes';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import ApiCall from '../../services/services';
 
 interface commentsI {
-  comment:string
-  commentCreated:FirebaseFirestoreTypes.Timestamp
-  commentID:string
-  postID:string
-  userID:string
-  userImage:string
-  userProfileName:string
+  comment: string;
+  commentCreated: FirebaseFirestoreTypes.Timestamp;
+  commentID: string;
+  postID: string;
+  userID: string;
+  userImage: string;
+  userProfileName: string;
 }
-type commentType   = commentsI []
+type commentType = commentsI[];
 type Props = RouteProp<StackParamList, 'Comment'>;
 
-
-
 export const useComment = () => {
+  const dispatch = useDispatch();
   const [comments, setComments] = useState<commentType>([]);
   const [comment, setComment] = useState<string>('');
   const [isFetchingComments, setIsFetchingComments] = useState<boolean>(false);
-  const authState = useSelector((state:reducerType) => state);
+  const authState = useSelector((state: reducerType) => state);
+
+  console.log('false comments');
+
   const route = useRoute<Props>();
   const navigation = useNavigation();
+
   let id = authState.userAuthReducer.uid;
   let postId = route?.params?.postID;
+  console.log('postId', postId);
   let mode = route.params?.mode;
 
-
-
-  console.log(mode, 'comments');
   useEffect(() => {
     getComments();
   }, []);
@@ -51,17 +55,23 @@ export const useComment = () => {
     });
   }, [navigation]);
 
-  const getComments = () => {
-    firestore()
-      .collection('posts')
-      .doc(postId)
+  const getComments = async () => {
+    const response = await ApiCall(
+      'get',
+      `api/posts/${postId}/comments`,
+      '',
+      dispatch,
+      false,
+    );
+    if(response?.success){
+      if(response?.data && response?.data.length > 0){
+        setComments(response.data)
+      }
+    }
 
-      .get()
-      .then((querySnapshot: FirebaseFirestoreTypes.DocumentData) => {
+    console.log(JSON.stringify(response),"post response")
 
-        setIsFetchingComments(true)
-        setComments(querySnapshot.data().comments);
-      });
+    // setUploading(false);
   };
   const DeleteComment = (commentID, postID) => {
     Alert.alert(
@@ -85,13 +95,12 @@ export const useComment = () => {
     );
   };
 
-  const userCommentDeleted = (cid:string, postID) => {
-
+  const userCommentDeleted = (cid: string, postID) => {
     firestore()
       .collection('posts')
       .doc(postID)
       .update({
-        comments: comments.filter((c) => c.commentID !== cid),
+        comments: comments.filter(c => c.commentID !== cid),
       })
       .then(() => {
         Alert.alert('your comment has been Deleted...');
@@ -102,24 +111,15 @@ export const useComment = () => {
       });
   };
 
-
-
-
-
   return {
     DeleteComment,
     userCommentDeleted,
     getComments,
-    comments, 
-     comment,
-     setComment,
-     isFetchingComments  , 
-     mode,
-     id
-
+    comments,
+    comment,
+    setComment,
+    isFetchingComments,
+    mode,
+    id,
   };
-
-
-  
-}
-
+};
