@@ -1,4 +1,5 @@
-const User = require('../models/User');
+const User = require('../models/user');
+const connectDB = require('../config/db');
 const { generateToken } = require('../utils/jwtUtils');
 
 // @desc    Login user / Generate new token
@@ -6,6 +7,8 @@ const { generateToken } = require('../utils/jwtUtils');
 // @access  Public
 const loginUser = async (req, res) => {
   try {
+    await connectDB();
+    
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -50,7 +53,7 @@ const loginUser = async (req, res) => {
 
     // Convert mongoose doc → plain object
     const userData = user.toObject();
-    delete userData.password; // 🔥 REMOVE PASSWORD
+    delete userData.password;
 
     res.status(200).json({
       success: true,
@@ -73,12 +76,13 @@ const loginUser = async (req, res) => {
   }
 };
 
-
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = async (req, res) => {
   try {
+    await connectDB();
+    
     const user = await User.findById(req.user._id);
 
     if (!user) {

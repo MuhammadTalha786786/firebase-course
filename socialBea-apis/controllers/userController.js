@@ -1,4 +1,5 @@
-const User = require('../models/User');
+const User = require('../models/user');
+const connectDB = require('../config/db');
 const { generateToken } = require('../utils/jwtUtils');
 
 // @desc    Create new user
@@ -6,6 +7,8 @@ const { generateToken } = require('../utils/jwtUtils');
 // @access  Public
 const createUser = async (req, res) => {
   try {
+    await connectDB();
+    
     const { email, image, isLogin, name, uid, password } = req.body;
 
     // Validation
@@ -35,7 +38,7 @@ const createUser = async (req, res) => {
       isLogin: isLogin ?? false,
       name,
       uid,
-      password // 🔐 encrypted automatically
+      password
     });
 
     // Generate token
@@ -75,12 +78,13 @@ const createUser = async (req, res) => {
   }
 };
 
-
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Public
 const getAllUsers = async (req, res) => {
   try {
+    await connectDB();
+    
     const users = await User.find({});
     
     res.status(200).json({
@@ -103,6 +107,8 @@ const getAllUsers = async (req, res) => {
 // @access  Public
 const getUserById = async (req, res) => {
   try {
+    await connectDB();
+    
     const user = await User.findById(req.params.id);
     
     if (!user) {
@@ -131,6 +137,8 @@ const getUserById = async (req, res) => {
 // @access  Public
 const updateUser = async (req, res) => {
   try {
+    await connectDB();
+    
     const user = await User.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -164,6 +172,8 @@ const updateUser = async (req, res) => {
 // @access  Public
 const deleteUser = async (req, res) => {
   try {
+    await connectDB();
+    
     const user = await User.findByIdAndDelete(req.params.id);
 
     if (!user) {

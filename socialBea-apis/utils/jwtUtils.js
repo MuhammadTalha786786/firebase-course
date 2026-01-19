@@ -5,13 +5,11 @@ const jwt = require('jsonwebtoken');
  * @param {Object} payload - Data to encode in token (user id, email, etc.)
  * @returns {String} JWT token
  */
-
-
 const generateToken = (payload) => {
   return jwt.sign(
     payload,
     process.env.JWT_SECRET,
-    { expiresIn: '8h' } // Token expires in 8 hours
+    { expiresIn: '8h' }
   );
 };
 

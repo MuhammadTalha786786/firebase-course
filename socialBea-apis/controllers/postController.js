@@ -1,4 +1,5 @@
 const Post = require('../models/post');
+const connectDB = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 
 // @desc    Create new post
@@ -6,6 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 // @access  Public
 const createPost = async (req, res) => {
   try {
+    await connectDB();
+    
     const { userID, userName, userImage, postDetail, postImage } = req.body;
 
     // Validation
@@ -50,6 +53,8 @@ const createPost = async (req, res) => {
 // @access  Public
 const getAllPosts = async (req, res) => {
   try {
+    await connectDB();
+    
     const posts = await Post.find({}).sort({ dateCreated: -1 });
     
     res.status(200).json({
@@ -72,6 +77,8 @@ const getAllPosts = async (req, res) => {
 // @access  Public
 const getPostById = async (req, res) => {
   try {
+    await connectDB();
+    
     const post = await Post.findOne({ postID: req.params.postID });
     
     if (!post) {
@@ -100,6 +107,8 @@ const getPostById = async (req, res) => {
 // @access  Public
 const getPostsByUserId = async (req, res) => {
   try {
+    await connectDB();
+    
     const posts = await Post.find({ userID: req.params.userID }).sort({ dateCreated: -1 });
     
     res.status(200).json({
@@ -122,6 +131,8 @@ const getPostsByUserId = async (req, res) => {
 // @access  Public
 const updatePost = async (req, res) => {
   try {
+    await connectDB();
+    
     const { postDetail, postImage } = req.body;
 
     const post = await Post.findOneAndUpdate(
@@ -157,6 +168,8 @@ const updatePost = async (req, res) => {
 // @access  Public
 const deletePost = async (req, res) => {
   try {
+    await connectDB();
+    
     const post = await Post.findOneAndDelete({ postID: req.params.postID });
 
     if (!post) {
@@ -185,6 +198,8 @@ const deletePost = async (req, res) => {
 // @access  Public
 const toggleLike = async (req, res) => {
   try {
+    await connectDB();
+    
     const { userID } = req.body;
     const { postID } = req.params;
 
@@ -251,6 +266,8 @@ const toggleLike = async (req, res) => {
 // @access  Public
 const addComment = async (req, res) => {
   try {
+    await connectDB();
+    
     const { comment, userID, userImage, userProfileName } = req.body;
     const { postID } = req.params;
 
@@ -307,6 +324,8 @@ const addComment = async (req, res) => {
 // @access  Public
 const getComments = async (req, res) => {
   try {
+    await connectDB();
+    
     const { postID } = req.params;
 
     const post = await Post.findOne({ postID });
@@ -338,6 +357,8 @@ const getComments = async (req, res) => {
 // @access  Public
 const deleteComment = async (req, res) => {
   try {
+    await connectDB();
+    
     const { postID, commentID } = req.params;
 
     const post = await Post.findOne({ postID });
@@ -380,6 +401,8 @@ const deleteComment = async (req, res) => {
 // @access  Public
 const addReply = async (req, res) => {
   try {
+    await connectDB();
+    
     const { reply, userID, userImage, userProfileName } = req.body;
     const { postID, commentID } = req.params;
 
@@ -444,6 +467,8 @@ const addReply = async (req, res) => {
 // @access  Public
 const getReplies = async (req, res) => {
   try {
+    await connectDB();
+    
     const { postID, commentID } = req.params;
 
     const post = await Post.findOne({ postID });
@@ -484,6 +509,8 @@ const getReplies = async (req, res) => {
 // @access  Public
 const deleteReply = async (req, res) => {
   try {
+    await connectDB();
+    
     const { postID, commentID, replyID } = req.params;
 
     const post = await Post.findOne({ postID });

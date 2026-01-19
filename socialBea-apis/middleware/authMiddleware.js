@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwtUtils');
-const User = require('../models/User');
+const User = require('../models/user');
+const connectDB = require('../config/db');
 
 /**
  * Protect routes - verify JWT token
@@ -10,6 +11,8 @@ const protect = async (req, res, next) => {
   // Check if token exists in Authorization header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
+      await connectDB();
+      
       // Get token from header (format: "Bearer TOKEN")
       token = req.headers.authorization.split(' ')[1];
 
