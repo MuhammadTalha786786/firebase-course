@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Recursive reply schema for infinite nesting
 const replySchema = new mongoose.Schema({
   reply: {
     type: String,
@@ -10,9 +11,9 @@ const replySchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  commentID: {
+  parentReplyID: {
     type: String,
-    required: true
+    default: null // null if it's a direct reply to comment
   },
   userID: {
     type: String,
@@ -29,8 +30,12 @@ const replySchema = new mongoose.Schema({
   replyCreated: {
     type: Date,
     default: Date.now
-  }
+  },
+  replies: [] // Will be populated recursively
 });
+
+// Allow recursive nesting
+replySchema.add({ replies: [replySchema] });
 
 const commentSchema = new mongoose.Schema({
   comment: {
@@ -96,7 +101,7 @@ const postSchema = new mongoose.Schema({
     default: Date.now
   },
   likes: [{
-    type: String // Array of userIDs who liked the post
+    type: String
   }],
   comments: [commentSchema]
 }, {
@@ -113,9 +118,20 @@ postSchema.virtual('commentsCount').get(function() {
   return this.comments.length;
 });
 
-// Virtual for replies count on comments
+// Helper function to count all replies recursively
+function countReplies(replies) {
+  let count = replies.length;
+  replies.forEach(reply => {
+    if (reply.replies && reply.replies.length > 0) {
+      count += countReplies(reply.replies);
+    }
+  });
+  return count;
+}
+
+// Virtual for total replies count on comments
 commentSchema.virtual('repliesCount').get(function() {
-  return this.replies.length;
+  return countReplies(this.replies);
 });
 
 // Ensure virtuals are included in JSON

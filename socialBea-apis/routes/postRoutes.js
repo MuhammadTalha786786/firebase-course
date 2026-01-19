@@ -32,9 +32,9 @@ router.post('/:postID/comments', addComment);
 router.get('/:postID/comments', getComments);
 router.delete('/:postID/comments/:commentID', deleteComment);
 
-// Reply routes
-router.post('/:postID/comments/:commentID/replies', addReply);
+// Reply routes (supports nested replies)
+router.post('/:postID/replies', addReply);
 router.get('/:postID/comments/:commentID/replies', getReplies);
-router.delete('/:postID/comments/:commentID/replies/:replyID', deleteReply);
+router.delete('/:postID/replies/:replyID', deleteReply);
 
 module.exports = router;

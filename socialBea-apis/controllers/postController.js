@@ -2,6 +2,36 @@ const Post = require('../models/post');
 const connectDB = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 
+// Helper function to find a reply by ID recursively
+function findReplyById(replies, replyID) {
+  for (let reply of replies) {
+    if (reply.replyID === replyID) {
+      return reply;
+    }
+    if (reply.replies && reply.replies.length > 0) {
+      const found = findReplyById(reply.replies, replyID);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// Helper function to delete a reply by ID recursively
+function deleteReplyById(replies, replyID) {
+  for (let i = 0; i < replies.length; i++) {
+    if (replies[i].replyID === replyID) {
+      replies.splice(i, 1);
+      return true;
+    }
+    if (replies[i].replies && replies[i].replies.length > 0) {
+      if (deleteReplyById(replies[i].replies, replyID)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // @desc    Create new post
 // @route   POST /api/posts
 // @access  Public
@@ -11,7 +41,6 @@ const createPost = async (req, res) => {
     
     const { userID, userName, userImage, postDetail, postImage } = req.body;
 
-    // Validation
     if (!userID || !userName || !userImage || !postDetail) {
       return res.status(400).json({
         success: false,
@@ -21,7 +50,6 @@ const createPost = async (req, res) => {
 
     const postID = uuidv4();
 
-    // Create post
     const post = await Post.create({
       postID,
       userID,
@@ -219,11 +247,9 @@ const toggleLike = async (req, res) => {
       });
     }
 
-    // Check if user already liked the post
     const likeIndex = post.likes.indexOf(userID);
 
     if (likeIndex > -1) {
-      // Unlike: Remove user from likes array
       post.likes.splice(likeIndex, 1);
       await post.save();
 
@@ -237,7 +263,6 @@ const toggleLike = async (req, res) => {
         }
       });
     } else {
-      // Like: Add user to likes array
       post.likes.push(userID);
       await post.save();
 
@@ -271,7 +296,6 @@ const addComment = async (req, res) => {
     const { comment, userID, userImage, userProfileName } = req.body;
     const { postID } = req.params;
 
-    // Validation
     if (!comment || !userID || !userImage || !userProfileName) {
       return res.status(400).json({
         success: false,
@@ -396,21 +420,21 @@ const deleteComment = async (req, res) => {
   }
 };
 
-// @desc    Add reply to comment
-// @route   POST /api/posts/:postID/comments/:commentID/replies
+// @desc    Add reply to comment or nested reply
+// @route   POST /api/posts/:postID/replies
 // @access  Public
 const addReply = async (req, res) => {
   try {
     await connectDB();
     
-    const { reply, userID, userImage, userProfileName } = req.body;
-    const { postID, commentID } = req.params;
+    const { reply, userID, userImage, userProfileName, parentReplyID, commentID } = req.body;
+    const { postID } = req.params;
 
     // Validation
-    if (!reply || !userID || !userImage || !userProfileName) {
+    if (!reply || !userID || !userImage || !userProfileName || !commentID) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields'
+        message: 'Please provide all required fields (reply, userID, userImage, userProfileName, commentID)'
       });
     }
 
@@ -437,14 +461,31 @@ const addReply = async (req, res) => {
     const newReply = {
       reply,
       replyID,
-      commentID,
+      parentReplyID: parentReplyID || null,
       userID,
       userImage,
       userProfileName,
-      replyCreated: new Date()
+      replyCreated: new Date(),
+      replies: []
     };
 
-    comment.replies.push(newReply);
+    // If parentReplyID is provided, add as nested reply
+    if (parentReplyID) {
+      const parentReply = findReplyById(comment.replies, parentReplyID);
+      
+      if (!parentReply) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent reply not found'
+        });
+      }
+
+      parentReply.replies.push(newReply);
+    } else {
+      // Add as direct reply to comment
+      comment.replies.push(newReply);
+    }
+
     await post.save();
 
     res.status(201).json({
@@ -462,7 +503,7 @@ const addReply = async (req, res) => {
   }
 };
 
-// @desc    Get all replies for a comment
+// @desc    Get all replies for a comment (includes nested)
 // @route   GET /api/posts/:postID/comments/:commentID/replies
 // @access  Public
 const getReplies = async (req, res) => {
@@ -504,14 +545,22 @@ const getReplies = async (req, res) => {
   }
 };
 
-// @desc    Delete reply
-// @route   DELETE /api/posts/:postID/comments/:commentID/replies/:replyID
+// @desc    Delete reply (works for any level of nesting)
+// @route   DELETE /api/posts/:postID/replies/:replyID
 // @access  Public
 const deleteReply = async (req, res) => {
   try {
     await connectDB();
     
-    const { postID, commentID, replyID } = req.params;
+    const { postID, replyID } = req.params;
+    const { commentID } = req.body;
+
+    if (!commentID) {
+      return res.status(400).json({
+        success: false,
+        message: 'commentID is required in request body'
+      });
+    }
 
     const post = await Post.findOne({ postID });
 
@@ -531,16 +580,15 @@ const deleteReply = async (req, res) => {
       });
     }
 
-    const replyIndex = comment.replies.findIndex(r => r.replyID === replyID);
+    const deleted = deleteReplyById(comment.replies, replyID);
 
-    if (replyIndex === -1) {
+    if (!deleted) {
       return res.status(404).json({
         success: false,
         message: 'Reply not found'
       });
     }
 
-    comment.replies.splice(replyIndex, 1);
     await post.save();
 
     res.status(200).json({

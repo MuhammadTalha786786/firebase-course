@@ -21,8 +21,8 @@ import {TextInput} from 'react-native-paper';
 import {useDispatch, useSelector} from 'react-redux';
 import {Avatar} from 'native-base';
 import moment from 'moment';
-import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ApiCall from '../../services/services';
 import {KeyboardAvoidingView} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -34,11 +34,12 @@ const HEADER_HEIGHT = 56;
 interface ReplyI {
   reply: string;
   replyID: string;
-  commentID: string;
+  parentReplyID: string | null;
   userID: string;
   userImage: string;
   userProfileName: string;
   replyCreated: string;
+  replies?: ReplyI[];
 }
 
 interface CommentI {
@@ -70,9 +71,14 @@ const Comment = () => {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(
     new Set(),
   );
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(
+    new Set(),
+  );
   const [replyingTo, setReplyingTo] = useState<{
     commentID: string;
     userName: string;
+    parentReplyID: string | null;
+    replyType: 'comment' | 'reply';
   } | null>(null);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [deleteModal, setDeleteModal] = useState<{
@@ -156,34 +162,33 @@ const Comment = () => {
     setPosting(true);
     try {
       if (replyingTo) {
-        // Post reply
         const body = {
           reply: newComment.trim(),
           userID,
           userImage: user?.image,
           userProfileName: user?.name,
+          commentID: replyingTo.commentID,
+          parentReplyID: replyingTo.parentReplyID,
         };
         const res = await ApiCall(
           'post',
-          `api/posts/${postID}/comments/${replyingTo.commentID}/replies`,
+          `api/posts/${postID}/replies`,
           body,
           dispatch,
           false,
         );
         if (res?.success) {
-          setComments(prev =>
-            prev.map(c =>
-              c.commentID === replyingTo.commentID
-                ? {...c, replies: [...(c.replies || []), res.data]}
-                : c,
-            ),
-          );
+          await fetchComments();
           setExpandedComments(prev => new Set(prev).add(replyingTo.commentID));
+          if (replyingTo.parentReplyID) {
+            setExpandedReplies(prev =>
+              new Set(prev).add(replyingTo.parentReplyID!),
+            );
+          }
           setNewComment('');
           setReplyingTo(null);
         }
       } else {
-        // Post comment
         const body = {
           comment: newComment.trim(),
           userID,
@@ -210,17 +215,26 @@ const Comment = () => {
   const toggleExpanded = (commentID: string) => {
     setExpandedComments(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(commentID)) {
-        newSet.delete(commentID);
-      } else {
-        newSet.add(commentID);
-      }
+      newSet.has(commentID) ? newSet.delete(commentID) : newSet.add(commentID);
       return newSet;
     });
   };
 
-  const handleReply = (commentID: string, userName: string) => {
-    setReplyingTo({commentID, userName});
+  const toggleReplyExpanded = (replyID: string) => {
+    setExpandedReplies(prev => {
+      const newSet = new Set(prev);
+      newSet.has(replyID) ? newSet.delete(replyID) : newSet.add(replyID);
+      return newSet;
+    });
+  };
+
+  const handleReply = (
+    commentID: string,
+    userName: string,
+    parentReplyID: string | null = null,
+    replyType: 'comment' | 'reply' = 'comment',
+  ) => {
+    setReplyingTo({commentID, userName, parentReplyID, replyType});
     inputRef.current?.focus();
   };
 
@@ -229,14 +243,10 @@ const Comment = () => {
     setNewComment('');
   };
 
-  const toggleLike = (commentID: string) => {
+  const toggleLike = (id: string) => {
     setLikedComments(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(commentID)) {
-        newSet.delete(commentID);
-      } else {
-        newSet.add(commentID);
-      }
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
       return newSet;
     });
   };
@@ -246,7 +256,11 @@ const Comment = () => {
     setDeleteModal({visible: true, type: 'comment', commentID});
   };
 
-  const handleLongPressReply = (commentID: string, replyID: string, isOwner: boolean) => {
+  const handleLongPressReply = (
+    commentID: string,
+    replyID: string,
+    isOwner: boolean,
+  ) => {
     if (!isOwner) return;
     setDeleteModal({visible: true, type: 'reply', commentID, replyID});
   };
@@ -281,64 +295,145 @@ const Comment = () => {
     try {
       const res = await ApiCall(
         'delete',
-        `api/posts/${postID}/comments/${commentID}/replies/${replyID}`,
-        null,
+        `api/posts/${postID}/replies/${replyID}`,
+        {commentID},
         dispatch,
         false,
       );
       if (res?.success) {
-        setComments(prev =>
-          prev.map(c =>
-            c.commentID === commentID
-              ? {
-                  ...c,
-                  replies: c.replies?.filter(r => r.replyID !== replyID),
-                }
-              : c,
-          ),
-        );
+        await fetchComments();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to delete reply');
     }
   };
 
-  const renderReply = (reply: ReplyI, commentID: string) => {
+  const countNestedReplies = (replies?: ReplyI[]): number => {
+    if (!replies || replies.length === 0) return 0;
+    let count = replies.length;
+    replies.forEach(reply => {
+      count += countNestedReplies(reply.replies);
+    });
+    return count;
+  };
+
+  const renderNestedReply = (
+    reply: ReplyI,
+    commentID: string,
+    depth: number = 0,
+  ): React.ReactNode => {
     const mine = reply.userID === userID;
     const liked = likedComments.has(reply.replyID);
+    const hasReplies = reply.replies && reply.replies.length > 0;
+    const isExpanded = expandedReplies.has(reply.replyID);
+    const nestedCount = countNestedReplies(reply.replies);
+    const maxDepth = 6;
 
     return (
-      <View key={reply.replyID} style={styles.replyRow}>
-        <Avatar size="xs" source={{uri: reply.userImage}} />
-        <Pressable
-          style={styles.replyBody}
-          onLongPress={() => handleLongPressReply(commentID, reply.replyID, mine)}>
-          <View style={[styles.messageBubble, {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'}]}>
-            <Text style={[styles.username, {color: mode ? '#fff' : '#000'}]}>
-              {reply.userProfileName}
+      <View key={reply.replyID} style={{marginTop: 8}}>
+        <View
+          style={[
+            styles.replyRow,
+            {paddingLeft: Math.min(depth, maxDepth) * 12},
+          ]}>
+          {depth > 0 && (
+            <View style={styles.connectionLine}>
+              <View
+                style={[
+                  styles.verticalLine,
+                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                ]}
+              />
+              <View
+                style={[
+                  styles.horizontalLine,
+                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                ]}
+              />
+            </View>
+          )}
+
+          <Avatar size="xs" source={{uri: reply.userImage}} />
+
+          <Pressable
+            style={styles.replyBody}
+            onLongPress={() =>
+              handleLongPressReply(commentID, reply.replyID, mine)
+            }>
+            <View
+              style={[
+                styles.messageBubble,
+                {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'},
+              ]}>
+              <Text style={[styles.username, {color: mode ? '#fff' : '#000'}]}>
+                {reply.userProfileName}
+              </Text>
+              <Text
+                style={[
+                  styles.messageText,
+                  {color: mode ? '#e0e0e0' : '#262626'},
+                ]}>
+                {reply.reply}
+              </Text>
+            </View>
+            <View style={styles.replyMetaRow}>
+              <Text style={styles.metaText}>
+                {moment(reply.replyCreated).fromNow()}
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  handleReply(
+                    commentID,
+                    reply.userProfileName,
+                    reply.replyID,
+                    'reply',
+                  )
+                }>
+                <Text style={styles.replyText}>Reply</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+
+          <TouchableOpacity
+            onPress={() => toggleLike(reply.replyID)}
+            style={styles.likeBtn}>
+            <Ionicons
+              name={liked ? 'heart' : 'heart-outline'}
+              size={14}
+              color={liked ? '#ff3b30' : '#8e8e8e'}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {hasReplies && (
+          <TouchableOpacity
+            style={[
+              styles.viewNestedRepliesBtn,
+              {paddingLeft: (Math.min(depth, maxDepth) + 1) * 12 + 48},
+            ]}
+            onPress={() => toggleReplyExpanded(reply.replyID)}>
+            <MaterialCommunityIcons
+              name={isExpanded ? 'chevron-down' : 'chevron-right'}
+              size={18}
+              color="#8e8e8e"
+            />
+            <Text style={styles.viewRepliesText}>
+              {isExpanded
+                ? `Hide ${nestedCount} ${
+                    nestedCount === 1 ? 'reply' : 'replies'
+                  }`
+                : `${nestedCount} ${nestedCount === 1 ? 'reply' : 'replies'}`}
             </Text>
-            <Text style={[styles.messageText, {color: mode ? '#e0e0e0' : '#262626'}]}>
-              {reply.reply}
-            </Text>
+          </TouchableOpacity>
+        )}
+
+        {isExpanded && hasReplies && (
+          <View>
+            {reply.replies!.map(nestedReply =>
+              renderNestedReply(nestedReply, commentID, depth + 1),
+            )}
           </View>
-          <View style={styles.replyMetaRow}>
-            <Text style={styles.metaText}>
-              {moment(reply.replyCreated).fromNow()}
-            </Text>
-            <TouchableOpacity onPress={() => handleReply(commentID, reply.userProfileName)}>
-              <Text style={styles.replyText}>Reply</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-        <TouchableOpacity
-          onPress={() => toggleLike(reply.replyID)}
-          style={styles.likeBtn}>
-          <Ionicons
-            name={liked ? 'heart' : 'heart-outline'}
-            size={14}
-            color={liked ? '#ff3b30' : '#8e8e8e'}
-          />
-        </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -348,7 +443,7 @@ const Comment = () => {
     const liked = likedComments.has(item.commentID);
     const hasReplies = item.replies && item.replies.length > 0;
     const isExpanded = expandedComments.has(item.commentID);
-    const replyCount = item.replies?.length || 0;
+    const totalReplies = countNestedReplies(item.replies);
 
     return (
       <View style={styles.commentContainer}>
@@ -357,11 +452,19 @@ const Comment = () => {
           <Pressable
             style={styles.commentBody}
             onLongPress={() => handleLongPressComment(item.commentID, mine)}>
-            <View style={[styles.messageBubble, {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'}]}>
+            <View
+              style={[
+                styles.messageBubble,
+                {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'},
+              ]}>
               <Text style={[styles.username, {color: mode ? '#fff' : '#000'}]}>
                 {item.userProfileName}
               </Text>
-              <Text style={[styles.messageText, {color: mode ? '#e0e0e0' : '#262626'}]}>
+              <Text
+                style={[
+                  styles.messageText,
+                  {color: mode ? '#e0e0e0' : '#262626'},
+                ]}>
                 {item.comment}
               </Text>
             </View>
@@ -370,7 +473,9 @@ const Comment = () => {
                 {moment(item.commentCreated).fromNow()}
               </Text>
               <TouchableOpacity
-                onPress={() => handleReply(item.commentID, item.userProfileName)}>
+                onPress={() =>
+                  handleReply(item.commentID, item.userProfileName)
+                }>
                 <Text style={styles.replyText}>Reply</Text>
               </TouchableOpacity>
             </View>
@@ -386,25 +491,41 @@ const Comment = () => {
           </TouchableOpacity>
         </View>
 
-        {/* View Replies Button */}
         {hasReplies && (
           <TouchableOpacity
             style={styles.viewRepliesBtn}
             onPress={() => toggleExpanded(item.commentID)}>
-            <View style={styles.replyLine} />
+            <View style={styles.replyLineContainer}>
+              <View
+                style={[
+                  styles.replyLine,
+                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                ]}
+              />
+              <MaterialCommunityIcons
+                name={isExpanded ? 'chevron-down' : 'chevron-right'}
+                size={18}
+                color="#8e8e8e"
+                style={{marginLeft: 4}}
+              />
+            </View>
             <Text style={styles.viewRepliesText}>
-              {isExpanded 
-                ? `—— Hide ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}`
-                : `—— View ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}`
-              }
+              {isExpanded
+                ? `Hide ${totalReplies} ${
+                    totalReplies === 1 ? 'reply' : 'replies'
+                  }`
+                : `View ${totalReplies} ${
+                    totalReplies === 1 ? 'reply' : 'replies'
+                  }`}
             </Text>
           </TouchableOpacity>
         )}
 
-        {/* Replies */}
         {isExpanded && hasReplies && (
           <View style={styles.repliesContainer}>
-            {item.replies!.map(reply => renderReply(reply, item.commentID))}
+            {item.replies!.map(reply =>
+              renderNestedReply(reply, item.commentID, 1),
+            )}
           </View>
         )}
       </View>
@@ -416,7 +537,8 @@ const Comment = () => {
   const text = mode ? '#fff' : '#000';
 
   const InputWrapper = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
-  const inputWrapperProps = Platform.OS === 'ios' ? {behavior: 'padding' as const} : {};
+  const inputWrapperProps =
+    Platform.OS === 'ios' ? {behavior: 'padding' as const} : {};
 
   return (
     <Modal transparent visible animationType="none">
@@ -435,7 +557,6 @@ const Comment = () => {
             styles.sheet,
             {backgroundColor: bg, transform: [{translateY}]},
           ]}>
-          {/* FIXED HEADER */}
           <View
             {...panResponder.panHandlers}
             style={[
@@ -453,7 +574,6 @@ const Comment = () => {
             </TouchableOpacity>
           </View>
 
-          {/* LIST */}
           <FlatList
             data={comments}
             renderItem={renderItem}
@@ -473,7 +593,10 @@ const Comment = () => {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               loading ? (
-                <ActivityIndicator style={{marginTop: 80}} color={mode ? '#fff' : '#000'} />
+                <ActivityIndicator
+                  style={{marginTop: 80}}
+                  color={mode ? '#fff' : '#000'}
+                />
               ) : (
                 <View style={styles.emptyContainer}>
                   <Ionicons
@@ -484,7 +607,11 @@ const Comment = () => {
                   <Text style={[styles.empty, {color: mode ? '#666' : '#999'}]}>
                     No comments yet
                   </Text>
-                  <Text style={[styles.emptySubtext, {color: mode ? '#555' : '#aaa'}]}>
+                  <Text
+                    style={[
+                      styles.emptySubtext,
+                      {color: mode ? '#555' : '#aaa'},
+                    ]}>
                     Be the first to comment
                   </Text>
                 </View>
@@ -492,23 +619,43 @@ const Comment = () => {
             }
           />
 
-          {/* REPLY INDICATOR */}
           {replyingTo && (
             <View
               style={[
                 styles.replyIndicator,
-                {backgroundColor: mode ? '#1a1a1a' : '#f5f5f5', borderTopColor: border},
+                {
+                  backgroundColor: mode ? '#1a1a1a' : '#f5f5f5',
+                  borderTopColor: border,
+                },
               ]}>
-              <Text style={[styles.replyingText, {color: mode ? '#aaa' : '#666'}]}>
-                Replying to <Text style={{fontWeight: '600'}}>{replyingTo.userName}</Text>
-              </Text>
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                <MaterialCommunityIcons
+                  name="reply"
+                  size={16}
+                  color={mode ? '#666' : '#999'}
+                />
+                <Text
+                  style={[
+                    styles.replyingText,
+                    {color: mode ? '#aaa' : '#666'},
+                  ]}>
+                  Replying to{' '}
+                  <Text style={{fontWeight: '600', color: '#0095f6'}}>
+                    {replyingTo.userName}
+                  </Text>
+                </Text>
+              </View>
               <TouchableOpacity onPress={cancelReply}>
-                <Ionicons name="close-circle" size={20} color={mode ? '#666' : '#999'} />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={mode ? '#666' : '#999'}
+                />
               </TouchableOpacity>
             </View>
           )}
 
-          {/* INPUT */}
           <View
             style={[
               styles.inputContainer,
@@ -552,7 +699,6 @@ const Comment = () => {
           </View>
         </Animated.View>
 
-        {/* DELETE MODAL */}
         <Modal
           transparent
           visible={deleteModal.visible}
@@ -575,7 +721,10 @@ const Comment = () => {
                   <Ionicons name="trash-outline" size={48} color="#ff3b30" />
                 </View>
                 <Text
-                  style={[styles.deleteModalTitle, {color: mode ? '#fff' : '#000'}]}>
+                  style={[
+                    styles.deleteModalTitle,
+                    {color: mode ? '#fff' : '#000'},
+                  ]}>
                   Delete {deleteModal.type === 'comment' ? 'Comment' : 'Reply'}?
                 </Text>
                 <Text
@@ -585,7 +734,7 @@ const Comment = () => {
                   ]}>
                   Are you sure you want to delete this{' '}
                   {deleteModal.type === 'comment' ? 'comment' : 'reply'}? This
-                  action cannot be undone.
+                  will also delete all nested replies.
                 </Text>
 
                 <View style={styles.deleteModalButtons}>
@@ -596,7 +745,11 @@ const Comment = () => {
                       {backgroundColor: mode ? '#2c2c2e' : '#f0f0f0'},
                     ]}
                     onPress={() =>
-                      setDeleteModal({visible: false, type: 'comment', commentID: ''})
+                      setDeleteModal({
+                        visible: false,
+                        type: 'comment',
+                        commentID: '',
+                      })
                     }>
                     <Text
                       style={[
@@ -633,7 +786,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     overflow: 'hidden',
   },
-
   header: {
     position: 'absolute',
     top: 0,
@@ -660,9 +812,8 @@ const styles = StyleSheet.create({
     right: 16,
     bottom: 14,
   },
-
   commentContainer: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   commentRow: {
     flexDirection: 'row',
@@ -697,39 +848,47 @@ const styles = StyleSheet.create({
   },
   metaText: {fontSize: 12, color: '#8e8e8e', fontWeight: '500'},
   replyText: {fontSize: 12, color: '#8e8e8e', fontWeight: '600'},
-  delete: {fontSize: 12, color: '#ff3b30', fontWeight: '600'},
   likeBtn: {
     paddingLeft: 8,
     paddingTop: 8,
   },
-
   viewRepliesBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 60,
     marginTop: 4,
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  replyLineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
   },
   replyLine: {
     width: 24,
-    height: 1,
-    backgroundColor: '#555',
-    marginRight: 8,
+    height: 1.5,
   },
   viewRepliesText: {
     fontSize: 13,
     color: '#8e8e8e',
     fontWeight: '600',
   },
-
+  viewNestedRepliesBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
   repliesContainer: {
-    paddingLeft: 48,
+    paddingLeft: 16,
+    paddingTop: 4,
   },
   replyRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 4,
     alignItems: 'flex-start',
+    position: 'relative',
   },
   replyBody: {
     flex: 1,
@@ -741,7 +900,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginTop: 2,
   },
-
+  connectionLine: {
+    position: 'absolute',
+    left: -12,
+    top: 0,
+    bottom: 0,
+    width: 24,
+  },
+  verticalLine: {
+    position: 'absolute',
+    left: 12,
+    top: 0,
+    width: 1.5,
+    height: '100%',
+  },
+  horizontalLine: {
+    position: 'absolute',
+    left: 12,
+    top: 20,
+    width: 12,
+    height: 1.5,
+  },
   replyIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -753,7 +932,6 @@ const styles = StyleSheet.create({
   replyingText: {
     fontSize: 13,
   },
-
   inputContainer: {
     borderTopWidth: 0.5,
   },
@@ -772,7 +950,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-
   emptyContainer: {
     alignItems: 'center',
     marginTop: 100,
@@ -787,8 +964,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-
-  // Delete Modal Styles
   deleteModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -860,5 +1035,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
 export default Comment;
