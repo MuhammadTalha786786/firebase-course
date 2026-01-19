@@ -12,7 +12,7 @@ const ApiCall = async (
 ) => {
   const token = '';
 
-  let Base = 'http://10.0.2.2:8080/';
+  let Base = 'https://social-bea-apis-oeapklkh9-muhammadtalha786786s-projects.vercel.app/';
   let response = null;
   const BaseUrl =Base+url
 
