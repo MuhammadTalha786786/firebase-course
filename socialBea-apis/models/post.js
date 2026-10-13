@@ -90,11 +90,19 @@ const postSchema = new mongoose.Schema({
   },
   postDetail: {
     type: String,
-    required: true
+    default: ''
   },
   postImage: {
     type: String,
     default: ''
+  },
+  location: {
+    type: String,
+    default: ''
+  },
+  coordinates: {
+    latitude: { type: Number },
+    longitude: { type: Number }
   },
   dateCreated: {
     type: Date,

@@ -39,12 +39,19 @@ const createPost = async (req, res) => {
   try {
     await connectDB();
     
-    const { userID, userName, userImage, postDetail, postImage } = req.body;
+    const { userID, userName, userImage, postDetail, postImage, location, coordinates } = req.body;
 
-    if (!userID || !userName || !userImage || !postDetail) {
+    if (!userID || !userName) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields'
+        message: 'Please provide user information'
+      });
+    }
+
+    if (!postDetail && !postImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an image or caption'
       });
     }
 
@@ -54,9 +61,11 @@ const createPost = async (req, res) => {
       postID,
       userID,
       userName,
-      userImage,
-      postDetail,
+      userImage: userImage || '',
+      postDetail: postDetail || '',
       postImage: postImage || '',
+      location: location || '',
+      coordinates: coordinates || null,
       likes: [],
       comments: []
     });
