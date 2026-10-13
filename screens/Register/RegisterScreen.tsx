@@ -1,378 +1,397 @@
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
+  Keyboard,
 } from 'react-native';
-import React, { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonComponent from '../components/ButtonComponent';
 import TextInputComponent from '../components/TextInputComponent';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { StyleGuide } from '../../Utils/StyleGuide';
-import { ActivityIndicator, Divider } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import { Avatar } from 'native-base';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useRegister } from './useRegister';
-import ModalComponent from '../components/Modal';
-import { close } from '../../Utils/SvgAssests';
-import Svg from '../components/Svg';
-import TouchID from 'react-native-touch-id';
+import ImagePickerModal from '../components/ImagePickerModal';
 
-
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation }: { navigation: any }) => {
   const {
     name,
     setName,
     image,
-    email, setEmail,
+    email,
+    setEmail,
     error,
     setError,
-    uploading,
     Password,
     setPassword,
     showPassword,
     setShowPassword,
     createNewAccount,
-    selectImage,
     onGoogleButtonPress,
     showPickerModal,
     handleCamera,
     setShowPickerModal,
     loading,
-    registerLoading, 
-    userProfieImage
-  } = useRegister()
+    registerLoading,
+    userProfieImage,
+  } = useRegister();
 
-
-  const fingerPrintAuthentication = () => {
-    const optionalConfigObject = {
-        title: 'Authentication Required', // Android
-        imageColor: '#e00606', // Android
-        imageErrorColor: '#ff0000', // Android
-        sensorDescription: 'Touch sensor', // Android
-        sensorErrorDescription: 'Failed', // Android
-        cancelText: 'Cancel', // Android
-        fallbackLabel: 'Show Passcode', // iOS (if empty, then label is hidden)
-        unifiedErrors: false, // use unified error messages (default false)
-        passcodeFallback: false, // iOS - allows the device to fall back to using the passcode, if faceid/touch is not available. this does not mean that if touchid/faceid fails the first few times it will revert to passcode, rather that if the former are not enrolled, then it will use the passcode.
-    };
-    TouchID.authenticate('to demo this react-native component', optionalConfigObject)
-      .then(success => {
-        // Success code
-        console.warn(success)
-      })
-      .catch(error => {
-        console.warn(error)
-        // Failure code
-      });
-  }
-
+  const handleOpenPicker = () => {
+    Keyboard.dismiss();
+    setShowPickerModal(true);
+  };
 
   return (
-    <SafeAreaView style={styles.SafeAreaView}>
-      <View
-        style={{
-          padding: 0,
-          marginVertical: 100,
-          justifyContent: 'center',
-          alignContent: 'center',
-        }}>
-        <Text style={styles.loginText}>Register </Text>
-
-        <View style={styles.cameraStyle}>
-          <View>
-            {
-              loading ? <ActivityIndicator size={100} color={StyleGuide.color.primary} /> :
-
-                <Avatar
-                  bg="indigo.500"
-                  alignSelf="center"
-                  size="xl"
-                  source={{
-                    uri:
-                      image === undefined || image === ''
-                        ? 'https://cdn.pixabay.com/photo/2013/07/13/12/07/avatar-159236_1280.png'
-                        : image,
-                  }}
-                />
-            }
-          </View>
-          <View style={styles.cameraIcon}>
-            <MaterialCommunityIcons
-              name="image-edit-outline"
-              size={20}
-              color="#6A0DAD"
-              onPress={() => { setShowPickerModal(true) }}
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+        translucent={false}
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardView}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+          {/* Header Section */}
+          <View style={styles.headerView}>
+            <Image
+              source={require('../../images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
             />
+            <Text style={styles.titleText}>Create Account 🚀</Text>
+            <Text style={styles.subtitleText}>
+              Join Social Bea and start sharing moments
+            </Text>
           </View>
-        </View>
 
-        <View style={{ padding: 0, marginVertical: 10, marginTop: 15 }}>
-          <TextInputComponent
-            setShowPassword={(e: boolean) => { e }}
-            value={name}
-            setValue={setName}
-            placeholder={"Enter Name"}
-            mode="outlined"
-            label="Name"
-            setError={setError}
-            name={'person'}
-          />
-        </View>
-        <View style={{ padding: 0, marginVertical: 5 }}>
-          <TextInputComponent
-            setShowPassword={(e: boolean) => { e }}
-            value={email}
-            setValue={setEmail}
-            placeholder={"Enter Email"}
-            mode="outlined"
-            label="Email"
-            setError={setError}
-            name={'email'}
-          />
-        </View>
-        <View style={{ padding: 0, marginVertical: 5 }}>
-          <TextInputComponent
-            value={Password}
-            setValue={setPassword}
-            placeholder="Enter Password"
-            mode="outlined"
-            label="Password"
-            secureTextEntry={true}
-            setError={setError}
-            name={'visibility'}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            IsPassword={true}
-          />
-        </View>
+          {/* Profile Image Avatar Section */}
+          <View style={styles.avatarContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleOpenPicker}
+              style={styles.avatarWrapper}>
+              {loading ? (
+                <View style={styles.avatarLoading}>
+                  <ActivityIndicator
+                    size="large"
+                    color={StyleGuide.color.primary}
+                  />
+                </View>
+              ) : image ? (
+                <Image source={{ uri: image }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons
+                    name="person"
+                    size={46}
+                    color={StyleGuide.color.textPlaceholder}
+                  />
+                </View>
+              )}
 
-        <View style={{ padding: 10, marginVertical: 5 }}>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <ButtonComponent
-            uploading={registerLoading}
-            disabled={
-              userProfieImage == ''   ||
-              name === '' ||
-              email === '' ||
-              Password === '' ||
-              image === '' ||
-              image === undefined
-            }
-            buttonTitle="Register"
-            btnType="sign-in"
-            color="#f5e7ea"
-            backgroundColor={
-              uploading ||
-                name === '' ||
-                email === '' ||
-                Password === '' ||
-                image === '' ||
-                image === undefined
-                ? 'grey'
-                : StyleGuide.color.primary
-            }
-            onPress={createNewAccount}
-          />
-        </View>
-        <View style={styles.GoogleSignInView}>
-          <Divider style={styles.DividerStyle} />
-          <Text style={styles.SignInText}>or sign in with</Text>
-          <Divider style={styles.DividerStyle} />
-        </View>
-
-        <View style={{ padding: 10 }}>
-                   <ButtonComponent
-                  buttonTitle="Sign In with Google"
-                  btnType="google"
-                  color="#f5e7ea"
-                  backgroundColor="#de4d41"
-                  onPress={onGoogleButtonPress}
-                  uploading={loading}
+              {/* Edit Camera Badge */}
+              <View style={styles.cameraBadge}>
+                <MaterialCommunityIcons
+                  name="camera-plus"
+                  size={16}
+                  color="#FFFFFF"
                 />
-                <ButtonComponent
-                  buttonTitle="Sign In with Facebook"
-                  btnType="facebook"
-                  color="#f5e7ea"
-                  backgroundColor="#007FFF"
-                  onPress={()=>{}}
-                />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleOpenPicker}>
+              <Text
+                style={[
+                  styles.avatarHintText,
+                  userProfieImage
+                    ? { color: StyleGuide.color.primaryDark }
+                    : null,
+                ]}>
+                {userProfieImage ? 'Photo uploaded ✓' : 'Tap to add profile photo'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Input Form Section */}
+          <View style={styles.formView}>
+            <View style={styles.inputWrap}>
+              <TextInputComponent
+                value={name}
+                setValue={setName}
+                placeholder="Enter your full name"
+                label="name"
+                setError={setError}
+                name="person-outline"
+              />
+            </View>
+
+            <View style={styles.inputWrap}>
+              <TextInputComponent
+                value={email}
+                setValue={setEmail}
+                placeholder="Enter your email"
+                label="email"
+                setError={setError}
+                name="mail-outline"
+              />
+            </View>
+
+            <View style={styles.inputWrap}>
+              <TextInputComponent
+                value={Password}
+                setValue={setPassword}
+                placeholder="Create a password"
+                label="password"
+                setError={setError}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                IsPassword={true}
+              />
+            </View>
+
+            {/* Error Message */}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Primary Register Button */}
+            <View style={{ marginTop: 6 }}>
+              <ButtonComponent
+                disabled={registerLoading || loading}
+                buttonTitle="Create Account"
+                color="#FFFFFF"
+                backgroundColor={
+                  registerLoading || loading
+                    ? '#94A3B8'
+                    : StyleGuide.color.primary
+                }
+                onPress={createNewAccount}
+                uploading={registerLoading}
+              />
+            </View>
+          </View>
+
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Side-by-Side Social Buttons */}
+          <View style={styles.socialButtonsRow}>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <ButtonComponent
+                buttonTitle="Google"
+                btnType="google"
+                color={StyleGuide.color.textPrimary}
+                backgroundColor="#FFFFFF"
+                borderColor="#E2E8F0"
+                iconColor="#EA4335"
+                onPress={onGoogleButtonPress}
+                uploading={loading}
+              />
+            </View>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <ButtonComponent
+                buttonTitle="Facebook"
+                btnType="facebook"
+                color={StyleGuide.color.textPrimary}
+                backgroundColor="#FFFFFF"
+                borderColor="#E2E8F0"
+                iconColor="#1877F2"
+                onPress={() => {}}
+              />
+            </View>
+          </View>
+
+          {/* Footer Sign In Link */}
           <View style={styles.accountView}>
             <Text style={styles.accountText}>Already have an account? </Text>
             <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('Login');
-              }}>
-              <Text
-                style={{
-                  color: StyleGuide.color.primary,
-                  fontFamily: StyleGuide.fontFamily.medium,
-                  fontSize: widthPercentageToDP('4%'),
-                }}>
-                Login
-              </Text>
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.signInLink}>Sign In</Text>
             </TouchableOpacity>
-
           </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-
-          <ModalComponent
-            // styleModal={{bottom: 60}}
-            isVisible={showPickerModal}
-            setVisibility={setShowPickerModal}
-            styleModal={{
-              paddingTop: 0,
-              paddingHorizontal: 0,
-              paddingBottom: 0,
-              flex: 1,
-            }}
-            component={
-              <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    backgroundColor: StyleGuide.color.primary,
-                    justifyContent: 'space-between',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: 10,
-                    borderTopLeftRadius: 12,
-                    borderTopRightRadius: 12,
-                    paddingTop: 15,
-                  }}>
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Text >Choose Profile Image</Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setShowPickerModal(false)}
-                    style={{ alignItems: 'flex-end', marginRight: '3%' }}>
-                    <Svg xml={close} rest={{ height: 16, width: 16 }} />
-                  </TouchableOpacity>
-                </View>
-                <View style={{ padding: 10 }} >
-                  <ButtonComponent btnType='' buttonTitle='Choose from Gallery' backgroundColor='#FFFAEF' color='black' onPress={() => { handleCamera('Gallery') }} />
-
-                  <ButtonComponent btnType='' buttonTitle='Open Camera' color={'#fff'}
-                    backgroundColor={StyleGuide.color.primary} onPress={() => { handleCamera('Camera') }} />
-
-                </View>
-
-              </View>
-            }
-          />
-
-        </View>
-      </View>
+      {/* Photo Selection Modal placed at root level */}
+      <ImagePickerModal
+        modalVisible={showPickerModal}
+        setModalVisible={setShowPickerModal}
+        imagePicker={handleCamera}
+        title="Select Profile Photo"
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  loginText: {
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: StyleGuide.fontSize.medium,
-    textAlign: 'center',
-    alignItems: 'center',
-    color: StyleGuide.color.primary,
-    marginBottom: 15,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  SafeAreaView: {
+  keyboardView: {
     flex: 1,
   },
-
-  cameraIcon: {
-    borderRadius: 20,
-    borderColor: 'red',
-    width: 40,
-    height: 40,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: -10,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 22,
+    paddingTop: 16,
+    paddingBottom: 36,
   },
-  SignInText: {
-
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: StyleGuide.fontSize.small,
-    textAlign: 'center',
+  headerView: {
     alignItems: 'center',
-    color: StyleGuide.color.dark,
-    paddingHorizontal: 6,
+    marginBottom: 16,
   },
-  buttonContainer: {
-    marginTop: 10,
-    width: '100%',
+  logo: {
+    width: 50,
     height: 50,
-    padding: 10,
+    marginBottom: 10,
+  },
+  titleText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 22,
+    color: StyleGuide.color.textPrimary,
+    letterSpacing: -0.3,
+    marginBottom: 2,
+  },
+  subtitleText: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 13,
+    color: StyleGuide.color.textSecondary,
+    textAlign: 'center',
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 2.5,
+    borderColor: StyleGuide.color.border,
+    padding: 2,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 42,
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 42,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarLoading: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 42,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: StyleGuide.color.primary,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  avatarHintText: {
+    marginTop: 8,
+    fontSize: 12,
+    fontFamily: StyleGuide.fontFamily.medium,
+    color: StyleGuide.color.textSecondary,
+  },
+  formView: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  inputWrap: {
+    marginBottom: 10,
+  },
+  errorText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 13,
+    color: StyleGuide.color.error,
+    marginTop: 2,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  dividerRow: {
     flexDirection: 'row',
-    borderRadius: 3,
-  },
-  iconWrapper: {
-    width: 30,
-    justifyContent: 'center',
     alignItems: 'center',
+    marginVertical: 14,
   },
-  icon: {
-    fontWeight: 'bold',
-  },
-  btnTxtWrapper: {
+  dividerLine: {
     flex: 1,
+    height: 1,
+    backgroundColor: StyleGuide.color.border,
+  },
+  dividerText: {
+    paddingHorizontal: 12,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 13,
+    color: StyleGuide.color.textSecondary,
+  },
+  socialButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  accountView: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    fontFamily: 'Lato-Regular',
+    paddingVertical: 10,
   },
   accountText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: StyleGuide.fontSize.small,
-    color: StyleGuide.color.dark,
+    fontSize: 14,
+    color: StyleGuide.color.textSecondary,
   },
-  accountView: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    paddingVertical: widthPercentageToDP('5%'),
-    flexDirection: 'row',
-  },
-  DividerStyle: {
-    flex: 1,
-    color: StyleGuide.color.light,
-    height: widthPercentageToDP('0.5%'),
-  },
-
-  GoogleSignInView: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    justifyContent: 'center',
-    marginTop: widthPercentageToDP('12%'),
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: widthPercentageToDP('5%'),
-  },
-  cameraStyle: {
-    marginTop: -10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorMessage: {
-    color: 'red',
-    fontSize: StyleGuide.fontSize.small,
-    fontFamily: StyleGuide.fontFamily.medium,
-  },
-  progressBarContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  signInLink: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 14,
+    color: StyleGuide.color.primary,
   },
 });
 

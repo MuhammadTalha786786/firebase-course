@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import {
   View,
   Text,
@@ -14,25 +15,26 @@ import {
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
-import storage from '@react-native-firebase/storage';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleGuide} from '../../Utils/StyleGuide';
 import {TextInput} from 'react-native-paper';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {v4 as uuidv4} from 'uuid';
 import uuid from 'react-native-uuid';
 import {reducerType} from '../../Utils/types';
 import {ScrollView} from 'react-native-gesture-handler';
 import ImagePickerModal from '../components/ImagePickerModal';
+import LocationPickerModal, {
+  SelectedLocationData,
+} from '../components/LocationPickerModal';
 import ApiCall from '../../services/services';
 import {Avatar} from 'native-base';
+import {uploadFileToSupabase} from '../../services/supabaseStorage';
 
-const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
-const Post = ({navigation}) => {
+const Post = ({navigation}: {navigation: any}) => {
   const dispatch = useDispatch();
   const authState = useSelector((state: reducerType) => state);
   const userData = authState.userAuthReducer.userData?.user;
@@ -45,49 +47,59 @@ const Post = ({navigation}) => {
   const [postImage, setPostImage] = useState<string>('');
   const [imagePickerModal, setImagePickerModal] = useState<boolean>(false);
 
+  // Location state
+  const [locationModalVisible, setLocationModalVisible] =
+    useState<boolean>(false);
+  const [selectedLocation, setSelectedLocation] =
+    useState<SelectedLocationData | null>(null);
+
+  const isDarkMode = Boolean(mode);
+  const bgColor = isDarkMode ? StyleGuide.color.dark : '#FFFFFF';
+  const textColor = isDarkMode ? '#FFFFFF' : StyleGuide.color.textPrimary;
+  const subtextColor = isDarkMode ? '#94A3B8' : StyleGuide.color.textSecondary;
+  const borderColor = isDarkMode ? '#334155' : StyleGuide.color.border;
+
+  // Supabase storage upload using profile_images bucket/folder just like register screen
   const selectImage = (action: 'Gallery' | 'Camera') => {
-    setUploadingImage(true);
+    setImagePickerModal(false);
 
     const pickerMethod =
-      action === 'Gallery'
-        ? ImagePicker.openPicker
-        : ImagePicker.openCamera;
+      action === 'Gallery' ? ImagePicker.openPicker : ImagePicker.openCamera;
 
     pickerMethod({
-      width: 1080,
-      height: 1080,
+      width: 800,
+      height: 800,
       cropping: true,
       cropperCircleOverlay: false,
-      compressImageQuality: 0.8,
+      compressImageQuality: 0.75,
+      includeBase64: true,
     })
-      .then(image => {
-        setImage(image.path);
-        setImagePickerModal(false);
+      .then(async selected => {
+        setImage(selected.path);
+        setUploadingImage(true);
 
-        // Upload to Firebase Storage
-        const fileName = `posts/${uuidv4()}${image.path.substr(
-          image.path.lastIndexOf('.'),
-        )}`;
-        const ref = storage().ref(fileName);
-
-        ref
-          .putFile(image.path)
-          .then(() => {
-            ref.getDownloadURL().then(url => {
-              setPostImage(url);
-              setUploadingImage(false);
-            });
-          })
-          .catch(error => {
-            console.error('Upload error:', error);
-            setUploadingImage(false);
-            setImagePickerModal(false);
-            Alert.alert('Error', 'Failed to upload image');
+        try {
+          console.log('Uploading post image to Supabase...');
+          const url = await uploadFileToSupabase(selected.path, {
+            bucket: 'social-bea',
+            folder: 'profile_images', // Uses same verified folder & RLS policy as register
+            base64Data: selected.data,
           });
+          console.log('Post image uploaded successfully to Supabase:', url);
+          setPostImage(url);
+        } catch (error: any) {
+          console.error('Supabase upload error:', error);
+          Alert.alert(
+            'Upload Error',
+            error?.message ||
+              'Failed to upload image. Please check Supabase Storage connection.',
+          );
+        } finally {
+          setUploadingImage(false);
+        }
       })
       .catch(error => {
         setUploadingImage(false);
-        setImagePickerModal(false);
         if (error.code !== 'E_PICKER_CANCELLED') {
           Alert.alert('Error', 'Failed to select image');
         }
@@ -95,42 +107,78 @@ const Post = ({navigation}) => {
   };
 
   const uploadPost = async () => {
-    if (!postImage) {
-      Alert.alert('Image Required', 'Please select an image for your post');
-      return;
-    }
-
-    if (!caption.trim()) {
-      Alert.alert('Caption Required', 'Please add a caption for your post');
+    if (!image && !postImage && !caption.trim()) {
+      Alert.alert(
+        'Post Content Required',
+        'Please select a photo or write a message to share.',
+      );
       return;
     }
 
     setUploading(true);
 
     try {
+      let finalImageUrl = postImage;
+
+      // If image was selected but not uploaded yet (or failed earlier), upload to Supabase now
+      if (!finalImageUrl && image) {
+        setUploadingImage(true);
+        try {
+          finalImageUrl = await uploadFileToSupabase(image, {
+            bucket: 'social-bea',
+            folder: 'profile_images',
+          });
+          setPostImage(finalImageUrl);
+        } catch (uploadErr: any) {
+          console.error('Supabase upload on submit error:', uploadErr);
+          Alert.alert(
+            'Upload Failed',
+            uploadErr?.message || 'Failed to upload photo to Supabase.',
+          );
+          setUploading(false);
+          setUploadingImage(false);
+          return;
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+
       const id = uuid.v4();
       const body = {
         userID: userData?._id,
-        userImage: userData?.image,
-        userName: userData?.name,
-        postImage: postImage,
-        postDetail: caption.trim(),
+        userImage: userData?.image || '',
+        userName: userData?.name || 'User',
+        postImage: finalImageUrl || '',
+        postDetail: caption.trim() || '',
+        location: selectedLocation ? selectedLocation.name : '',
+        coordinates: selectedLocation
+          ? {
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            }
+          : null,
         postID: id,
         likes: [],
         comments: [],
       };
 
-      const response = await ApiCall('post', 'api/posts', body, dispatch, false);
+      const response = await ApiCall(
+        'post',
+        'api/posts',
+        body,
+        dispatch,
+        false,
+      );
 
       if (response?.success) {
         Alert.alert('Success', 'Post created successfully!', [
           {
             text: 'OK',
             onPress: () => {
-              // Reset form
               setImage('');
               setPostImage('');
               setCaption('');
+              setSelectedLocation(null);
               navigation.goBack();
             },
           },
@@ -151,52 +199,58 @@ const Post = ({navigation}) => {
     setPostImage('');
   };
 
-  const canPost = postImage && caption.trim() && !uploading && !uploadingImage;
+  // Can post if an image is chosen (even with no caption) or caption is entered
+  const canPost = Boolean(
+    (image || postImage || caption.trim()) && !uploading && !uploadingImage,
+  );
 
   return (
     <>
       <StatusBar
-        barStyle={mode ? 'light-content' : 'dark-content'}
-        backgroundColor={mode ? '#000' : '#fff'}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={bgColor}
       />
-      <SafeAreaView
-        style={[
-          styles.container,
-          {backgroundColor: mode ? '#000' : '#fff'},
-        ]}>
+      <SafeAreaView style={[styles.container, {backgroundColor: bgColor}]}>
         <KeyboardAvoidingView
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
           {/* Header */}
-          <View
-            style={[
-              styles.header,
-              {borderBottomColor: mode ? '#333' : '#efefef'},
-            ]}>
+          <View style={[styles.header, {borderBottomColor: borderColor}]}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.headerButton}>
-              <Ionicons
-                name="close"
-                size={32}
-                color={mode ? '#fff' : '#000'}
-              />
+              <Ionicons name="arrow-back" size={24} color={textColor} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, {color: mode ? '#fff' : '#000'}]}>
-              New Post
+            <Text style={[styles.headerTitle, {color: textColor}]}>
+              Create Post
             </Text>
             <TouchableOpacity
               onPress={uploadPost}
               disabled={!canPost}
-              style={styles.headerButton}>
-              {uploading ? (
-                <ActivityIndicator size="small" color="#0095f6" />
+              style={[
+                styles.shareBadge,
+                {
+                  backgroundColor: canPost
+                    ? StyleGuide.color.primary
+                    : isDarkMode
+                    ? '#334155'
+                    : '#E2E8F0',
+                },
+              ]}>
+              {uploading || uploadingImage ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text
                   style={[
-                    styles.postButtonText,
-                    {opacity: canPost ? 1 : 0.3},
+                    styles.shareBadgeText,
+                    {
+                      color: canPost
+                        ? '#FFFFFF'
+                        : isDarkMode
+                        ? '#64748B'
+                        : '#94A3B8',
+                    },
                   ]}>
                   Share
                 </Text>
@@ -208,45 +262,62 @@ const Post = ({navigation}) => {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            {/* Image Section */}
+            {/* Image Preview or Selector */}
             {image ? (
               <View style={styles.imagePreviewContainer}>
                 <Image source={{uri: image}} style={styles.imagePreview} />
                 {uploadingImage && (
                   <View style={styles.imageUploadOverlay}>
-                    <ActivityIndicator size="large" color="#fff" />
-                    <Text style={styles.uploadingText}>Uploading...</Text>
+                    <ActivityIndicator
+                      size="large"
+                      color={StyleGuide.color.primary}
+                    />
+                    <Text style={styles.uploadingText}>
+                      Uploading to Supabase...
+                    </Text>
                   </View>
                 )}
                 <TouchableOpacity
                   style={styles.removeImageButton}
                   onPress={removeImage}>
-                  <Ionicons name="close-circle" size={32} color="#fff" />
+                  <Ionicons name="close" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity
-                style={[
-                  styles.imagePlaceholder,
-                  {
-                    backgroundColor: mode ? '#1a1a1a' : '#f5f5f5',
-                    borderColor: mode ? '#333' : '#e0e0e0',
-                  },
-                ]}
-                onPress={() => setImagePickerModal(true)}>
-                <Feather
-                  name="image"
-                  size={60}
-                  color={mode ? '#555' : '#ccc'}
-                />
-                <Text
+              <View style={{padding: 16}}>
+                <TouchableOpacity
                   style={[
-                    styles.imagePlaceholderText,
-                    {color: mode ? '#999' : '#666'},
-                  ]}>
-                  Tap to add photo
-                </Text>
-              </TouchableOpacity>
+                    styles.imagePlaceholder,
+                    {
+                      backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC',
+                      borderColor: isDarkMode ? '#334155' : '#E2E8F0',
+                    },
+                  ]}
+                  onPress={() => setImagePickerModal(true)}>
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      {backgroundColor: StyleGuide.color.primaryLight},
+                    ]}>
+                    <Feather
+                      name="image"
+                      size={28}
+                      color={StyleGuide.color.primaryDark}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.imagePlaceholderTitle, {color: textColor}]}>
+                    Upload Photo
+                  </Text>
+                  <Text
+                    style={[
+                      styles.imagePlaceholderSubtitle,
+                      {color: subtextColor},
+                    ]}>
+                    JPG, PNG or GIF up to 10MB
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
 
             {/* Caption Input Section */}
@@ -261,12 +332,12 @@ const Post = ({navigation}) => {
                   style={[
                     styles.captionInput,
                     {
-                      backgroundColor: mode ? '#000' : '#fff',
-                      color: mode ? '#fff' : '#000',
+                      backgroundColor: 'transparent',
+                      color: textColor,
                     },
                   ]}
-                  placeholder="Write a caption..."
-                  placeholderTextColor={mode ? '#999' : '#666'}
+                  placeholder="What's on your mind?..."
+                  placeholderTextColor={subtextColor}
                   value={caption}
                   onChangeText={setCaption}
                   multiline
@@ -276,75 +347,122 @@ const Post = ({navigation}) => {
                   activeUnderlineColor="transparent"
                 />
                 <Text
-                  style={[
-                    styles.characterCount,
-                    {color: mode ? '#666' : '#999'},
-                  ]}>
+                  style={[styles.characterCount, {color: subtextColor}]}>
                   {caption.length}/2200
                 </Text>
               </View>
             </View>
 
-            {/* Additional Options */}
+            {/* Additional Options List */}
             <View
-              style={[
-                styles.optionsSection,
-                {borderTopColor: mode ? '#333' : '#efefef'},
-              ]}>
-              <TouchableOpacity style={styles.optionItem}>
-                <Feather
-                  name="map-pin"
-                  size={24}
-                  color={mode ? '#fff' : '#000'}
-                />
-                <Text
-                  style={[
-                    styles.optionText,
-                    {color: mode ? '#fff' : '#000'},
-                  ]}>
-                  Add Location
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.optionItem}>
-                <Feather
-                  name="user-plus"
-                  size={24}
-                  color={mode ? '#fff' : '#000'}
-                />
-                <Text
-                  style={[
-                    styles.optionText,
-                    {color: mode ? '#fff' : '#000'},
-                  ]}>
-                  Tag People
-                </Text>
-              </TouchableOpacity>
-
+              style={[styles.optionsSection, {borderTopColor: borderColor}]}>
+              {/* Photo option */}
               <TouchableOpacity
                 style={styles.optionItem}
                 onPress={() => setImagePickerModal(true)}>
-                <MaterialIcons
-                  name="add-photo-alternate"
-                  size={24}
-                  color={mode ? '#fff' : '#000'}
-                />
-                <Text
-                  style={[
-                    styles.optionText,
-                    {color: mode ? '#fff' : '#000'},
-                  ]}>
-                  {image ? 'Change Photo' : 'Add Photo'}
+                <View style={styles.optionIconWrap}>
+                  <MaterialIcons
+                    name="add-photo-alternate"
+                    size={22}
+                    color={StyleGuide.color.primary}
+                  />
+                </View>
+                <Text style={[styles.optionText, {color: textColor}]}>
+                  {image ? 'Change Photo' : 'Attach Photo'}
                 </Text>
+                <Feather
+                  name="chevron-right"
+                  size={18}
+                  color={subtextColor}
+                  style={{marginLeft: 'auto'}}
+                />
+              </TouchableOpacity>
+
+              {/* Add Location Option */}
+              <TouchableOpacity
+                style={styles.optionItem}
+                activeOpacity={0.7}
+                onPress={() => setLocationModalVisible(true)}>
+                <View
+                  style={[
+                    styles.optionIconWrap,
+                    selectedLocation
+                      ? {backgroundColor: StyleGuide.color.primaryLight}
+                      : null,
+                  ]}>
+                  <Feather
+                    name="map-pin"
+                    size={20}
+                    color={
+                      selectedLocation
+                        ? StyleGuide.color.primaryDark
+                        : StyleGuide.color.primary
+                    }
+                  />
+                </View>
+                <View style={{flex: 1}}>
+                  {selectedLocation ? (
+                    <>
+                      <Text style={[styles.locationLabel, {color: subtextColor}]}>
+                        Location
+                      </Text>
+                      <Text
+                        style={[
+                          styles.locationSelectedText,
+                          {
+                            color: isDarkMode
+                              ? '#34D399'
+                              : StyleGuide.color.primaryDark,
+                          },
+                        ]}
+                        numberOfLines={1}>
+                        📍 {selectedLocation.name}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={[styles.optionText, {color: textColor}]}>
+                      Add Location
+                    </Text>
+                  )}
+                </View>
+                {selectedLocation ? (
+                  <TouchableOpacity
+                    onPress={() => setSelectedLocation(null)}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    style={{padding: 4}}>
+                    <Ionicons
+                      name="close-circle"
+                      size={22}
+                      color={subtextColor}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <Feather
+                    name="chevron-right"
+                    size={18}
+                    color={subtextColor}
+                    style={{marginLeft: 'auto'}}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
 
+        {/* Photo Selection Modal */}
         <ImagePickerModal
           modalVisible={imagePickerModal}
           setModalVisible={setImagePickerModal}
           imagePicker={selectImage}
+        />
+
+        {/* Location Picker Map Modal */}
+        <LocationPickerModal
+          visible={locationModalVisible}
+          onClose={() => setLocationModalVisible(false)}
+          onSelectLocation={loc => setSelectedLocation(loc)}
+          initialLocation={selectedLocation}
+          darkMode={isDarkMode}
         />
       </SafeAreaView>
     </>
@@ -363,22 +481,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
   },
   headerButton: {
-    minWidth: 60,
+    padding: 4,
   },
   headerTitle: {
-    fontFamily: StyleGuide.fontFamily.medium,
+    fontFamily: StyleGuide.fontFamily.bold,
     fontSize: 18,
-    fontWeight: '600',
   },
-  postButtonText: {
-    color: '#0095f6',
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: 16,
-    fontWeight: '600',
+  shareBadge: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 70,
+  },
+  shareBadgeText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 14,
   },
   scrollView: {
     flex: 1,
@@ -387,6 +510,7 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: SCREEN_WIDTH,
     position: 'relative',
+    backgroundColor: '#000000',
   },
   imagePreview: {
     width: '100%',
@@ -398,34 +522,52 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   uploadingText: {
-    color: '#fff',
+    color: '#FFFFFF',
     marginTop: 12,
     fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: 16,
+    fontSize: 15,
   },
   removeImageButton: {
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 16,
-  },
-  imagePlaceholder: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.75,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
   },
-  imagePlaceholderText: {
-    fontFamily: StyleGuide.fontFamily.medium,
+  imagePlaceholder: {
+    height: 200,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  imagePlaceholderTitle: {
+    fontFamily: StyleGuide.fontFamily.bold,
     fontSize: 16,
-    marginTop: 16,
+    marginBottom: 4,
+  },
+  imagePlaceholderSubtitle: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 13,
   },
   captionSection: {
     flexDirection: 'row',
@@ -440,9 +582,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   captionInput: {
-    maxHeight: 150,
+    maxHeight: 140,
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 22,
     paddingHorizontal: 0,
     paddingVertical: 0,
@@ -450,24 +592,48 @@ const styles = StyleSheet.create({
   characterCount: {
     fontFamily: StyleGuide.fontFamily.regular,
     fontSize: 12,
-    marginTop: 8,
+    marginTop: 6,
     textAlign: 'right',
   },
   optionsSection: {
-    borderTopWidth: 0.5,
-    marginTop: 16,
-    paddingTop: 8,
+    borderTopWidth: 1,
+    marginTop: 8,
+    paddingTop: 4,
   },
   optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
+  },
+  optionIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: StyleGuide.color.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   optionText: {
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 16,
-    marginLeft: 16,
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 15,
+  },
+  locationLabel: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  locationSelectedText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 14,
+    marginTop: 2,
+  },
+  locationBadge: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 12,
+    marginTop: 2,
   },
 });
 

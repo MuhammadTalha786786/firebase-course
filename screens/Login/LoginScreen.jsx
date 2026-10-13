@@ -5,28 +5,24 @@ import {
   StatusBar,
   TouchableOpacity,
   Image,
-  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonComponent from '../components/ButtonComponent';
 import { StyleGuide } from '../../Utils/StyleGuide';
-import { Divider } from 'react-native-paper';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import TextInputComponent from '../components/TextInputComponent';
 import ForgotModal from '../components/ForgotModal';
-import { Avatar } from 'native-base';
 import { useLogin } from './useLogin.tsx';
 import useGoogleSignIn from '../components/GoogleSignIn';
-import SafeArea from '../components/SafeArea';
-
-import auth from '@react-native-firebase/auth';
-import { LoginManager, AccessToken, Profile } from 'react-native-fbsdk-next';
-
 
 const LoginScreen = ({ navigation }) => {
   const {
     login,
-    updateLogin,
     email,
     setEmail,
     setPassword,
@@ -47,274 +43,259 @@ const LoginScreen = ({ navigation }) => {
     phoneLogin,
     otp,
     setOtp,
-    setLoader
+    setLoader,
   } = useLogin();
-  const { onGoogleButtonPress, loading } = useGoogleSignIn({setLoader})
+  const { onGoogleButtonPress, loading } = useGoogleSignIn({ setLoader });
 
-
-
-
-
+  const handleOpenForgot = () => {
+    Keyboard.dismiss();
+    setModalVisible(true);
+  };
 
   return (
-    <>
+    <SafeAreaView style={styles.SafeAreaView} edges={['top', 'left', 'right', 'bottom']}>
       <StatusBar
         barStyle="dark-content"
-        translucent
-        backgroundColor="transparent"
+        translucent={false}
+        backgroundColor="#FFFFFF"
       />
-      <SafeAreaView style={styles.SafeAreaView}>
-        {/* <SafeArea> */}
-          <View>
-            <View style={styles.loginTxtView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+          {/* Header Section */}
+          <View style={styles.headerView}>
+            <Image
+              source={require('../../images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.titleText}>Welcome Back 👋</Text>
+            <Text style={styles.subtitleText}>
+              Sign in to continue to Social Bea
+            </Text>
+          </View>
 
-              <Avatar
-                bg="indigo.500"
-                alignSelf="center"
-                size="xl"
-                source={require('../../images/logo.png')}
-              />
-              <Text style={styles.loginText}>Login</Text>
-            </View>
-            <View
-              style={{
-                padding: 0,
-                marginVertical: 0,
-                textAlign: 'center',
-                justifyContent: 'center',
-                alignContent: 'center',
-              }}>
-              <View style={{ padding: 0 }}>
-                <TextInputComponent
-                  value={email}
-                  setValue={setEmail}
-                  placeholder="Enter Email"
-                  mode="outlined"
-                  label="email"
-                  setError={setError}
-                  name={'email'}
-                />
-              </View>
-              {
-                email.includes('+92') ? <>
-                  <View style={{ padding: 0, marginVertical: 10 }}>
-                    <TextInputComponent
-                      value={otp}
-                      setValue={setOtp}
-                      placeholder="Enter OTP"
-                      mode="outlined"
-                      label="password"
-                      setError={setError}
-                      
-                    />
-                  </View>
-                </> :
-
-                  <View style={{ padding: 0, marginVertical: 10 }}>
-                    <TextInputComponent
-                      value={Password}
-                      setValue={setPassword}
-                      placeholder="Enter Password"
-                      mode="outlined"
-                      label="password"
-                      setError={setError}
-                      name={'visibility'}
-                      showPassword={showPassword}
-                      setShowPassword={setShowPassword}
-                      IsPassword={true}
-                    />
-                  </View>
-              }
-
-
-
-              <View style={{ padding: 10 }}>
-                <Text style={{ color: 'red', fontSize: 12 }}>{error}</Text>
-                <ButtonComponent
-                  disabled={loader || loading}
-                  buttonTitle="SIGN IN"
-                  btnType="sign-in"
-                  color="#f5e7ea"
-                  backgroundColor={loader ? 'grey' : StyleGuide.color.primary}
-                  onPress={email.includes('+92') ? phoneLogin : login}
-                  uploading={loader  || loading}
-                />
-                <Text
-                  style={styles.forgotPassword}
-                  onPress={() => setModalVisible(true)}>
-                  Forgot Password?
-                </Text>
-              </View>
-
-              <View style={styles.GoogleSignInView}>
-                <Divider style={styles.DividerStyle} />
-                <Text style={styles.SignInText}>or sign in with</Text>
-                <Divider style={styles.DividerStyle} />
-              </View>
-
-              <ForgotModal
-                modalVisible={modalVisible}
-                setModalVisible={setModalVisible}
-                forgotEmail={forgotEmail}
-                setForgotEmail={setForgotEmail}
-                forgotPassword={forgotPassword}
-                forgotEmailError={forgotEmailError}
-                setForgotEmailError={setForgotEmailError}
+          {/* Input Form Section */}
+          <View style={styles.formView}>
+            <View style={styles.inputWrap}>
+              <TextInputComponent
+                value={email}
+                setValue={setEmail}
+                placeholder="Enter your email"
+                label="email"
                 setError={setError}
+                name="mail-outline"
               />
-
-              {/* <View style={{justifyContent: 'center', alignItems: 'center'}}>
-              <TouchableOpacity
-                onPress={() => signInWithPhoneNumber('+92 3156028415')}
-                style={[styles.buttonContainer, {backgroundColor: '#4169e1'}]}>
-                <View style={styles.iconWrapper}>
-                  <Entypo
-                    name="message"
-                    style={styles.icon}
-                    size={22}
-                    color="white"
-                  />
-                </View>
-                <View style={styles.btnTxtWrapper}>
-                  <Text style={[styles.buttonText, {color: 'white'}]}>
-                    Sign in with Phone Number
-                  </Text>
-                </View>
-              </TouchableOpacity>
             </View>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 10,
-              }}>
-              <TextInput
-                placeholder="Please Enter the Code"
-                value={code}
-                onChangeText={text => setCode(text)}
-                style={{width: '95%'}}
-              />
-              <Button
-                style={{
-                  marginTop: 10,
-                  height: 50,
-                  borderRadius: 4,
-                  textAlign: 'center',
-                  width: '95%',
-                }}
-                mode="contained"
-                onPress={confirmingCode}>
-                Verify
-              </Button>
-            </View> */}
 
-              <View style={{ padding: 10 }}>
-                <ButtonComponent
-                  buttonTitle="Sign In with Google"
-                  btnType="google"
-                  color="#f5e7ea"
-                  backgroundColor="#de4d41"
-                  onPress={onGoogleButtonPress}
-                  uploading={loading}
+            {email.includes('+92') ? (
+              <View style={styles.inputWrap}>
+                <TextInputComponent
+                  value={otp}
+                  setValue={setOtp}
+                  placeholder="Enter OTP code"
+                  label="otp"
+                  setError={setError}
                 />
-                <ButtonComponent
-                  buttonTitle="Sign In with Facebook"
-                  btnType="facebook"
-                  color="#f5e7ea"
-                  backgroundColor="#007FFF"
-                  onPress={onFacebookButtonPress}
-                />
-                <View style={styles.accountView}>
-                  <Text style={styles.accountText}>
-                    Don't have an account?{' '}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      navigation.navigate('RegisterScreen');
-                    }}>
-                    <Text
-                      style={{
-                        color: StyleGuide.color.primary,
-                        fontFamily: StyleGuide.fontFamily.medium,
-                        fontSize: widthPercentageToDP('4%'),
-                      }}>
-                      Sign Up
-                    </Text>
-                  </TouchableOpacity>
-                </View>
               </View>
+            ) : (
+              <View style={styles.inputWrap}>
+                <TextInputComponent
+                  value={Password}
+                  setValue={setPassword}
+                  placeholder="Enter your password"
+                  label="password"
+                  setError={setError}
+                  showPassword={showPassword}
+                  setShowPassword={setShowPassword}
+                  IsPassword={true}
+                />
+              </View>
+            )}
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.forgotPasswordWrap}
+              onPress={handleOpenForgot}>
+              <Text style={styles.forgotPassword}>Forgot password?</Text>
+            </TouchableOpacity>
+
+            {/* Error Message */}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Primary Action Button */}
+            <ButtonComponent
+              disabled={loader || loading}
+              buttonTitle="Sign In"
+              color="#FFFFFF"
+              backgroundColor={
+                loader ? '#94A3B8' : StyleGuide.color.primary
+              }
+              onPress={email.includes('+92') ? phoneLogin : login}
+              uploading={loader || loading}
+            />
+          </View>
+
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Side-by-Side Social Buttons */}
+          <View style={styles.socialButtonsRow}>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <ButtonComponent
+                buttonTitle="Google"
+                btnType="google"
+                color={StyleGuide.color.textPrimary}
+                backgroundColor="#FFFFFF"
+                borderColor="#E2E8F0"
+                iconColor="#EA4335"
+                onPress={onGoogleButtonPress}
+                uploading={loading}
+              />
+            </View>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <ButtonComponent
+                buttonTitle="Facebook"
+                btnType="facebook"
+                color={StyleGuide.color.textPrimary}
+                backgroundColor="#FFFFFF"
+                borderColor="#E2E8F0"
+                iconColor="#1877F2"
+                onPress={onFacebookButtonPress}
+              />
             </View>
           </View>
-        {/* </SafeArea> */}
-      </SafeAreaView>
-    </>
+
+          {/* Footer Sign Up Link */}
+          <View style={styles.accountView}>
+            <Text style={styles.accountText}>Don't have an account? </Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('RegisterScreen')}>
+              <Text style={styles.signUpText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Forgot Password Modal placed at root level */}
+      <ForgotModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        forgotEmail={forgotEmail}
+        setForgotEmail={setForgotEmail}
+        forgotPassword={forgotPassword}
+        forgotEmailError={forgotEmailError}
+        setForgotEmailError={setForgotEmailError}
+        setError={setError}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   SafeAreaView: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-
-  loginTxtView: {
-    marginVertical: 60,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: 36,
   },
-  loginText: {
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: StyleGuide.fontSize.medium,
-    textAlign: 'center',
+  headerView: {
     alignItems: 'center',
-    color: StyleGuide.color.primary,
+    marginBottom: 24,
   },
-
-  forgotPassword: {
+  logo: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    marginBottom: 10,
+  },
+  titleText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: widthPercentageToDP('6%'),
+    color: StyleGuide.color.textPrimary,
     textAlign: 'center',
-    paddingVertical: 20,
-    color: StyleGuide.color.primary,
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: StyleGuide.fontSize.medium,
   },
-  leftBorder: {
-    flex: 0.4,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    borderWidth: 1,
-  },
-
-  GoogleSignInView: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    justifyContent: 'center',
-    marginTop: widthPercentageToDP('12%'),
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: widthPercentageToDP('5%'),
-  },
-  SignInText: {
+  subtitleText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: StyleGuide.fontSize.small,
+    fontSize: widthPercentageToDP('3.6%'),
+    color: StyleGuide.color.textSecondary,
     textAlign: 'center',
-    alignItems: 'center',
-    color: StyleGuide.color.dark,
-    paddingHorizontal: 6,
+    marginTop: 4,
   },
-
-  DividerStyle: {
+  formView: {
+    width: '100%',
+  },
+  inputWrap: {
+    marginBottom: 10,
+  },
+  forgotPasswordWrap: {
+    alignSelf: 'flex-end',
+    paddingVertical: 6,
+    marginBottom: 14,
+  },
+  forgotPassword: {
+    color: StyleGuide.color.textSecondary,
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: widthPercentageToDP('3.3%'),
+  },
+  errorText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 13,
+    color: StyleGuide.color.error,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 18,
+  },
+  dividerLine: {
     flex: 1,
-    color: StyleGuide.color.light,
-    height: widthPercentageToDP('0.5%'),
+    height: 1,
+    backgroundColor: StyleGuide.color.border,
+  },
+  dividerText: {
+    paddingHorizontal: 12,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 13,
+    color: StyleGuide.color.textSecondary,
+  },
+  socialButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  accountView: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   accountText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: StyleGuide.fontSize.small,
-    color: StyleGuide.color.dark,
+    fontSize: 14,
+    color: StyleGuide.color.textSecondary,
   },
-  accountView: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    paddingVertical: widthPercentageToDP('5%'),
-    flexDirection: 'row',
+  signUpText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 14,
+    color: StyleGuide.color.primary,
   },
 });
 

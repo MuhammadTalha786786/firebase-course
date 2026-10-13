@@ -1,210 +1,180 @@
-import { Input } from 'native-base';
-import React, { FC } from 'react';
+import React from 'react';
 import {
-    Image,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Modal,
-    KeyboardAvoidingView,
-    TextInput,
-    SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { Button } from 'react-native-paper';
 import {
-    widthPercentageToDP as wp,
-    heightPercentageToDP as hp,
-    widthPercentageToDP,
+  widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import TextInputComponent from './TextInputComponent';
 import ButtonComponent from './ButtonComponent';
 import { StyleGuide } from '../../Utils/StyleGuide';
 import { BlurView } from '@react-native-community/blur';
 
+interface IForgotModalProps {
+  setModalVisible: (visible: boolean) => void;
+  modalVisible: boolean;
+  forgotEmail: string;
+  setForgotEmail: (email: string) => void;
+  forgotPassword: () => void;
+  forgotEmailError?: string;
+  setForgotEmailError?: (err: string) => void;
+  setError?: (err: string) => void;
+}
 
-
-const ForgotModal = ({
-    setModalVisible,
-    modalVisible,
-    forgotEmail,
-    setForgotEmail,
-    forgotPassword,
-    forgotEmailError,
-    setForgotEmailError,
-    setError
-    ,
+const ForgotModal: React.FC<IForgotModalProps> = ({
+  setModalVisible,
+  modalVisible,
+  forgotEmail,
+  setForgotEmail,
+  forgotPassword,
+  forgotEmailError,
+  setError,
 }) => {
-    return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.centeredView}>
-                <Modal       
-                    style={{height:700, backgroundColor:'green'}}
-                    animationType="slide"
-                    statusBarTranslucent={true}
-                    transparent={true}
-                    visible={modalVisible}>
-                    <KeyboardAvoidingView
-                        behavior={'padding'}
-                        style={styles.safeAreaView}
-                        enabled>
-                        <TouchableOpacity
-                            onPress={() => {
-                                setModalVisible(false)
-                            }}
-                            style={{
-                                position: 'absolute',
-                                height: '100%',
-                                width: '100%',
-                                //  backgroundColor: 'rgba(255, 0, 0, 0.5)',
-                            }}
-                        />
-                        <BlurView
-        style={styles.blurView}
-        blurType="light"
-        blurAmount={9}
-        reducedTransparencyFallbackColor="white"
-      />
-                        <View style={styles.centeredView}>
-                            
-                            <View style={styles.modalView}>
-                            <View
-                                    style={{
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                    }}>
-                                    <Text
-                                        style={{
-                                            textAlign: 'center',
-                                            fontSize: wp('3.3%'),
-                                            fontFamily: StyleGuide.fontFamily.regular,
-                                            marginBottom: 0,
-                                            color: 'black',
-                                        }}>
-                                        Forgot Password
-                                    </Text>
-                                    <View>
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                setModalVisible(false)
+  return (
+    <Modal
+      animationType="fade"
+      statusBarTranslucent={true}
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}>
+        {/* Backdrop overlay */}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+          style={styles.backdrop}>
+          <BlurView
+            style={styles.blurView}
+            blurType="dark"
+            blurAmount={10}
+            reducedTransparencyFallbackColor="rgba(0,0,0,0.5)"
+          />
+        </TouchableOpacity>
 
-
-                                            }}>
-                                            <Ionicons
-                                                name='close-outline'
-                                                size={22}
-                                                color={'black'}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-
-                                </View>
-
-                                <View>
-                                    <TextInputComponent
-                                        value={forgotEmail}
-                                        setValue={setForgotEmail}
-                                        placeholder="Enter Email"
-                                        mode="outlined"
-                                        label="email"
-                                        name={'email'}
-                                        setError={setError}
-                                    />
-                                </View>
-                                <View style={{ padding: 10 }}>
-                                    <Text style={{ color: 'red', fontFamily: StyleGuide.fontFamily.regular, fontSize: widthPercentageToDP("2.5%") }} >{forgotEmailError}</Text>
-                                    <ButtonComponent
-                                        buttonTitle="SIGN IN"
-                                        btnType="sign-in"
-                                        color="#f5e7ea"
-                                        backgroundColor={StyleGuide.color.primary}
-                                        onPress={forgotPassword}
-                                    />
-                                </View>
-
-                            </View>
-                        </View>
-                    </KeyboardAvoidingView>
-                </Modal>
+        {/* Modal Card */}
+        <View style={styles.cardContainer}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.cardTitle}>Reset Password</Text>
+              <Text style={styles.cardSubtitle}>
+                Enter your email to receive recovery instructions
+              </Text>
             </View>
-        </SafeAreaView >
-    );
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.closeBtn}>
+              <Ionicons
+                name="close"
+                size={22}
+                color={StyleGuide.color.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputWrap}>
+            <TextInputComponent
+              value={forgotEmail}
+              setValue={setForgotEmail}
+              placeholder="Enter your registered email"
+              label="email"
+              name="mail-outline"
+              setError={setError}
+            />
+          </View>
+
+          {forgotEmailError ? (
+            <Text style={styles.errorText}>{forgotEmailError}</Text>
+          ) : null}
+
+          <View style={styles.actionWrap}>
+            <ButtonComponent
+              buttonTitle="Send Recovery Link"
+              color="#FFFFFF"
+              backgroundColor={StyleGuide.color.primary}
+              onPress={forgotPassword}
+            />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
 };
 
 const styles = StyleSheet.create({
-    safeAreaView: {
-        flex: 1,
-    },
-    blurView:{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0
-      },
-
-    titles: {
-        // marginTop: 5,
-        fontSize: wp('2.7%'),
-        fontFamily: 'Poppins-regular',
-        color: 'gray',
-    },
-
-    centeredView: {
-       
-        // backgroundColor:'red',
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 10,
-        // backgroundColor: '#ffff',
-    },
-    modalView: {
-        height:"50%",
-        margin: 20,
-        backgroundColor: '#ffff',
-        borderRadius: 4,
-        padding: 20,
-
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-        width: '95%',
-        justifyContent:'center',
-        // alignItems:'center'
-
-
-    },
-    button: {
-        marginTop: 50,
-        borderRadius: 20,
-        padding: 10,
-        elevation: 2,
-        backgroundColor: '#846acf',
-    },
-
-    textStyle: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    modalText: {
-        fontFamily: 15,
-        fontSize: wp('2.7%'),
-        marginBottom: 10,
-        textAlign: 'center',
-        marginLeft: 5,
-    },
-
-    errors: {
-        color: 'red',
-        fontSize: 10,
-    },
+  keyboardContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
+  blurView: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
+  cardContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontFamily: StyleGuide.fontFamily.bold,
+    color: StyleGuide.color.textPrimary,
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    fontFamily: StyleGuide.fontFamily.regular,
+    color: StyleGuide.color.textSecondary,
+    maxWidth: '90%',
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  inputWrap: {
+    marginBottom: 10,
+  },
+  errorText: {
+    color: StyleGuide.color.error,
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 12,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  actionWrap: {
+    marginTop: 10,
+  },
 });
+
 export default ForgotModal;

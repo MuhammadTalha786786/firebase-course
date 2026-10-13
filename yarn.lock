@@ -3235,15 +3235,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/storage@npm:^15.6.0":
-  version: 15.7.1
-  resolution: "@react-native-firebase/storage@npm:15.7.1"
-  peerDependencies:
-    "@react-native-firebase/app": 15.7.1
-  checksum: d6f8a90847fcd94bffda50bf770f9a253660bbe8a55d684cfdbd541c293e40e891cd4644fcb2efce977ddb2ec4ea82f550139a03327dcaea271a0341ee92bb12
-  languageName: node
-  linkType: hard
-
 "@react-native-google-signin/google-signin@npm:^8.0.0":
   version: 8.2.2
   resolution: "@react-native-google-signin/google-signin@npm:8.2.2"
@@ -4038,6 +4029,78 @@ __metadata:
   dependencies:
     "@sinonjs/commons": ^1.7.0
   checksum: 8e331aa1412d905ecc8efd63550f58a6f77dcb510f878172004e53be63eb82650623618763001a918fc5e21257b86c45041e4e97c454ed6a2d187de084abbd11
+  languageName: node
+  linkType: hard
+
+"@supabase/auth-js@npm:2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/auth-js@npm:2.117.3"
+  dependencies:
+    tslib: 2.8.1
+  checksum: f20237204f630026d190a08efb315b42428b2dffeb056246f562f02cdec0f4f011fb45ae8aa89dc1f286d25af0141012dbdbdd1bcf029a0a4ab7002070e296b7
+  languageName: node
+  linkType: hard
+
+"@supabase/functions-js@npm:2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/functions-js@npm:2.117.3"
+  dependencies:
+    tslib: 2.8.1
+  checksum: 7a09d84833560f1dff731f1a518cf2ec5a5ea83e4c7e47a2ec228d6643f6106c40e07e3b4dbab451161f74216601f402f95efc3ad4b53a8f9e51d94ff83f1783
+  languageName: node
+  linkType: hard
+
+"@supabase/phoenix@npm:0.4.5":
+  version: 0.4.5
+  resolution: "@supabase/phoenix@npm:0.4.5"
+  checksum: 49dd1dad8083df687fa54cbaa75f65cd5900b13e2f193c2e266ac8a2c7a71f1a250db748ef01297845533f9a9cb62c8f867e93058ecb05c003208276092601d4
+  languageName: node
+  linkType: hard
+
+"@supabase/postgrest-js@npm:2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/postgrest-js@npm:2.117.3"
+  dependencies:
+    tslib: 2.8.1
+  checksum: 5a37fa09c5a1a7eb12becbf0be7c8bffeb78f114221fce9f35e379da779c3872d36f4788c7af72a121945ac20891d8d3dbe98e3cd2927009a6277e1c1554fc01
+  languageName: node
+  linkType: hard
+
+"@supabase/realtime-js@npm:2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/realtime-js@npm:2.117.3"
+  dependencies:
+    "@supabase/phoenix": 0.4.5
+    tslib: 2.8.1
+  checksum: 78735d4ff97fafb2bb7efcea18e15732502e8b97d0f7cabdb5f72d32fb5c805bcd14162a6eef2799d1abf890bed4f2301d8cc5e6ab74bb7c766259766406d01f
+  languageName: node
+  linkType: hard
+
+"@supabase/storage-js@npm:2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/storage-js@npm:2.117.3"
+  dependencies:
+    iceberg-js: ^0.8.1
+    tslib: 2.8.1
+  checksum: 2fed3995230149fcbf348591a7aa0ee265b310cce77434644aead2faa5dbc7bcee5fb5a6fe08407e6cf1e02ec3b6ec71fcfb53191da6df5ec36097c8b0c55507
+  languageName: node
+  linkType: hard
+
+"@supabase/supabase-js@npm:^2.117.3":
+  version: 2.117.3
+  resolution: "@supabase/supabase-js@npm:2.117.3"
+  dependencies:
+    "@supabase/auth-js": 2.117.3
+    "@supabase/functions-js": 2.117.3
+    "@supabase/postgrest-js": 2.117.3
+    "@supabase/realtime-js": 2.117.3
+    "@supabase/storage-js": 2.117.3
+  peerDependencies:
+    "@opentelemetry/api": ">=1.0.0"
+  peerDependenciesMeta:
+    "@opentelemetry/api":
+      optional: true
+  checksum: d259785e0c9c838ce40e9a1a1217a1a425d4d1f22ab262572867e0f03ebad33d07247e300293ed3bcf50b5f479e82e3f4787462a87e12fe7dcedbbbcc0fb4881
   languageName: node
   linkType: hard
 
@@ -4974,6 +5037,13 @@ __metadata:
   version: 0.1.0
   resolution: "base-64@npm:0.1.0"
   checksum: 5a42938f82372ab5392cbacc85a5a78115cbbd9dbef9f7540fa47d78763a3a8bd7d598475f0d92341f66285afd377509851a9bb5c67bbecb89686e9255d5b3eb
+  languageName: node
+  linkType: hard
+
+"base64-arraybuffer@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "base64-arraybuffer@npm:1.0.2"
+  checksum: 15e6400d2d028bf18be4ed97702b11418f8f8779fb8c743251c863b726638d52f69571d4cc1843224da7838abef0949c670bde46936663c45ad078e89fee5c62
   languageName: node
   linkType: hard
 
@@ -7644,6 +7714,13 @@ __metadata:
   version: 1.0.4
   resolution: "hyphenate-style-name@npm:1.0.4"
   checksum: 4f5bf4b055089754924babebaa23c17845937bcca6aee95d5d015f8fa1e6814279002bd6a9e541e3fac2cd02519fc76305396727066c57c8e21a7e73e7a12137
+  languageName: node
+  linkType: hard
+
+"iceberg-js@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "iceberg-js@npm:0.8.1"
+  checksum: 679e52f82a285b3e1da69bfb7c6c54af95067ca56293299b4ffcc196329a4f2eeb1502fe55c0b44cc80e9eb1bf34001b76ee9f0e13268a753d0cfe8d27072e56
   languageName: node
   linkType: hard
 
@@ -10973,7 +11050,6 @@ __metadata:
     "@react-native-firebase/database": ^15.6.0
     "@react-native-firebase/firestore": 15.6.0
     "@react-native-firebase/messaging": ^15.6.0
-    "@react-native-firebase/storage": ^15.6.0
     "@react-native-google-signin/google-signin": ^8.0.0
     "@react-native-masked-view/masked-view": ^0.2.8
     "@react-navigation/bottom-tabs": ^6.4.0
@@ -10982,8 +11058,10 @@ __metadata:
     "@react-navigation/native-stack": ^6.9.11
     "@react-navigation/stack": ^6.3.1
     "@reduxjs/toolkit": ^1.8.6
+    "@supabase/supabase-js": ^2.117.3
     axios: ^1.13.2
     babel-jest: ^26.6.3
+    base64-arraybuffer: ^1.0.2
     deprecated-react-native-prop-types: ^2.3.0
     eslint: ^7.32.0
     firebase: ^9.10.0
@@ -10994,6 +11072,7 @@ __metadata:
     native-base: ^3.4.19
     react: 18.1.0
     react-native: 0.70.1
+    react-native-devlens: /Users/arvo/Documents/antigravity/keen-oppenheimer
     react-native-elements: ^3.4.2
     react-native-fast-image: ^8.6.3
     react-native-fbsdk-next: ^11.2.1
@@ -11023,6 +11102,7 @@ __metadata:
     react-native-svg: ^13.8.0
     react-native-toast-message: ^2.1.6
     react-native-touch-id: ^4.4.1
+    react-native-url-polyfill: ^4.0.0
     react-native-uuid: ^2.0.1
     react-native-vector-icons: ^9.2.0
     react-native-video: ^5.2.1
@@ -11336,6 +11416,16 @@ __metadata:
     react-native: "*"
     react-native-web: "*"
   checksum: e808169b45c5e8021462a6914f7c3fb28e84ae8d58097ed7b3418fee41efa2bc44012abc09ff3f3bd6ee14427b9efe1b0f8d8b3a19cc01325b2f2cd0137d5d00
+  languageName: node
+  linkType: hard
+
+"react-native-devlens@file:/Users/arvo/Documents/antigravity/keen-oppenheimer::locator=practicapp%40workspace%3A.":
+  version: 1.0.0
+  resolution: "react-native-devlens@file:/Users/arvo/Documents/antigravity/keen-oppenheimer#/Users/arvo/Documents/antigravity/keen-oppenheimer::hash=bef976&locator=practicapp%40workspace%3A."
+  peerDependencies:
+    react: ">=16.8.0"
+    react-native: ">=0.60.0"
+  checksum: 0b2ced5aeaaa0871296fc05ce77c3bc3c607a175bc756df0dff76817692d0b8b9ce24babe247aaa1908b2696f37d1a3fe07d6ed6ad60da331abcacb7e48d0f7e
   languageName: node
   linkType: hard
 
@@ -11732,6 +11822,15 @@ __metadata:
   version: 4.4.1
   resolution: "react-native-touch-id@npm:4.4.1"
   checksum: 885126da3bc9c7956bca1e5176db4fac7b129bd91bc6071d629fc9d2fc6b7cb6527d5c569fc05b79fc2e8539f7651175559071f2dd41041cdf696a0bbc97229d
+  languageName: node
+  linkType: hard
+
+"react-native-url-polyfill@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "react-native-url-polyfill@npm:4.0.0"
+  peerDependencies:
+    react-native: "*"
+  checksum: 5582116d3e5ece5092e467877e0a99550b3d76a3b527456ee866da1fb97bf6d50ac91b8b5f5828da0e55a414ce9c3ea864eca0073fb6773130aa2785f9cd9652
   languageName: node
   linkType: hard
 
@@ -13296,6 +13395,13 @@ __metadata:
   version: 0.0.3
   resolution: "tr46@npm:0.0.3"
   checksum: 726321c5eaf41b5002e17ffbd1fb7245999a073e8979085dacd47c4b4e8068ff5777142fc6726d6ca1fd2ff16921b48788b87225cbc57c72636f6efa8efbffe3
+  languageName: node
+  linkType: hard
+
+"tslib@npm:2.8.1":
+  version: 2.8.1
+  resolution: "tslib@npm:2.8.1"
+  checksum: e4aba30e632b8c8902b47587fd13345e2827fa639e7c3121074d5ee0880723282411a8838f830b55100cbe4517672f84a2472667d355b81e8af165a55dc6203a
   languageName: node
   linkType: hard
 

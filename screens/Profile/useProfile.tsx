@@ -4,8 +4,7 @@ import firestore from '@react-native-firebase/firestore';
 import {useSelector, useDispatch} from 'react-redux';
 import { Alert, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
-import {v4 as uuidv4} from 'uuid';
-import storage from '@react-native-firebase/storage';
+import {uploadFileToSupabase} from '../../services/supabaseStorage';
 import {setSignIn} from '../../Redux/Auth/AuthReducer';
 import auth from '@react-native-firebase/auth';
 import { backArrow } from '../../Utils/SvgAssests';
@@ -101,21 +100,24 @@ export const useProfile = () => {
       width: 300,
       height: 400,
       cropping: true,
+      includeBase64: true,
     })
-      .then(image => {
+      .then(async image => {
         setImage(image.path);
-        console.log(image.path);
-        let fileName = `${uuidv4()}${image.path.substr(
-          image.path.lastIndexOf('.'),
-        )}`;
-        const ref = storage().ref(fileName);
-        ref.putFile(image.path).then(s => {
-          ref.getDownloadURL().then(x => {
-            console.log(x, 'x url');
-            setUpdateImage(x);
-            setUploading(false);
+        try {
+          const downloadUrl = await uploadFileToSupabase(image.path, {
+            bucket: 'social-bea',
+            folder: 'profile_images',
+            base64Data: image.data,
           });
-        });
+          console.log(downloadUrl, 'x url');
+          setUpdateImage(downloadUrl);
+        } catch (uploadError) {
+          console.error('Supabase upload error:', uploadError);
+          Alert.alert('Error', 'Failed to upload image to Supabase Storage');
+        } finally {
+          setUploading(false);
+        }
       })
       .catch(error => {
         console.log(error);

@@ -1,91 +1,73 @@
 import {
   View,
   Text,
-  Image,
   StyleSheet,
-  Alert,
   FlatList,
-  TouchableHighlight,
   TouchableOpacity,
-  ScrollView,
+  StatusBar,
 } from 'react-native';
-import React, {useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {setSignOut} from '../../Redux/Auth/AuthReducer';
-import {useEffect} from 'react';
-import auth from '@react-native-firebase/auth';
-import ImagePicker from 'react-native-image-crop-picker';
-import storage from '@react-native-firebase/storage';
-import database from '@react-native-firebase/database';
-
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleGuide} from '../../Utils/StyleGuide';
-import FeatherIcon from 'react-native-vector-icons/Feather';
-import {Box, TextArea} from 'native-base';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {Avatar} from 'native-base';
-import {Button, Card, Title, Paragraph} from 'react-native-paper';
+import Feather from 'react-native-vector-icons/Feather';
 import CardUI from '../Post/CardUI';
-import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
-import {async} from '@firebase/util';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import SkeletonPlaceHolder from '../components/SkeletonPlaceHolder';
-import { useHome } from './useHome';
-
+import {useHome} from './useHome';
 
 const Home = () => {
- const {
-   isPostLiked,
-   data,
-   setIsPostLiked,
-   setGetData,
-   getData,
-   mode,
-   getPostData,
-   getDataofUserPost,
- } = useHome();
+  const {
+    isPostLiked,
+    data,
+    setIsPostLiked,
+    getData,
+    mode,
+    getPostData,
+    getDataofUserPost,
+  } = useHome();
 
- console.log("data",data)
+  const navigation = useNavigation();
+  const isDarkMode = Boolean(mode);
+  const bgColor = isDarkMode ? '#0B0F19' : '#F8FAFC';
+  const textColor = isDarkMode ? '#FFFFFF' : '#0F172A';
+  const subtextColor = isDarkMode ? '#94A3B8' : '#64748B';
+
+  const renderEmptyState = () => {
+    if (getData) return null;
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Feather name="feather" size={32} color={StyleGuide.color.primary} />
+        </View>
+        <Text style={[styles.emptyTitle, {color: textColor}]}>
+          Your Feed is Quiet
+        </Text>
+        <Text style={[styles.emptySubtitle, {color: subtextColor}]}>
+          Be the first to share a photo or update with your friends!
+        </Text>
+        <TouchableOpacity
+          style={styles.emptyButton}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate(' ')}>
+          <Feather name="plus" size={18} color="#FFFFFF" style={{marginRight: 6}} />
+          <Text style={styles.emptyButtonText}>Create a Post</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#0F172A' : '#FFFFFF'}
+      />
       <SafeAreaView
-        style={[
-          styles.SafeAreaView,
-          {backgroundColor: mode ? 'black' : 'white'},
-        ]}>
-        {/* <View
-          style={{
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-          }}>
-          <View>
-            <Avatar
-              style={{
-                marginVertical: 10,
-                marginHorizontal: 10,
-              }}
-              size="md"
-              source={require('./../images/logo.png')}></Avatar>
-          </View>
-          <View>
-            <TouchableHighlight activeOpacity={0.6} underlayColor="#DDDDDD">
-              <Avatar
-                style={{
-                  marginVertical: 10,
-                  marginHorizontal: 10,
-                }}
-                size="md"
-                source={{uri: userProfileImaege}}>
-                <Avatar.Badge bg={isLoggedIn ? 'green.500' : 'red.500'} />
-              </Avatar>
-            </TouchableHighlight>
-          </View>
-        </View> */}
-
+        style={[styles.safeArea, {backgroundColor: bgColor}]}
+        edges={['left', 'right']}>
         <FlatList
           data={data}
+          contentContainerStyle={styles.listContent}
           renderItem={({item}) =>
             getData ? (
               <SkeletonPlaceHolder />
@@ -96,16 +78,18 @@ const Home = () => {
                 setIsPostLiked={setIsPostLiked}
                 isPostLiked={isPostLiked}
                 postData={getPostData}
-                setGetData={getData}
                 PostedUser={item.userID}
                 getDataofUserPost={getDataofUserPost}
               />
             )
           }
           onRefresh={getPostData}
-          colors={['#9Bd35A', '#689F38']}
           refreshing={getData}
-          keyExtractor={item => item.postID}
+          colors={[StyleGuide.color.primary]}
+          tintColor={StyleGuide.color.primary}
+          keyExtractor={item => item.postID || Math.random().toString()}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
         />
       </SafeAreaView>
     </>
@@ -113,31 +97,61 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
-  postHeading: {
-    textAlign: 'center',
-    justifyContent: 'center',
-    fontFamily: StyleGuide.fontFamily.medium,
-    color: StyleGuide.color.heading,
-    fontSize: widthPercentageToDP('3.5%'),
-  },
-  SafeAreaView: {
+  safeArea: {
     flex: 1,
   },
-  logo: {
-    height: 50,
-    width: 50,
+  listContent: {
+    flexGrow: 1,
+    paddingVertical: 10,
+    paddingBottom: 24,
   },
-
-  container: {
-    paddingTop: 50,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 80,
   },
-  tinyLogo: {
-    width: 50,
-    height: 50,
+  emptyIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: StyleGuide.color.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  logo: {
-    width: 66,
-    height: 58,
+  emptyTitle: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 20,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: StyleGuide.color.primary,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 24,
+    shadowColor: StyleGuide.color.primary,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emptyButtonText: {
+    color: '#FFFFFF',
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 14,
   },
 });
+
 export default Home;

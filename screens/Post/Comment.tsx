@@ -14,18 +14,20 @@ import {
   PanResponder,
   StatusBar,
   Pressable,
+  TextInput,
 } from 'react-native';
 import React, {useEffect, useState, useRef} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {TextInput} from 'react-native-paper';
 import {useDispatch, useSelector} from 'react-redux';
 import {Avatar} from 'native-base';
 import moment from 'moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ApiCall from '../../services/services';
 import {KeyboardAvoidingView} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {StyleGuide} from '../../Utils/StyleGuide';
 
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.9;
@@ -59,6 +61,8 @@ const Comment = () => {
   const insets = useSafeAreaInsets();
 
   const {postID, mode} = route.params;
+  const isDarkMode = Boolean(mode);
+
   const authState = useSelector((state: any) => state);
   const user = authState.userAuthReducer.userData?.user;
   const userID = user?._id;
@@ -91,6 +95,14 @@ const Comment = () => {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<any>(null);
+
+  // Theme color tokens
+  const sheetBg = isDarkMode ? '#0F172A' : '#FFFFFF';
+  const cardBg = isDarkMode ? '#1E293B' : '#F8FAFC';
+  const textColor = isDarkMode ? '#FFFFFF' : '#0F172A';
+  const subtextColor = isDarkMode ? '#94A3B8' : '#64748B';
+  const borderColor = isDarkMode ? '#334155' : '#E2E8F0';
+  const inputBg = isDarkMode ? '#1E293B' : '#F1F5F9';
 
   useEffect(() => {
     fetchComments();
@@ -317,6 +329,40 @@ const Comment = () => {
     return count;
   };
 
+  // Reusable avatar with initials fallback
+  const renderAvatar = (uri?: string, name?: string, size = 36) => {
+    if (uri && uri.startsWith('http')) {
+      return (
+        <Avatar
+          size={size <= 30 ? 'xs' : 'sm'}
+          source={{uri}}
+          style={{width: size, height: size, borderRadius: size / 2}}
+        />
+      );
+    }
+    const initial = name ? name.charAt(0).toUpperCase() : 'U';
+    return (
+      <View
+        style={[
+          styles.avatarFallback,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: StyleGuide.color.primaryLight,
+          },
+        ]}>
+        <Text
+          style={[
+            styles.avatarFallbackText,
+            {fontSize: size * 0.42, color: StyleGuide.color.primaryDark},
+          ]}>
+          {initial}
+        </Text>
+      </View>
+    );
+  };
+
   const renderNestedReply = (
     reply: ReplyI,
     commentID: string,
@@ -327,33 +373,33 @@ const Comment = () => {
     const hasReplies = reply.replies && reply.replies.length > 0;
     const isExpanded = expandedReplies.has(reply.replyID);
     const nestedCount = countNestedReplies(reply.replies);
-    const maxDepth = 6;
+    const maxDepth = 4;
 
     return (
-      <View key={reply.replyID} style={{marginTop: 8}}>
+      <View key={reply.replyID} style={styles.nestedReplyWrap}>
         <View
           style={[
             styles.replyRow,
-            {paddingLeft: Math.min(depth, maxDepth) * 12},
+            {paddingLeft: Math.min(depth, maxDepth) * 14},
           ]}>
           {depth > 0 && (
             <View style={styles.connectionLine}>
               <View
                 style={[
                   styles.verticalLine,
-                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                  {backgroundColor: borderColor},
                 ]}
               />
               <View
                 style={[
                   styles.horizontalLine,
-                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                  {backgroundColor: borderColor},
                 ]}
               />
             </View>
           )}
 
-          <Avatar size="xs" source={{uri: reply.userImage}} />
+          {renderAvatar(reply.userImage, reply.userProfileName, 28)}
 
           <Pressable
             style={styles.replyBody}
@@ -363,22 +409,19 @@ const Comment = () => {
             <View
               style={[
                 styles.messageBubble,
-                {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'},
+                {backgroundColor: cardBg, borderColor: borderColor},
               ]}>
-              <Text style={[styles.username, {color: mode ? '#fff' : '#000'}]}>
+              <Text style={[styles.username, {color: textColor}]}>
                 {reply.userProfileName}
               </Text>
-              <Text
-                style={[
-                  styles.messageText,
-                  {color: mode ? '#e0e0e0' : '#262626'},
-                ]}>
+              <Text style={[styles.messageText, {color: textColor}]}>
                 {reply.reply}
               </Text>
             </View>
+
             <View style={styles.replyMetaRow}>
-              <Text style={styles.metaText}>
-                {moment(reply.replyCreated).fromNow()}
+              <Text style={[styles.metaText, {color: subtextColor}]}>
+                {moment(reply.replyCreated).fromNow(true)}
               </Text>
               <TouchableOpacity
                 onPress={() =>
@@ -388,19 +431,27 @@ const Comment = () => {
                     reply.replyID,
                     'reply',
                   )
-                }>
-                <Text style={styles.replyText}>Reply</Text>
+                }
+                style={{marginLeft: 14}}>
+                <Text
+                  style={[
+                    styles.replyBtnText,
+                    {color: StyleGuide.color.primary},
+                  ]}>
+                  Reply
+                </Text>
               </TouchableOpacity>
             </View>
           </Pressable>
 
           <TouchableOpacity
             onPress={() => toggleLike(reply.replyID)}
-            style={styles.likeBtn}>
+            style={styles.likeBtn}
+            activeOpacity={0.7}>
             <Ionicons
               name={liked ? 'heart' : 'heart-outline'}
-              size={14}
-              color={liked ? '#ff3b30' : '#8e8e8e'}
+              size={15}
+              color={liked ? '#EF4444' : subtextColor}
             />
           </TouchableOpacity>
         </View>
@@ -409,15 +460,20 @@ const Comment = () => {
           <TouchableOpacity
             style={[
               styles.viewNestedRepliesBtn,
-              {paddingLeft: (Math.min(depth, maxDepth) + 1) * 12 + 48},
+              {paddingLeft: (Math.min(depth, maxDepth) + 1) * 14 + 36},
             ]}
-            onPress={() => toggleReplyExpanded(reply.replyID)}>
+            onPress={() => toggleReplyExpanded(reply.replyID)}
+            activeOpacity={0.7}>
             <MaterialCommunityIcons
               name={isExpanded ? 'chevron-down' : 'chevron-right'}
               size={18}
-              color="#8e8e8e"
+              color={StyleGuide.color.primary}
             />
-            <Text style={styles.viewRepliesText}>
+            <Text
+              style={[
+                styles.viewRepliesText,
+                {color: StyleGuide.color.primary},
+              ]}>
               {isExpanded
                 ? `Hide ${nestedCount} ${
                     nestedCount === 1 ? 'reply' : 'replies'
@@ -448,68 +504,81 @@ const Comment = () => {
     return (
       <View style={styles.commentContainer}>
         <View style={styles.commentRow}>
-          <Avatar size="sm" source={{uri: item.userImage}} />
+          {renderAvatar(item.userImage, item.userProfileName, 36)}
+
           <Pressable
             style={styles.commentBody}
             onLongPress={() => handleLongPressComment(item.commentID, mine)}>
             <View
               style={[
                 styles.messageBubble,
-                {backgroundColor: mode ? '#1a1a1a' : '#f0f0f0'},
+                {backgroundColor: cardBg, borderColor: borderColor},
               ]}>
-              <Text style={[styles.username, {color: mode ? '#fff' : '#000'}]}>
+              <Text style={[styles.username, {color: textColor}]}>
                 {item.userProfileName}
               </Text>
-              <Text
-                style={[
-                  styles.messageText,
-                  {color: mode ? '#e0e0e0' : '#262626'},
-                ]}>
+              <Text style={[styles.messageText, {color: textColor}]}>
                 {item.comment}
               </Text>
             </View>
+
             <View style={styles.metaRow}>
-              <Text style={styles.metaText}>
-                {moment(item.commentCreated).fromNow()}
+              <Text style={[styles.metaText, {color: subtextColor}]}>
+                {moment(item.commentCreated).fromNow(true)}
               </Text>
               <TouchableOpacity
                 onPress={() =>
                   handleReply(item.commentID, item.userProfileName)
-                }>
-                <Text style={styles.replyText}>Reply</Text>
+                }
+                style={{marginLeft: 14}}>
+                <Text
+                  style={[
+                    styles.replyBtnText,
+                    {color: StyleGuide.color.primary},
+                  ]}>
+                  Reply
+                </Text>
               </TouchableOpacity>
             </View>
           </Pressable>
+
           <TouchableOpacity
             onPress={() => toggleLike(item.commentID)}
-            style={styles.likeBtn}>
+            style={styles.likeBtn}
+            activeOpacity={0.7}>
             <Ionicons
               name={liked ? 'heart' : 'heart-outline'}
-              size={16}
-              color={liked ? '#ff3b30' : '#8e8e8e'}
+              size={17}
+              color={liked ? '#EF4444' : subtextColor}
             />
           </TouchableOpacity>
         </View>
 
+        {/* View Replies Button */}
         {hasReplies && (
           <TouchableOpacity
             style={styles.viewRepliesBtn}
-            onPress={() => toggleExpanded(item.commentID)}>
+            onPress={() => toggleExpanded(item.commentID)}
+            activeOpacity={0.7}>
             <View style={styles.replyLineContainer}>
               <View
                 style={[
                   styles.replyLine,
-                  {backgroundColor: mode ? '#333' : '#e0e0e0'},
+                  {backgroundColor: StyleGuide.color.primary},
                 ]}
               />
               <MaterialCommunityIcons
                 name={isExpanded ? 'chevron-down' : 'chevron-right'}
                 size={18}
-                color="#8e8e8e"
+                color={StyleGuide.color.primary}
                 style={{marginLeft: 4}}
               />
             </View>
-            <Text style={styles.viewRepliesText}>
+            <Text
+              style={[
+                styles.viewRepliesText,
+                {color: StyleGuide.color.primary},
+              ]}>
               {isExpanded
                 ? `Hide ${totalReplies} ${
                     totalReplies === 1 ? 'reply' : 'replies'
@@ -532,10 +601,6 @@ const Comment = () => {
     );
   };
 
-  const bg = mode ? '#000' : '#fff';
-  const border = mode ? '#333' : '#e0e0e0';
-  const text = mode ? '#fff' : '#000';
-
   const InputWrapper = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
   const inputWrapperProps =
     Platform.OS === 'ios' ? {behavior: 'padding' as const} : {};
@@ -545,35 +610,41 @@ const Comment = () => {
       <StatusBar
         translucent
         backgroundColor="transparent"
-        barStyle={mode ? 'light-content' : 'dark-content'}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
       />
       <View style={styles.overlay}>
+        {/* Backdrop */}
         <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]}>
           <TouchableOpacity style={{flex: 1}} onPress={closeSheet} />
         </Animated.View>
 
+        {/* Bottom Sheet */}
         <Animated.View
           style={[
             styles.sheet,
-            {backgroundColor: bg, transform: [{translateY}]},
+            {backgroundColor: sheetBg, transform: [{translateY}]},
           ]}>
+          {/* Sheet Header */}
           <View
             {...panResponder.panHandlers}
             style={[
               styles.header,
               {
-                backgroundColor: bg,
-                borderBottomColor: border,
+                backgroundColor: sheetBg,
+                borderBottomColor: borderColor,
                 paddingTop: insets.top,
               },
             ]}>
             <View style={styles.dragHandle} />
-            <Text style={[styles.headerTitle, {color: text}]}>Comments</Text>
+            <Text style={[styles.headerTitle, {color: textColor}]}>
+              Comments
+            </Text>
             <TouchableOpacity onPress={closeSheet} style={styles.closeBtn}>
-              <Ionicons name="close" size={26} color={text} />
+              <Ionicons name="close" size={24} color={textColor} />
             </TouchableOpacity>
           </View>
 
+          {/* Comments List */}
           <FlatList
             data={comments}
             renderItem={renderItem}
@@ -582,11 +653,13 @@ const Comment = () => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={() => fetchComments(true)}
+                colors={[StyleGuide.color.primary]}
+                tintColor={StyleGuide.color.primary}
               />
             }
             contentContainerStyle={{
               paddingTop: HEADER_HEIGHT + insets.top + 8,
-              paddingBottom: 110,
+              paddingBottom: 120,
             }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
@@ -595,110 +668,117 @@ const Comment = () => {
               loading ? (
                 <ActivityIndicator
                   style={{marginTop: 80}}
-                  color={mode ? '#fff' : '#000'}
+                  color={StyleGuide.color.primary}
                 />
               ) : (
                 <View style={styles.emptyContainer}>
-                  <Ionicons
-                    name="chatbubble-outline"
-                    size={64}
-                    color={mode ? '#333' : '#ddd'}
-                  />
-                  <Text style={[styles.empty, {color: mode ? '#666' : '#999'}]}>
+                  <View style={styles.emptyIconCircle}>
+                    <Feather
+                      name="message-circle"
+                      size={36}
+                      color={StyleGuide.color.primary}
+                    />
+                  </View>
+                  <Text style={[styles.empty, {color: textColor}]}>
                     No comments yet
                   </Text>
-                  <Text
-                    style={[
-                      styles.emptySubtext,
-                      {color: mode ? '#555' : '#aaa'},
-                    ]}>
-                    Be the first to comment
+                  <Text style={[styles.emptySubtext, {color: subtextColor}]}>
+                    Be the first to share your thoughts!
                   </Text>
                 </View>
               )
             }
           />
 
+          {/* Replying Banner */}
           {replyingTo && (
             <View
               style={[
                 styles.replyIndicator,
                 {
-                  backgroundColor: mode ? '#1a1a1a' : '#f5f5f5',
-                  borderTopColor: border,
+                  backgroundColor: StyleGuide.color.primaryLight,
+                  borderTopColor: borderColor,
                 },
               ]}>
-              <View
-                style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+              <View style={styles.replyIndicatorLeft}>
                 <MaterialCommunityIcons
                   name="reply"
                   size={16}
-                  color={mode ? '#666' : '#999'}
+                  color={StyleGuide.color.primaryDark}
                 />
                 <Text
                   style={[
                     styles.replyingText,
-                    {color: mode ? '#aaa' : '#666'},
+                    {color: StyleGuide.color.primaryDark},
                   ]}>
                   Replying to{' '}
-                  <Text style={{fontWeight: '600', color: '#0095f6'}}>
-                    {replyingTo.userName}
+                  <Text style={{fontWeight: '700'}}>
+                    @{replyingTo.userName}
                   </Text>
                 </Text>
               </View>
-              <TouchableOpacity onPress={cancelReply}>
+              <TouchableOpacity onPress={cancelReply} activeOpacity={0.7}>
                 <Ionicons
                   name="close-circle"
                   size={20}
-                  color={mode ? '#666' : '#999'}
+                  color={StyleGuide.color.primaryDark}
                 />
               </TouchableOpacity>
             </View>
           )}
 
+          {/* Input Footer */}
           <View
             style={[
               styles.inputContainer,
               {
-                backgroundColor: bg,
-                borderTopColor: border,
+                backgroundColor: sheetBg,
+                borderTopColor: borderColor,
                 paddingBottom: Platform.OS === 'ios' ? insets.bottom + 8 : 12,
               },
             ]}>
             <InputWrapper {...inputWrapperProps}>
               <View style={styles.inputRow}>
-                <Avatar size="xs" source={{uri: user?.image}} />
-                <TextInput
-                  ref={inputRef}
-                  value={newComment}
-                  onChangeText={setNewComment}
-                  placeholder={replyingTo ? 'Add a reply…' : 'Add a comment…'}
-                  placeholderTextColor={mode ? '#666' : '#999'}
-                  multiline
-                  maxLength={500}
-                  style={[styles.input, {color: text}]}
-                  underlineColor="transparent"
-                  activeUnderlineColor="transparent"
-                  theme={{
-                    colors: {
-                      background: mode ? '#1a1a1a' : '#f5f5f5',
-                    },
-                  }}
-                />
-                {newComment.trim().length > 0 && (
-                  <TouchableOpacity onPress={postComment} disabled={posting}>
-                    {posting ? (
-                      <ActivityIndicator size="small" color="#0095f6" />
-                    ) : (
-                      <Ionicons name="send" size={24} color="#0095f6" />
-                    )}
-                  </TouchableOpacity>
-                )}
+                {renderAvatar(user?.image, user?.name, 36)}
+
+                <View
+                  style={[
+                    styles.inputFieldContainer,
+                    {backgroundColor: inputBg, borderColor: borderColor},
+                  ]}>
+                  <TextInput
+                    ref={inputRef}
+                    value={newComment}
+                    onChangeText={setNewComment}
+                    placeholder={
+                      replyingTo ? 'Write a reply…' : 'Add a comment…'
+                    }
+                    placeholderTextColor={subtextColor}
+                    multiline
+                    maxLength={500}
+                    style={[styles.input, {color: textColor}]}
+                  />
+
+                  {newComment.trim().length > 0 && (
+                    <TouchableOpacity
+                      onPress={postComment}
+                      disabled={posting}
+                      activeOpacity={0.8}
+                      style={styles.sendButtonCircle}>
+                      {posting ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Ionicons name="arrow-up" size={18} color="#FFFFFF" />
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </InputWrapper>
           </View>
         </Animated.View>
 
+        {/* Delete Confirmation Modal */}
         <Modal
           transparent
           visible={deleteModal.visible}
@@ -715,34 +795,31 @@ const Comment = () => {
               <View
                 style={[
                   styles.deleteModalCard,
-                  {backgroundColor: mode ? '#1c1c1e' : '#fff'},
+                  {backgroundColor: cardBg, borderColor: borderColor},
                 ]}>
                 <View style={styles.deleteIconContainer}>
-                  <Ionicons name="trash-outline" size={48} color="#ff3b30" />
+                  <Ionicons name="trash-outline" size={36} color="#EF4444" />
                 </View>
-                <Text
-                  style={[
-                    styles.deleteModalTitle,
-                    {color: mode ? '#fff' : '#000'},
-                  ]}>
+                <Text style={[styles.deleteModalTitle, {color: textColor}]}>
                   Delete {deleteModal.type === 'comment' ? 'Comment' : 'Reply'}?
                 </Text>
                 <Text
                   style={[
                     styles.deleteModalMessage,
-                    {color: mode ? '#8e8e93' : '#8e8e8e'},
+                    {color: subtextColor},
                   ]}>
-                  Are you sure you want to delete this{' '}
-                  {deleteModal.type === 'comment' ? 'comment' : 'reply'}? This
-                  will also delete all nested replies.
+                  Are you sure you want to delete this {deleteModal.type}? This
+                  action cannot be undone.
                 </Text>
 
                 <View style={styles.deleteModalButtons}>
                   <TouchableOpacity
                     style={[
                       styles.deleteModalButton,
-                      styles.cancelButton,
-                      {backgroundColor: mode ? '#2c2c2e' : '#f0f0f0'},
+                      {
+                        backgroundColor: isDarkMode ? '#334155' : '#F1F5F9',
+                        marginRight: 10,
+                      },
                     ]}
                     onPress={() =>
                       setDeleteModal({
@@ -752,10 +829,7 @@ const Comment = () => {
                       })
                     }>
                     <Text
-                      style={[
-                        styles.cancelButtonText,
-                        {color: mode ? '#fff' : '#000'},
-                      ]}>
+                      style={[styles.cancelButtonText, {color: textColor}]}>
                       Cancel
                     </Text>
                   </TouchableOpacity>
@@ -775,15 +849,18 @@ const Comment = () => {
 };
 
 const styles = StyleSheet.create({
-  overlay: {flex: 1, justifyContent: 'flex-end'},
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
   },
   sheet: {
     height: SHEET_HEIGHT,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     overflow: 'hidden',
   },
   header: {
@@ -794,31 +871,35 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 1,
     zIndex: 50,
     elevation: 50,
   },
   dragHandle: {
     position: 'absolute',
-    top: 8,
-    width: 36,
+    top: 10,
+    width: 38,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#ccc',
+    backgroundColor: '#CBD5E1',
   },
-  headerTitle: {fontSize: 17, fontWeight: '600', letterSpacing: 0.3},
+  headerTitle: {
+    fontSize: 17,
+    fontFamily: StyleGuide.fontFamily.bold,
+  },
   closeBtn: {
     position: 'absolute',
     right: 16,
-    bottom: 14,
+    bottom: 12,
+    padding: 4,
   },
   commentContainer: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   commentRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
     alignItems: 'flex-start',
   },
   commentBody: {
@@ -826,62 +907,73 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   messageBubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
     marginBottom: 4,
   },
   username: {
-    fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 2,
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 13.5,
+    marginBottom: 3,
   },
   messageText: {
+    fontFamily: StyleGuide.fontFamily.regular,
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 16,
-    paddingHorizontal: 12,
+    alignItems: 'center',
+    paddingHorizontal: 4,
     marginTop: 2,
   },
-  metaText: {fontSize: 12, color: '#8e8e8e', fontWeight: '500'},
-  replyText: {fontSize: 12, color: '#8e8e8e', fontWeight: '600'},
+  metaText: {
+    fontSize: 12,
+    fontFamily: StyleGuide.fontFamily.regular,
+  },
+  replyBtnText: {
+    fontSize: 12,
+    fontFamily: StyleGuide.fontFamily.bold,
+  },
   likeBtn: {
-    paddingLeft: 8,
-    paddingTop: 8,
+    paddingLeft: 10,
+    paddingTop: 10,
   },
   viewRepliesBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 60,
-    marginTop: 4,
+    marginTop: 2,
     marginBottom: 4,
   },
   replyLineContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 6,
   },
   replyLine: {
-    width: 24,
-    height: 1.5,
+    width: 22,
+    height: 2,
+    borderRadius: 1,
   },
   viewRepliesText: {
-    fontSize: 13,
-    color: '#8e8e8e',
-    fontWeight: '600',
+    fontSize: 12.5,
+    fontFamily: StyleGuide.fontFamily.bold,
   },
   viewNestedRepliesBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
     marginBottom: 4,
   },
   repliesContainer: {
-    paddingLeft: 16,
-    paddingTop: 4,
+    paddingLeft: 12,
+    paddingTop: 2,
+  },
+  nestedReplyWrap: {
+    marginTop: 6,
   },
   replyRow: {
     flexDirection: 'row',
@@ -892,34 +984,41 @@ const styles = StyleSheet.create({
   },
   replyBody: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 10,
   },
   replyMetaRow: {
     flexDirection: 'row',
-    gap: 16,
-    paddingHorizontal: 12,
+    alignItems: 'center',
+    paddingHorizontal: 4,
     marginTop: 2,
   },
   connectionLine: {
     position: 'absolute',
-    left: -12,
+    left: -10,
     top: 0,
     bottom: 0,
-    width: 24,
+    width: 20,
   },
   verticalLine: {
     position: 'absolute',
-    left: 12,
+    left: 10,
     top: 0,
     width: 1.5,
     height: '100%',
   },
   horizontalLine: {
     position: 'absolute',
-    left: 12,
-    top: 20,
-    width: 12,
+    left: 10,
+    top: 18,
+    width: 10,
     height: 1.5,
+  },
+  avatarFallback: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackText: {
+    fontFamily: StyleGuide.fontFamily.bold,
   },
   replyIndicator: {
     flexDirection: 'row',
@@ -927,46 +1026,80 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderTopWidth: 0.5,
+    borderTopWidth: 1,
+  },
+  replyIndicatorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   replyingText: {
     fontSize: 13,
+    fontFamily: StyleGuide.fontFamily.medium,
+    marginLeft: 6,
   },
   inputContainer: {
-    borderTopWidth: 0.5,
+    borderTopWidth: 1,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 8,
+  },
+  inputFieldContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    minHeight: 44,
   },
   input: {
     flex: 1,
-    marginHorizontal: 12,
-    maxHeight: 100,
-    fontSize: 15,
-    paddingHorizontal: 12,
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 14,
     paddingVertical: 8,
-    borderRadius: 20,
+    maxHeight: 90,
+  },
+  sendButtonCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: StyleGuide.color.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 6,
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 80,
+    paddingHorizontal: 32,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: StyleGuide.color.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
   },
   empty: {
     textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 16,
+    fontSize: 18,
+    fontFamily: StyleGuide.fontFamily.bold,
+    marginBottom: 4,
   },
   emptySubtext: {
-    fontSize: 14,
-    marginTop: 4,
+    fontSize: 13,
+    fontFamily: StyleGuide.fontFamily.regular,
+    textAlign: 'center',
   },
   deleteModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -976,63 +1109,62 @@ const styles = StyleSheet.create({
     maxWidth: 340,
   },
   deleteModalCard: {
-    borderRadius: 20,
+    borderRadius: 24,
+    borderWidth: 1,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 8,
   },
   deleteIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   deleteModalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
+    fontSize: 18,
+    fontFamily: StyleGuide.fontFamily.bold,
+    marginBottom: 6,
     textAlign: 'center',
   },
   deleteModalMessage: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: StyleGuide.fontFamily.regular,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-    paddingHorizontal: 8,
+    lineHeight: 18,
+    marginBottom: 20,
+    paddingHorizontal: 6,
   },
   deleteModalButtons: {
     flexDirection: 'row',
     width: '100%',
-    gap: 12,
   },
   deleteModalButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButton: {
-    borderWidth: 0,
-  },
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: StyleGuide.fontFamily.bold,
   },
   deleteButton: {
-    backgroundColor: '#ff3b30',
+    backgroundColor: '#EF4444',
   },
   deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: StyleGuide.fontFamily.bold,
   },
 });
+
 export default Comment;

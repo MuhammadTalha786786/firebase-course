@@ -17,14 +17,10 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
 import moment from 'moment';
-import ProgressiveImage from '../components/ProgressiveImage';
 import {StackParamList} from '../../Utils/routes';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {reducerType} from '../../Utils/types';
-import Svg from '../components/Svg';
-import {commentIcon, sendIcon} from '../../Utils/SvgAssests';
 import ApiCall from '../../services/services';
 import FastImage from 'react-native-fast-image';
 
@@ -49,6 +45,13 @@ const CardUI = ({item, mode, setGetData}) => {
 
   const navigation =
     useNavigation<NativeStackNavigationProp<StackParamList>>();
+
+  const isDarkMode = Boolean(mode);
+  const cardBg = isDarkMode ? '#1E293B' : '#FFFFFF';
+  const textColor = isDarkMode ? '#FFFFFF' : '#0F172A';
+  const subtextColor = isDarkMode ? '#94A3B8' : '#64748B';
+  const borderColor = isDarkMode ? '#334155' : '#E2E8F0';
+  const inputBg = isDarkMode ? '#0F172A' : '#F8FAFC';
 
   // Check if current user has liked the post
   useFocusEffect(
@@ -75,13 +78,12 @@ const CardUI = ({item, mode, setGetData}) => {
     setIsLoading(true);
     setLikeAnimation(true);
 
-    // Optimistic UI update
     const previousLiked = isLiked;
     const previousCount = likesCount;
     setIsLiked(!isLiked);
     setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
 
-    setTimeout(() => setLikeAnimation(false), 1000);
+    setTimeout(() => setLikeAnimation(false), 900);
 
     try {
       const body = {userID};
@@ -169,15 +171,8 @@ const CardUI = ({item, mode, setGetData}) => {
       'Delete Post',
       'Are you sure you want to delete this post? This action cannot be undone.',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: deletePost,
-        },
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Delete', style: 'destructive', onPress: deletePost},
       ],
       {cancelable: true},
     );
@@ -219,133 +214,183 @@ const CardUI = ({item, mode, setGetData}) => {
     navigation.navigate('UserProfile', {id: item.userID});
   };
 
-  const progressiveImageURL = require('../../images/default-img.jpeg');
   const PostedDate = item.dateCreated;
   const userProfileImage = userData?.image;
-
   const captionText = item.postDetail || '';
   const shouldShowMore = captionText.length > 100;
   const displayCaption = showFullCaption
     ? captionText
     : captionText.slice(0, 100);
 
+  const hasImage = Boolean(item.postImage && item.postImage.trim() !== '');
+  const authorInitial = item.userName ? item.userName.charAt(0).toUpperCase() : 'U';
+
   return (
-    <View style={[styles.container, {backgroundColor: mode ? '#000' : '#fff'}]}>
-      {/* Header */}
+    <View
+      style={[
+        styles.cardContainer,
+        {
+          backgroundColor: cardBg,
+          borderColor: borderColor,
+        },
+      ]}>
+      {/* Post Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.userInfoContainer}
           activeOpacity={0.7}
           onPress={navigateToProfile}>
-          <Avatar size="sm" source={{uri: item.userImage}} />
+          {item.userImage && item.userImage.startsWith('http') ? (
+            <Avatar size="sm" source={{uri: item.userImage}} />
+          ) : (
+            <View
+              style={[
+                styles.avatarFallback,
+                {backgroundColor: StyleGuide.color.primaryLight},
+              ]}>
+              <Text style={styles.avatarFallbackText}>{authorInitial}</Text>
+            </View>
+          )}
+
           <View style={styles.userDetails}>
-            <Text
-              style={[styles.userName, {color: mode ? '#fff' : '#000'}]}
-              numberOfLines={1}>
-              {item.userName?.charAt(0).toUpperCase() +
-                item.userName?.slice(1)}
-            </Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={[styles.userName, {color: textColor}]} numberOfLines={1}>
+                {item.userName
+                  ? item.userName.charAt(0).toUpperCase() + item.userName.slice(1)
+                  : 'User'}
+              </Text>
+              <Text style={[styles.timestampInline, {color: subtextColor}]}>
+                • {PostedDate ? moment(PostedDate).fromNow(true) : 'now'}
+              </Text>
+            </View>
+            {Boolean(
+              item?.location &&
+                typeof item.location === 'string' &&
+                item.location.trim() !== '',
+            ) && (
+              <View style={styles.locationRow}>
+                <Feather name="map-pin" size={11} color={StyleGuide.color.primary} />
+                <Text
+                  style={[styles.locationText, {color: subtextColor}]}
+                  numberOfLines={1}>
+                  {item.location.trim()}
+                </Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.moreButton}
+          activeOpacity={0.7}
           onPress={item?.userID === userID ? handleDeletePost : null}>
           {item?.userID === userID ? (
-            <MaterialCommunityIcons name="delete" color="red" size={24} />
+            <MaterialCommunityIcons name="delete-outline" color="#EF4444" size={22} />
           ) : (
             <Feather
-              name="more-vertical"
-              color={mode ? '#fff' : '#000'}
-              size={24}
+              name="more-horizontal"
+              color={subtextColor}
+              size={20}
             />
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Post Image */}
-      <Pressable onPress={handleDoubleTap} activeOpacity={1}>
-        <View style={styles.imageContainer}>
-          {item.postImage ? (
+      {/* Post Media or Text Post Content */}
+      {hasImage ? (
+        <Pressable onPress={handleDoubleTap} activeOpacity={1}>
+          <View style={styles.imageContainer}>
             <FastImage
               source={{uri: item.postImage}}
               style={styles.postImage}
               resizeMode={FastImage.resizeMode.cover}
             />
-          ) : (
-            <ProgressiveImage
-              source={progressiveImageURL}
-              style={styles.postImage}
-            />
-          )}
-          {likeAnimation && (
-            <View style={styles.likeAnimationOverlay}>
-              <AntDesign name="heart" size={80} color="white" />
-            </View>
-          )}
-        </View>
-      </Pressable>
-
-      {/* Action Buttons */}
-      <View style={styles.actionsContainer}>
-        <View style={styles.leftActions}>
-          <Pressable
-            onPress={handleToggleLike}
-            disabled={isLoading}
-            style={styles.actionButton}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="red" />
-            ) : (
-              <AntDesign
-                name={isLiked ? 'heart' : 'hearto'}
-                color={isLiked ? '#ff3b30' : mode ? '#fff' : '#000'}
-                size={26}
-              />
+            {likeAnimation && (
+              <View style={styles.likeAnimationOverlay}>
+                <AntDesign name="heart" size={80} color="#FFFFFF" />
+              </View>
             )}
-          </Pressable>
-
-          <Pressable
-            onPress={navigateToComments}
-            style={styles.actionButtonWithCount}>
-            <Feather
-              name="message-circle"
-              color={mode ? '#fff' : '#000'}
-              size={24}
-            />
-            {commentsCount > 0 && (
-              <Text style={[styles.actionCountText, {color: mode ? '#fff' : '#000'}]}>
-                {commentsCount}
-              </Text>
-            )}
-          </Pressable>
-
-          <Pressable style={styles.actionButton}>
-            <Feather name="send" color={mode ? '#fff' : '#000'} size={24} />
-          </Pressable>
-        </View>
-
-        <Pressable style={styles.actionButton}>
-          <Feather name="bookmark" color={mode ? '#fff' : '#000'} size={24} />
+          </View>
         </Pressable>
-      </View>
-
-      {/* Likes Count */}
-      {likesCount > 0 && (
-        <View style={styles.likesContainer}>
-          <Text style={[styles.likesText, {color: mode ? '#fff' : '#000'}]}>
-            {likesCount.toLocaleString()}{' '}
-            {likesCount === 1 ? 'like' : 'likes'}
+      ) : (
+        /* Text Status Post */
+        <View
+          style={[
+            styles.textPostCard,
+            {backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC'},
+          ]}>
+          <Text style={[styles.textPostContent, {color: textColor}]}>
+            {captionText}
           </Text>
         </View>
       )}
 
-      {/* Caption */}
-      {captionText.length > 0 && (
+      {/* Action Buttons Row */}
+      <View style={styles.actionsContainer}>
+        <View style={styles.leftActions}>
+          {/* Like Button */}
+          <TouchableOpacity
+            onPress={handleToggleLike}
+            disabled={isLoading}
+            style={styles.actionButton}
+            activeOpacity={0.7}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <AntDesign
+                name={isLiked ? 'heart' : 'hearto'}
+                color={isLiked ? '#EF4444' : textColor}
+                size={22}
+              />
+            )}
+            {likesCount > 0 && (
+              <Text
+                style={[
+                  styles.actionCountText,
+                  {color: isLiked ? '#EF4444' : textColor},
+                ]}>
+                {likesCount}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Comment Button */}
+          <TouchableOpacity
+            onPress={navigateToComments}
+            style={styles.actionButton}
+            activeOpacity={0.7}>
+            <Feather
+              name="message-circle"
+              color={textColor}
+              size={22}
+            />
+            {commentsCount > 0 && (
+              <Text style={[styles.actionCountText, {color: textColor}]}>
+                {commentsCount}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Share Button */}
+          <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+            <Feather name="send" color={textColor} size={20} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Bookmark Button */}
+        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+          <Feather name="bookmark" color={subtextColor} size={21} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Caption Section (only for posts with an image) */}
+      {hasImage && captionText.length > 0 && (
         <View style={styles.captionContainer}>
-          <Text style={[styles.captionText, {color: mode ? '#fff' : '#000'}]}>
+          <Text style={[styles.captionText, {color: textColor}]}>
             <Text style={styles.captionUsername}>
-              {item.userName?.charAt(0).toUpperCase() +
-                item.userName?.slice(1)}{' '}
+              {item.userName
+                ? item.userName.charAt(0).toUpperCase() + item.userName.slice(1)
+                : 'User'}{' '}
             </Text>
             {displayCaption}
             {shouldShowMore && !showFullCaption && '... '}
@@ -353,54 +398,63 @@ const CardUI = ({item, mode, setGetData}) => {
               <Text
                 style={styles.moreText}
                 onPress={() => setShowFullCaption(!showFullCaption)}>
-                {showFullCaption ? 'less' : 'more'}
+                {showFullCaption ? ' less' : ' more'}
               </Text>
             )}
           </Text>
         </View>
       )}
 
-      {/* View All Comments */}
+      {/* View Comments Link */}
       {commentsCount > 0 && (
         <TouchableOpacity
           style={styles.viewCommentsContainer}
+          activeOpacity={0.7}
           onPress={navigateToComments}>
-          <Text style={[styles.viewCommentsText, {color: mode ? '#999' : '#666'}]}>
+          <Text style={[styles.viewCommentsText, {color: subtextColor}]}>
             View all {commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}
           </Text>
         </TouchableOpacity>
       )}
 
-      {/* Timestamp */}
-      <View style={styles.timestampContainer}>
-        <Text style={[styles.timestampText, {color: mode ? '#999' : '#666'}]}>
-          {moment(PostedDate).fromNow()}
-        </Text>
-      </View>
-
-      {/* Add Comment Input */}
-      <View
-        style={[
-          styles.addCommentContainer,
-          {borderTopColor: mode ? '#333' : '#efefef'},
-        ]}>
-        <Avatar size="xs" source={{uri: userProfileImage}} />
+      {/* Quick Comment Input */}
+      <View style={[styles.addCommentContainer, {borderTopColor: borderColor}]}>
+        {userProfileImage && userProfileImage.startsWith('http') ? (
+          <Avatar size="xs" source={{uri: userProfileImage}} />
+        ) : (
+          <View
+            style={[
+              styles.avatarFallbackMini,
+              {backgroundColor: StyleGuide.color.primaryLight},
+            ]}>
+            <Text style={styles.avatarFallbackMiniText}>
+              {userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
+            </Text>
+          </View>
+        )}
         <TextInput
-          style={[styles.commentInput, {color: mode ? '#fff' : '#000'}]}
+          style={[
+            styles.commentInput,
+            {
+              backgroundColor: inputBg,
+              color: textColor,
+              borderColor: borderColor,
+            },
+          ]}
           placeholder="Add a comment..."
-          placeholderTextColor={mode ? '#999' : '#666'}
+          placeholderTextColor={subtextColor}
           value={comment}
           onChangeText={setComment}
-          multiline
           editable={!isCommentLoading}
         />
         {comment.trim().length > 0 && (
           <TouchableOpacity
             onPress={postComment}
             disabled={isCommentLoading}
-            style={styles.postCommentButton}>
+            style={styles.postCommentButton}
+            activeOpacity={0.7}>
             {isCommentLoading ? (
-              <ActivityIndicator size="small" color="#0095f6" />
+              <ActivityIndicator size="small" color={StyleGuide.color.primary} />
             ) : (
               <Text style={styles.postCommentText}>Post</Text>
             )}
@@ -412,15 +466,24 @@ const CardUI = ({item, mode, setGetData}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 10,
+  cardContainer: {
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   userInfoContainer: {
     flexDirection: 'row',
@@ -432,22 +495,72 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontFamily: StyleGuide.fontFamily.medium,
+    fontFamily: StyleGuide.fontFamily.bold,
     fontSize: 14,
-    fontWeight: '600',
+  },
+  timestampInline: {
+    fontFamily: StyleGuide.fontFamily.regular,
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationText: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 11,
+    marginLeft: 4,
+    maxWidth: SCREEN_WIDTH * 0.6,
   },
   moreButton: {
-    padding: 5,
+    padding: 4,
+  },
+  avatarFallback: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 15,
+    color: StyleGuide.color.primaryDark,
+  },
+  avatarFallbackMini: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackMiniText: {
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 12,
+    color: StyleGuide.color.primaryDark,
   },
   imageContainer: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-    backgroundColor: '#f0f0f0',
+    width: '100%',
+    height: SCREEN_WIDTH * 0.9,
+    backgroundColor: '#0F172A',
     position: 'relative',
   },
   postImage: {
     width: '100%',
     height: '100%',
+  },
+  textPostCard: {
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  textPostContent: {
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 16,
+    lineHeight: 24,
   },
   likeAnimationOverlay: {
     position: 'absolute',
@@ -462,96 +575,75 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 4,
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   leftActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   actionButton: {
-    paddingRight: 16,
-    paddingVertical: 4,
-  },
-  actionButtonWithCount: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingRight: 16,
     paddingVertical: 4,
   },
   actionCountText: {
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 13,
     marginLeft: 6,
   },
-  likesContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  likesText: {
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '600',
-  },
   captionContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingBottom: 6,
   },
   captionText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 13.5,
+    lineHeight: 19,
   },
   captionUsername: {
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontWeight: '600',
+    fontFamily: StyleGuide.fontFamily.bold,
   },
   moreText: {
-    color: '#999',
-    fontFamily: StyleGuide.fontFamily.regular,
+    color: StyleGuide.color.primary,
+    fontFamily: StyleGuide.fontFamily.medium,
   },
   viewCommentsContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 14,
+    paddingBottom: 8,
   },
   viewCommentsText: {
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 14,
-  },
-  timestampContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  timestampText: {
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 11,
-    textTransform: 'uppercase',
+    fontFamily: StyleGuide.fontFamily.medium,
+    fontSize: 13,
   },
   addCommentContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderTopWidth: 0.5,
-    marginTop: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderTopWidth: 1,
   },
   commentInput: {
     flex: 1,
     marginLeft: 10,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 0,
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 14,
-    maxHeight: 80,
+    fontSize: 13,
   },
   postCommentButton: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   postCommentText: {
-    color: '#0095f6',
-    fontFamily: StyleGuide.fontFamily.medium,
-    fontSize: 14,
-    fontWeight: '600',
+    color: StyleGuide.color.primary,
+    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 13,
   },
 });
 

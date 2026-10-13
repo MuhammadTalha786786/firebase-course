@@ -19,32 +19,21 @@ export const useHome = () => {
   const dispatch = useDispatch();
 
   const getPostData = async () => {
-    const response = await ApiCall('get', 'api/posts', '', dispatch, false);
-
-    console.log(response,"response:::")
-
-    if (response?.success) {
-      if (response?.data && response?.data.length > 0) {
-        console.log("first")
-        setData(response?.data);
+    try {
+      const response = await ApiCall('get', 'api/posts', '', dispatch, false);
+      if (response?.success && Array.isArray(response?.data)) {
+        setData(response.data);
       }
+    } catch (err) {
+      console.error('Error fetching posts:', err);
     }
-
   };
 
-  console.log('data::', data);
-
-  useEffect(() => {
-    getPostData();
-  }, []);
-
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     getPostData();
-  //           getDataofUserPost();
-
-  //   }, [ navigation]),
-  // );
+  useFocusEffect(
+    React.useCallback(() => {
+      getPostData();
+    }, []),
+  );
 
   let uid = authState.userAuthReducer.uid;
 

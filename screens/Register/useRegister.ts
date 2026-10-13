@@ -3,13 +3,13 @@ import React, {useState} from 'react';
 import useGoogleSignIn from '../components/GoogleSignIn';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
-import {v4 as uuidv4} from 'uuid';
+import uuid from 'react-native-uuid';
 import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import ApiCall from '../../services/services';
 import {useDispatch} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import {uploadFileToSupabase} from '../../services/supabaseStorage';
 
 export const useRegister = () => {
   const dispatch = useDispatch();
@@ -27,86 +27,87 @@ export const useRegister = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [registerLoading, setRegisterLoading] = useState<boolean>(false);
 
-  const uploadImage = async () => {};
+  const uploadToStorage = async (filePath: string, base64Data?: string) => {
+    try {
+      setLoading(true);
+      const downloadUrl = await uploadFileToSupabase(filePath, {
+        bucket: 'social-bea',
+        folder: 'profile_images',
+        base64Data,
+      });
+      console.log('Uploaded image URL to Supabase:', downloadUrl);
+      setUserProfileImage(downloadUrl);
+      Toast.show({
+        text2: 'Image uploaded successfully!',
+        type: 'success',
+        position: 'bottom',
+      });
+    } catch (uploadErr: any) {
+      console.error('Supabase Storage upload error:', uploadErr);
+      Toast.show({
+        text1: 'Upload Failed',
+        text2:
+          uploadErr?.message ||
+          'Failed to upload image. Please check Supabase Storage settings.',
+        type: 'error',
+        position: 'bottom',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleCamera = (action: 'Gallery' | 'Camera') => {
-    setLoading(true);
+  const uploadImage = uploadToStorage;
 
-    if (action == 'Camera') {
-      ImagePicker.openCamera({
-        width: 300,
-        height: 400,
-        cropping: true,
-        useFrontCamera: true,
-      })
-        .then(image => {
-          setImage(image.path);
-          console.log(image.path);
-          let fileName = `${uuidv4()}${image.path.substr(
-            image.path.lastIndexOf('.'),
-          )}`;
-          const ref = storage().ref(fileName);
-          ref.putFile(image.path).then(s => {
-            ref.getDownloadURL().then(x => {
-              console.log(x, 'x url');
-              setUserProfileImage(x);
-            });
-          });
-          setLoading(false);
-          setShowPickerModal(false);
-        })
-        .catch(err => {
-          setLoading(false);
+  const handleCamera = async (action: 'Gallery' | 'Camera') => {
+    setShowPickerModal(false);
+    try {
+      let imageResult;
+      if (action === 'Camera') {
+        imageResult = await ImagePicker.openCamera({
+          width: 300,
+          height: 400,
+          cropping: true,
+          useFrontCamera: true,
+          includeBase64: true,
         });
-    } else {
-      ImagePicker.openPicker({
-        multiple: false,
-      })
-        .then(image => {
-          setImage(image.path);
-          2;
-          console.log(image.path);
-          let fileName = `${uuidv4()}${image.path.substr(
-            image.path.lastIndexOf('.'),
-          )}`;
-          const ref = storage().ref(fileName);
-          ref.putFile(image.path).then(s => {
-            ref.getDownloadURL().then(x => {
-              console.log(x, 'x url');
-              setUserProfileImage(x);
-            });
-          });
-          setShowPickerModal(false);
-          setLoading(false);
-        })
-        .catch(err => {
-          setLoading(false);
-          setShowPickerModal(false);
+      } else {
+        imageResult = await ImagePicker.openPicker({
+          width: 300,
+          height: 400,
+          cropping: true,
+          includeBase64: true,
         });
+      }
+
+      if (imageResult?.path) {
+        setImage(imageResult.path);
+        await uploadToStorage(imageResult.path, imageResult.data);
+      }
+    } catch (err: any) {
+      if (err?.code !== 'E_PICKER_CANCELLED') {
+        console.error('Picker error:', err);
+      }
     }
   };
 
   const selectImage = async () => {
-    ImagePicker.openPicker({
-      width: 300,
-      height: 400,
-      cropping: true,
-    }).then(image => {
-      setImage(image?.path);
-      console.log(image?.path);
-      let fileName = `${uuidv4()}${image.path.substr(
-        image.path.lastIndexOf('.'),
-      )}`;
-      const ref = storage().ref(fileName);
-      ref.putFile(image?.path).then(s => {
-        ref.getDownloadURL().then(x => {
-          console.log(x, 'x url');
-          setUserProfileImage(x);
-        });
+    try {
+      const imageResult = await ImagePicker.openPicker({
+        width: 300,
+        height: 400,
+        cropping: true,
+        includeBase64: true,
       });
-    });
-
-    console.log(image, 'uri....');
+      if (imageResult?.path) {
+        setImage(imageResult.path);
+        await uploadToStorage(imageResult.path, imageResult.data);
+      }
+    } catch (err: any) {
+      if (err?.code !== 'E_PICKER_CANCELLED') {
+        console.error('Picker error:', err);
+      }
+    }
   };
 
   const writeUserData = user => {
@@ -153,7 +154,7 @@ export const useRegister = () => {
         let body = {
           email: email,
           name: name,
-          uid: uuidv4(),
+          uid: uuid.v4() as string,
           image: userProfieImage,
           password: Password,
           isLogin: false,
