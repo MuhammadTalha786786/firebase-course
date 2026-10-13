@@ -77,6 +77,47 @@ const createPost = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating post:', error);
+
+    // Auto-heal E11000 duplicate key error caused by legacy subdocument unique index
+    if (
+      error.code === 11000 &&
+      (error.message?.includes('comments.replies.replyID') ||
+        error.message?.includes('comments.commentID'))
+    ) {
+      try {
+        console.log('Detected E11000 on subdocument index. Dropping problematic index and retrying...');
+        const postsCollection = Post.collection;
+        try {
+          await postsCollection.dropIndex('comments.replies.replyID_1');
+        } catch (e) {}
+        try {
+          await postsCollection.dropIndex('comments.commentID_1');
+        } catch (e) {}
+
+        const postID = uuidv4();
+        const retryPost = await Post.create({
+          postID,
+          userID: req.body.userID,
+          userName: req.body.userName,
+          userImage: req.body.userImage || '',
+          postDetail: req.body.postDetail || '',
+          postImage: req.body.postImage || '',
+          location: req.body.location || '',
+          coordinates: req.body.coordinates || null,
+          likes: [],
+          comments: []
+        });
+
+        return res.status(201).json({
+          success: true,
+          message: 'Post created successfully',
+          data: retryPost
+        });
+      } catch (retryErr) {
+        console.error('Auto-heal retry failed:', retryErr);
+      }
+    }
+
     res.status(500).json({
       success: false,
       message: 'Server error while creating post',
@@ -170,11 +211,17 @@ const updatePost = async (req, res) => {
   try {
     await connectDB();
     
-    const { postDetail, postImage } = req.body;
+    const { postDetail, postImage, location, coordinates } = req.body;
+
+    const updateFields = {};
+    if (postDetail !== undefined) updateFields.postDetail = postDetail;
+    if (postImage !== undefined) updateFields.postImage = postImage;
+    if (location !== undefined) updateFields.location = location;
+    if (coordinates !== undefined) updateFields.coordinates = coordinates;
 
     const post = await Post.findOneAndUpdate(
       { postID: req.params.postID },
-      { postDetail, postImage },
+      updateFields,
       { new: true, runValidators: true }
     );
 

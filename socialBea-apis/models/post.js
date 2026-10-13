@@ -8,8 +8,7 @@ const replySchema = new mongoose.Schema({
   },
   replyID: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   parentReplyID: {
     type: String,
@@ -48,8 +47,7 @@ const commentSchema = new mongoose.Schema({
   },
   commentID: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   postID: {
     type: String,
