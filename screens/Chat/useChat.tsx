@@ -399,6 +399,10 @@ export const useChat = () => {
     isOtherTyping,
     isSocketConnected,
     currentUserId,
+    currentUserMongoId: authState.userAuthReducer.userData?.user?._id,
+    currentUserUid:
+      authState.userAuthReducer.userData?.user?.uid ||
+      authState.userAuthReducer.uid,
     receiverName,
     receiverImage,
     receiverLogin,

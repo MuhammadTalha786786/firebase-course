@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
   FlatList,
   Dimensions,
   Modal,
@@ -20,7 +19,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Avatar} from 'native-base';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import {StyleGuide} from '../../Utils/StyleGuide';
 import {useChat} from './useChat';
@@ -40,6 +38,8 @@ export default function ChatScreen() {
     isOtherTyping,
     isSocketConnected,
     currentUserId,
+    currentUserMongoId,
+    currentUserUid,
     receiverName,
     receiverImage,
     receiverLogin,
@@ -64,16 +64,20 @@ export default function ChatScreen() {
       textSecondary: isDarkMode ? '#9CA3AF' : '#64748B',
       border: isDarkMode ? '#374151' : '#E5E7EB',
       inputBg: isDarkMode ? '#1F2937' : '#F1F5F9',
-      primary: StyleGuide.color.primary || '#10B981',
-      senderBubble: StyleGuide.color.primary || '#10B981',
+      primary: '#0084FF',
+      // Sender Bubble (My message on the right: Vibrant Modern Blue)
+      senderBubble: '#0084FF',
       senderText: '#FFFFFF',
-      receiverBubble: isDarkMode ? '#1F2937' : '#FFFFFF',
+      senderTime: 'rgba(255, 255, 255, 0.78)',
+      // Receiver Bubble (Other person's message on the left: Distinct soft grey in light mode)
+      receiverBubble: isDarkMode ? '#1E293B' : '#E2E8F0',
       receiverText: isDarkMode ? '#F9FAFB' : '#0F172A',
-      deletedBubble: isDarkMode ? '#18202F' : '#F1F5F9',
-      deletedText: isDarkMode ? '#6B7280' : '#94A3B8',
+      receiverTime: isDarkMode ? '#94A3B8' : '#64748B',
+      deletedBubble: isDarkMode ? '#18202F' : '#E2E8F0',
+      deletedText: isDarkMode ? '#6B7280' : '#64748B',
       modalOverlay: 'rgba(0, 0, 0, 0.6)',
       danger: '#EF4444',
-      badgeBg: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+      badgeBg: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     };
   }, [isDarkMode]);
 
@@ -98,16 +102,36 @@ export default function ChatScreen() {
     return () => clearInterval(interval);
   }, [deleteModalVisible, selectedMessage, getSecondsRemaining]);
 
-  // Helper to check if current user is the sender
+  // Helper to reliably check if current user is the sender
   const isSender = (item: ChatMessage) => {
-    const senderId =
-      typeof item.sender === 'object'
-        ? item.sender?._id || item.sender?.uid
-        : item.sender || item.senderID;
-    return (
-      senderId === currentUserId ||
-      (currentUserId && String(senderId) === String(currentUserId))
-    );
+    if (!item) return false;
+
+    const getEntityId = (val: any): string => {
+      if (!val) return '';
+      if (typeof val === 'string') return String(val);
+      return String(val._id || val.uid || '');
+    };
+
+    const sId = getEntityId(item.sender) || String(item.senderID || '');
+    const rId = getEntityId(item.receiver) || String(item.receiverID || '');
+
+    const myMongoId = currentUserMongoId ? String(currentUserMongoId) : '';
+    const myUid = currentUserUid ? String(currentUserUid) : '';
+    const myId = currentUserId ? String(currentUserId) : '';
+
+    // 1. Direct matches with any of current user's IDs
+    if (myMongoId && sId === myMongoId) return true;
+    if (myUid && sId === myUid) return true;
+    if (myId && sId === myId) return true;
+
+    // 2. Relational check: If message is addressed to receiverID, I am the sender
+    const targetReceiver = receiverID ? String(receiverID) : '';
+    if (targetReceiver) {
+      if (rId === targetReceiver) return true;
+      if (sId === targetReceiver) return false;
+    }
+
+    return false;
   };
 
   // Open long press menu for sender's message
@@ -164,7 +188,7 @@ export default function ChatScreen() {
             styles.messageRow,
             mine ? styles.messageRowSender : styles.messageRowReceiver,
           ]}>
-          {/* Receiver Avatar thumbnail */}
+          {/* Receiver Avatar thumbnail only on receiver's message */}
           {!mine && (
             <Avatar
               size="28px"
@@ -228,8 +252,8 @@ export default function ChatScreen() {
                     color: mine
                       ? isDel
                         ? colors.deletedText
-                        : 'rgba(255, 255, 255, 0.75)'
-                      : colors.textSecondary,
+                        : colors.senderTime
+                      : colors.receiverTime,
                   },
                 ]}>
                 {formattedTime}
@@ -247,7 +271,7 @@ export default function ChatScreen() {
                     <Ionicons
                       name="checkmark-done"
                       size={14}
-                      color={item.isRead ? '#38BDF8' : 'rgba(255, 255, 255, 0.85)'}
+                      color={item.isRead ? '#93C5FD' : 'rgba(255, 255, 255, 0.85)'}
                     />
                   )}
                 </View>
@@ -292,7 +316,7 @@ export default function ChatScreen() {
         backgroundColor={colors.headerBg}
       />
 
-      {/* Modern Top Header */}
+      {/* Modern Top Header (Clean: back button, avatar, name, and online status) */}
       <View
         style={[
           styles.header,
@@ -352,16 +376,6 @@ export default function ChatScreen() {
                 : 'Offline'}
             </Text>
           </View>
-        </View>
-
-        {/* Action icons (Call, Video, Info) */}
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerActionBtn}>
-            <Ionicons name="call-outline" size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerActionBtn}>
-            <Ionicons name="videocam-outline" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -636,14 +650,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 1,
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerActionBtn: {
-    padding: 6,
-    marginLeft: 10,
-  },
   listContent: {
     paddingHorizontal: 12,
     paddingVertical: 14,
@@ -674,7 +680,6 @@ const styles = StyleSheet.create({
   dateSeparatorContainer: {
     alignItems: 'center',
     marginVertical: 14,
-    transform: [{scaleY: -1}], // Inverted list correction
   },
   dateSeparatorBadge: {
     paddingHorizontal: 12,
@@ -843,7 +848,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: 'rgba(0, 132, 255, 0.08)',
   },
   timerText: {
     fontSize: 13,
