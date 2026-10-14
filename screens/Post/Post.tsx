@@ -146,10 +146,13 @@ const Post = ({navigation}: {navigation: any}) => {
       const id = uuid.v4();
       const body = {
         userID: userData?._id,
-        userImage: userData?.image || '',
+        userImage:
+          userData?.image && userData.image.trim() !== ''
+            ? userData.image
+            : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150',
         userName: userData?.name || 'User',
         postImage: finalImageUrl || '',
-        postDetail: caption.trim() || '',
+        postDetail: caption.trim() || ' ',
         location: selectedLocation ? selectedLocation.name : '',
         coordinates: selectedLocation
           ? {
@@ -169,6 +172,8 @@ const Post = ({navigation}: {navigation: any}) => {
         dispatch,
         false,
       );
+
+      console.log(response)
 
       if (response?.success) {
         Alert.alert('Success', 'Post created successfully!', [

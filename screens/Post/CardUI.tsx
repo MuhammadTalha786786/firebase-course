@@ -384,7 +384,7 @@ const CardUI = ({item, mode, setGetData}) => {
       </View>
 
       {/* Caption Section (only for posts with an image) */}
-      {hasImage && captionText.length > 0 && (
+      {hasImage && captionText.trim().length > 0 && (
         <View style={styles.captionContainer}>
           <Text style={[styles.captionText, {color: textColor}]}>
             <Text style={styles.captionUsername}>
