@@ -63,19 +63,22 @@ app.use((req, res) => {
   });
 });
 
-// Server and WebSocket initialization
-const http = require('http');
-const { initChatSocket } = require('./socket/chatSocket');
+// Only listen on port and start WebSocket when running standalone (not in Vercel serverless)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  try {
+    const http = require('http');
+    const { initChatSocket } = require('./socket/chatSocket');
 
-const server = http.createServer(app);
-initChatSocket(server);
+    const server = http.createServer(app);
+    initChatSocket(server);
 
-// Only listen on port in development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 8080;
-  server.listen(PORT, () => {
-    console.log(`Server and WebSocket running on port ${PORT}`);
-  });
+    const PORT = process.env.PORT || 8080;
+    server.listen(PORT, () => {
+      console.log(`Server and WebSocket running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Server startup error:', err);
+  }
 }
 
 // Export for Vercel

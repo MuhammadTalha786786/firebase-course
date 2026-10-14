@@ -1,4 +1,10 @@
-const WebSocket = require('ws');
+let WebSocket;
+try {
+  WebSocket = require('ws');
+} catch (e) {
+  WebSocket = null;
+}
+
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const Message = require('../models/message');
@@ -31,9 +37,10 @@ const sendToUser = (userId, payload) => {
   if (!sockets || sockets.size === 0) return false;
 
   const data = JSON.stringify(payload);
+  const OPEN_STATE = WebSocket ? WebSocket.OPEN : 1;
   let delivered = false;
   sockets.forEach(ws => {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws.readyState === OPEN_STATE) {
       ws.send(data);
       delivered = true;
     }
@@ -43,6 +50,10 @@ const sendToUser = (userId, payload) => {
 
 // Initialize WebSocket server on existing HTTP server
 const initChatSocket = server => {
+  if (!WebSocket) {
+    console.warn('ws package is not loaded, WebSocket server skipped.');
+    return null;
+  }
   const wss = new WebSocket.Server({ server, path: '/ws' });
 
   wss.on('connection', ws => {

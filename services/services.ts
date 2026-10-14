@@ -17,7 +17,7 @@ const ApiCall = async (
     '';
 
 // const Base = 'https://social-bea-apis.vercel.app/';
-export const BASE_API_URL = 'https://firebase-course-pi.vercel.app/';
+ const BASE_API_URL = 'https://firebase-course-pi.vercel.app/';
 const Base = BASE_API_URL;
 const BaseUrl = Base + url;
 
