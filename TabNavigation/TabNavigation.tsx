@@ -111,7 +111,7 @@ const TabNavigation = () => {
       <Tab.Screen
         name="Friends"
         component={FriendsScreen}
-        options={{headerShown: true, title: 'Find Friends'}}
+        options={{headerShown: false}}
       />
       <Tab.Screen
         name=" "
