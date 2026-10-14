@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const connectDB = require('../config/db');
 const { generateToken } = require('../utils/jwtUtils');
+const crypto = require('crypto');
 
 // @desc    Login user / Generate new token
 // @route   POST /api/auth/login
@@ -76,6 +77,96 @@ const loginUser = async (req, res) => {
   }
 };
 
+// @desc    Google Sign-In / OAuth Login & Register
+// @route   POST /api/auth/google
+// @access  Public
+const googleSignIn = async (req, res) => {
+  try {
+    await connectDB();
+
+    const { email, name, image, uid } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email for Google Sign-In'
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists by email or uid
+    let user = await User.findOne({
+      $or: [{ email: normalizedEmail }, ...(uid ? [{ uid }] : [])]
+    });
+
+    if (user) {
+      // User exists: update login state and latest profile info
+      user.isLogin = true;
+      if (name && (!user.name || user.name.trim() === '')) {
+        user.name = name.trim();
+      }
+      if (image && (!user.image || user.image.trim() === '')) {
+        user.image = image;
+      }
+      if (uid && (!user.uid || user.uid.trim() === '')) {
+        user.uid = uid;
+      }
+      await user.save();
+    } else {
+      // First-time sign-in: create new user
+      const defaultAvatar =
+        image ||
+        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80';
+      const userName = name ? name.trim() : normalizedEmail.split('@')[0];
+      const userUid =
+        uid ||
+        (crypto.randomUUID
+          ? crypto.randomUUID()
+          : Math.random().toString(36).substring(2));
+
+      user = await User.create({
+        email: normalizedEmail,
+        name: userName,
+        image: defaultAvatar,
+        uid: userUid,
+        isLogin: true
+      });
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      id: user._id,
+      email: user.email,
+      uid: user.uid,
+      name: user.name
+    });
+
+    const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000);
+
+    const userData = user.toObject();
+    delete userData.password;
+
+    res.status(200).json({
+      success: true,
+      message: 'Google Sign-In successful',
+      data: {
+        user: userData,
+        token,
+        expiresIn: '8h',
+        expiresAt: expiresAt.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error during Google Sign-In:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google Sign-In',
+      error: error.message
+    });
+  }
+};
+
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
@@ -126,6 +217,7 @@ const verifyUser = async (req, res) => {
 
 module.exports = {
   loginUser,
+  googleSignIn,
   logoutUser,
   verifyUser
 };

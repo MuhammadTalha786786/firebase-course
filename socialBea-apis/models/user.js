@@ -19,11 +19,11 @@ const userSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true
+      default: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80'
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: false
     },
     isLogin: {
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
 
 /* 🔐 HASH PASSWORD */
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.password || !this.isModified('password')) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -45,6 +45,7 @@ userSchema.pre('save', async function (next) {
 
 /* 🔑 MATCH PASSWORD */
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

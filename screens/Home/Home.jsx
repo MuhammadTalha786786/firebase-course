@@ -28,9 +28,9 @@ const Home = () => {
 
   const navigation = useNavigation();
   const isDarkMode = Boolean(mode);
-  const bgColor = isDarkMode ? '#0B0F19' : '#F8FAFC';
-  const textColor = isDarkMode ? '#FFFFFF' : '#0F172A';
-  const subtextColor = isDarkMode ? '#94A3B8' : '#64748B';
+  const bgColor = isDarkMode ? '#000000' : '#FFFFFF';
+  const textColor = isDarkMode ? '#F5F5F5' : '#262626';
+  const subtextColor = isDarkMode ? '#A8A8A8' : '#737373';
 
   const renderEmptyState = () => {
     if (getData) return null;
@@ -102,8 +102,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingVertical: 10,
+    paddingTop: 0,
     paddingBottom: 24,
+    paddingHorizontal: 0,
   },
   emptyContainer: {
     flex: 1,

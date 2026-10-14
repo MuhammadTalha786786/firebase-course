@@ -8,30 +8,20 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
-  Modal,
-  Dimensions,
-  Animated,
-  PanResponder,
   StatusBar,
-  Pressable,
   TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import React, {useEffect, useState, useRef} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {Avatar} from 'native-base';
 import moment from 'moment';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ApiCall from '../../services/services';
-import {KeyboardAvoidingView} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useSafeAreaInsets, SafeAreaView} from 'react-native-safe-area-context';
 import {StyleGuide} from '../../Utils/StyleGuide';
-
-const {height: SCREEN_HEIGHT} = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.9;
-const HEADER_HEIGHT = 56;
 
 interface ReplyI {
   reply: string;
@@ -54,13 +44,15 @@ interface CommentI {
   replies?: ReplyI[];
 }
 
+const QUICK_EMOJIS = ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'];
+
 const Comment = () => {
   const dispatch = useDispatch();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
-  const {postID, mode} = route.params;
+  const {postID, mode, postAuthor} = route.params || {};
   const isDarkMode = Boolean(mode);
 
   const authState = useSelector((state: any) => state);
@@ -85,71 +77,36 @@ const Comment = () => {
     replyType: 'comment' | 'reply';
   } | null>(null);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
-  const [deleteModal, setDeleteModal] = useState<{
-    visible: boolean;
-    type: 'comment' | 'reply';
-    commentID: string;
-    replyID?: string;
-  }>({visible: false, type: 'comment', commentID: ''});
 
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<TextInput>(null);
 
-  // Theme color tokens
-  const sheetBg = isDarkMode ? '#0F172A' : '#FFFFFF';
-  const cardBg = isDarkMode ? '#1E293B' : '#F8FAFC';
-  const textColor = isDarkMode ? '#FFFFFF' : '#0F172A';
-  const subtextColor = isDarkMode ? '#94A3B8' : '#64748B';
-  const borderColor = isDarkMode ? '#334155' : '#E2E8F0';
-  const inputBg = isDarkMode ? '#1E293B' : '#F1F5F9';
+  // Theme color tokens - Instagram palette
+  const bgColor = isDarkMode ? '#000000' : '#FFFFFF';
+  const textColor = isDarkMode ? '#F5F5F5' : '#262626';
+  const subtextColor = isDarkMode ? '#A8A8A8' : '#737373';
+  const borderColor = isDarkMode ? '#262626' : '#EFEFEF';
+  const inputBg = isDarkMode ? '#1E1E1E' : '#F2F2F2';
 
   useEffect(() => {
     fetchComments();
-    Animated.parallel([
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  }, [postID]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 6,
-      onPanResponderMove: (_, g) => {
-        if (g.dy > 0) translateY.setValue(g.dy);
-      },
-      onPanResponderRelease: (_, g) => {
-        if (g.dy > 140 || g.vy > 0.6) closeSheet();
-        else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    }),
-  ).current;
-
-  const closeSheet = () => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 260,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 0,
-        duration: 260,
-        useNativeDriver: true,
-      }),
-    ]).start(() => navigation.goBack());
+  // Instagram compact timestamp (e.g., 2m, 4h, 3d, 1w)
+  const getInstagramTime = (dateStr?: string) => {
+    if (!dateStr) return 'now';
+    const m = moment(dateStr);
+    const now = moment();
+    const diffSec = now.diff(m, 'seconds');
+    if (diffSec < 60) return `${Math.max(1, diffSec)}s`;
+    const diffMin = now.diff(m, 'minutes');
+    if (diffMin < 60) return `${diffMin}m`;
+    const diffHours = now.diff(m, 'hours');
+    if (diffHours < 24) return `${diffHours}h`;
+    const diffDays = now.diff(m, 'days');
+    if (diffDays < 7) return `${diffDays}d`;
+    const diffWeeks = now.diff(m, 'weeks');
+    if (diffWeeks < 52) return `${diffWeeks}w`;
+    return `${now.diff(m, 'years')}y`;
   };
 
   const fetchComments = async (refresh = false) => {
@@ -162,7 +119,11 @@ const Comment = () => {
         dispatch,
         false,
       );
-      if (res?.success) setComments(res.data || []);
+      if (res?.success) {
+        setComments(res.data || []);
+      }
+    } catch (err) {
+      console.error('Fetch comments error:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -199,6 +160,8 @@ const Comment = () => {
           }
           setNewComment('');
           setReplyingTo(null);
+        } else {
+          Alert.alert('Error', res?.message || 'Failed to post reply');
         }
       } else {
         const body = {
@@ -214,11 +177,15 @@ const Comment = () => {
           dispatch,
           false,
         );
-        if (res?.success) {
+        if (res?.success && res.data) {
           setComments(prev => [...prev, res.data]);
           setNewComment('');
+        } else {
+          Alert.alert('Error', res?.message || 'Failed to post comment');
         }
       }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to post comment. Please try again.');
     } finally {
       setPosting(false);
     }
@@ -252,7 +219,6 @@ const Comment = () => {
 
   const cancelReply = () => {
     setReplyingTo(null);
-    setNewComment('');
   };
 
   const toggleLike = (id: string) => {
@@ -265,7 +231,19 @@ const Comment = () => {
 
   const handleLongPressComment = (commentID: string, isOwner: boolean) => {
     if (!isOwner) return;
-    setDeleteModal({visible: true, type: 'comment', commentID});
+    Alert.alert(
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteComment(commentID),
+        },
+      ],
+      {cancelable: true},
+    );
   };
 
   const handleLongPressReply = (
@@ -274,16 +252,19 @@ const Comment = () => {
     isOwner: boolean,
   ) => {
     if (!isOwner) return;
-    setDeleteModal({visible: true, type: 'reply', commentID, replyID});
-  };
-
-  const confirmDelete = async () => {
-    if (deleteModal.type === 'comment') {
-      await deleteComment(deleteModal.commentID);
-    } else if (deleteModal.type === 'reply' && deleteModal.replyID) {
-      await deleteReply(deleteModal.commentID, deleteModal.replyID);
-    }
-    setDeleteModal({visible: false, type: 'comment', commentID: ''});
+    Alert.alert(
+      'Delete Reply',
+      'Are you sure you want to delete this reply?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteReply(commentID, replyID),
+        },
+      ],
+      {cancelable: true},
+    );
   };
 
   const deleteComment = async (commentID: string) => {
@@ -297,6 +278,8 @@ const Comment = () => {
       );
       if (res?.success) {
         setComments(prev => prev.filter(c => c.commentID !== commentID));
+      } else {
+        Alert.alert('Error', res?.message || 'Failed to delete comment');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to delete comment');
@@ -314,6 +297,8 @@ const Comment = () => {
       );
       if (res?.success) {
         await fetchComments();
+      } else {
+        Alert.alert('Error', res?.message || 'Failed to delete reply');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to delete reply');
@@ -334,7 +319,7 @@ const Comment = () => {
     if (uri && uri.startsWith('http')) {
       return (
         <Avatar
-          size={size <= 30 ? 'xs' : 'sm'}
+          size={`${size}px`}
           source={{uri}}
           style={{width: size, height: size, borderRadius: size / 2}}
         />
@@ -363,6 +348,7 @@ const Comment = () => {
     );
   };
 
+  // Render nested reply
   const renderNestedReply = (
     reply: ReplyI,
     commentID: string,
@@ -373,55 +359,30 @@ const Comment = () => {
     const hasReplies = reply.replies && reply.replies.length > 0;
     const isExpanded = expandedReplies.has(reply.replyID);
     const nestedCount = countNestedReplies(reply.replies);
-    const maxDepth = 4;
 
     return (
       <View key={reply.replyID} style={styles.nestedReplyWrap}>
-        <View
-          style={[
-            styles.replyRow,
-            {paddingLeft: Math.min(depth, maxDepth) * 14},
-          ]}>
-          {depth > 0 && (
-            <View style={styles.connectionLine}>
-              <View
-                style={[
-                  styles.verticalLine,
-                  {backgroundColor: borderColor},
-                ]}
-              />
-              <View
-                style={[
-                  styles.horizontalLine,
-                  {backgroundColor: borderColor},
-                ]}
-              />
-            </View>
-          )}
-
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onLongPress={() =>
+            handleLongPressReply(commentID, reply.replyID, mine)
+          }
+          style={styles.replyRow}>
           {renderAvatar(reply.userImage, reply.userProfileName, 28)}
 
-          <Pressable
-            style={styles.replyBody}
-            onLongPress={() =>
-              handleLongPressReply(commentID, reply.replyID, mine)
-            }>
-            <View
-              style={[
-                styles.messageBubble,
-                {backgroundColor: cardBg, borderColor: borderColor},
-              ]}>
-              <Text style={[styles.username, {color: textColor}]}>
-                {reply.userProfileName}
+          <View style={styles.replyBody}>
+            <Text style={styles.commentTextWrap}>
+              <Text style={[styles.usernameText, {color: textColor}]}>
+                {reply.userProfileName}{' '}
               </Text>
-              <Text style={[styles.messageText, {color: textColor}]}>
+              <Text style={[styles.commentBodyText, {color: textColor}]}>
                 {reply.reply}
               </Text>
-            </View>
+            </Text>
 
-            <View style={styles.replyMetaRow}>
-              <Text style={[styles.metaText, {color: subtextColor}]}>
-                {moment(reply.replyCreated).fromNow(true)}
+            <View style={styles.metaRow}>
+              <Text style={[styles.metaTime, {color: subtextColor}]}>
+                {getInstagramTime(reply.replyCreated)}
               </Text>
               <TouchableOpacity
                 onPress={() =>
@@ -432,59 +393,42 @@ const Comment = () => {
                     'reply',
                   )
                 }
-                style={{marginLeft: 14}}>
-                <Text
-                  style={[
-                    styles.replyBtnText,
-                    {color: StyleGuide.color.primary},
-                  ]}>
+                style={styles.replyActionBtn}>
+                <Text style={[styles.replyActionText, {color: subtextColor}]}>
                   Reply
                 </Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
 
           <TouchableOpacity
             onPress={() => toggleLike(reply.replyID)}
             style={styles.likeBtn}
-            activeOpacity={0.7}>
-            <Ionicons
-              name={liked ? 'heart' : 'heart-outline'}
-              size={15}
-              color={liked ? '#EF4444' : subtextColor}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <AntDesign
+              name={liked ? 'heart' : 'hearto'}
+              size={13}
+              color={liked ? '#ED4956' : subtextColor}
             />
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
         {hasReplies && (
           <TouchableOpacity
-            style={[
-              styles.viewNestedRepliesBtn,
-              {paddingLeft: (Math.min(depth, maxDepth) + 1) * 14 + 36},
-            ]}
+            style={styles.viewNestedRepliesBtn}
             onPress={() => toggleReplyExpanded(reply.replyID)}
             activeOpacity={0.7}>
-            <MaterialCommunityIcons
-              name={isExpanded ? 'chevron-down' : 'chevron-right'}
-              size={18}
-              color={StyleGuide.color.primary}
-            />
-            <Text
-              style={[
-                styles.viewRepliesText,
-                {color: StyleGuide.color.primary},
-              ]}>
+            <View style={[styles.replyDash, {backgroundColor: subtextColor}]} />
+            <Text style={[styles.viewRepliesText, {color: subtextColor}]}>
               {isExpanded
-                ? `Hide ${nestedCount} ${
-                    nestedCount === 1 ? 'reply' : 'replies'
-                  }`
-                : `${nestedCount} ${nestedCount === 1 ? 'reply' : 'replies'}`}
+                ? `Hide replies`
+                : `View ${nestedCount} ${nestedCount === 1 ? 'reply' : 'replies'}`}
             </Text>
           </TouchableOpacity>
         )}
 
         {isExpanded && hasReplies && (
-          <View>
+          <View style={styles.subRepliesList}>
             {reply.replies!.map(nestedReply =>
               renderNestedReply(nestedReply, commentID, depth + 1),
             )}
@@ -494,6 +438,7 @@ const Comment = () => {
     );
   };
 
+  // Render top-level comment item
   const renderItem = ({item}: {item: CommentI}) => {
     const mine = item.userID === userID;
     const liked = likedComments.has(item.commentID);
@@ -503,86 +448,60 @@ const Comment = () => {
 
     return (
       <View style={styles.commentContainer}>
-        <View style={styles.commentRow}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onLongPress={() => handleLongPressComment(item.commentID, mine)}
+          style={styles.commentRow}>
           {renderAvatar(item.userImage, item.userProfileName, 36)}
 
-          <Pressable
-            style={styles.commentBody}
-            onLongPress={() => handleLongPressComment(item.commentID, mine)}>
-            <View
-              style={[
-                styles.messageBubble,
-                {backgroundColor: cardBg, borderColor: borderColor},
-              ]}>
-              <Text style={[styles.username, {color: textColor}]}>
-                {item.userProfileName}
+          <View style={styles.commentBody}>
+            <Text style={styles.commentTextWrap}>
+              <Text style={[styles.usernameText, {color: textColor}]}>
+                {item.userProfileName}{' '}
               </Text>
-              <Text style={[styles.messageText, {color: textColor}]}>
+              <Text style={[styles.commentBodyText, {color: textColor}]}>
                 {item.comment}
               </Text>
-            </View>
+            </Text>
 
             <View style={styles.metaRow}>
-              <Text style={[styles.metaText, {color: subtextColor}]}>
-                {moment(item.commentCreated).fromNow(true)}
+              <Text style={[styles.metaTime, {color: subtextColor}]}>
+                {getInstagramTime(item.commentCreated)}
               </Text>
               <TouchableOpacity
                 onPress={() =>
                   handleReply(item.commentID, item.userProfileName)
                 }
-                style={{marginLeft: 14}}>
-                <Text
-                  style={[
-                    styles.replyBtnText,
-                    {color: StyleGuide.color.primary},
-                  ]}>
+                style={styles.replyActionBtn}>
+                <Text style={[styles.replyActionText, {color: subtextColor}]}>
                   Reply
                 </Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
 
           <TouchableOpacity
             onPress={() => toggleLike(item.commentID)}
             style={styles.likeBtn}
-            activeOpacity={0.7}>
-            <Ionicons
-              name={liked ? 'heart' : 'heart-outline'}
-              size={17}
-              color={liked ? '#EF4444' : subtextColor}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <AntDesign
+              name={liked ? 'heart' : 'hearto'}
+              size={14}
+              color={liked ? '#ED4956' : subtextColor}
             />
           </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
-        {/* View Replies Button */}
+        {/* Instagram "View replies" with horizontal dash line */}
         {hasReplies && (
           <TouchableOpacity
             style={styles.viewRepliesBtn}
             onPress={() => toggleExpanded(item.commentID)}
             activeOpacity={0.7}>
-            <View style={styles.replyLineContainer}>
-              <View
-                style={[
-                  styles.replyLine,
-                  {backgroundColor: StyleGuide.color.primary},
-                ]}
-              />
-              <MaterialCommunityIcons
-                name={isExpanded ? 'chevron-down' : 'chevron-right'}
-                size={18}
-                color={StyleGuide.color.primary}
-                style={{marginLeft: 4}}
-              />
-            </View>
-            <Text
-              style={[
-                styles.viewRepliesText,
-                {color: StyleGuide.color.primary},
-              ]}>
+            <View style={[styles.replyDash, {backgroundColor: subtextColor}]} />
+            <Text style={[styles.viewRepliesText, {color: subtextColor}]}>
               {isExpanded
-                ? `Hide ${totalReplies} ${
-                    totalReplies === 1 ? 'reply' : 'replies'
-                  }`
+                ? `Hide replies`
                 : `View ${totalReplies} ${
                     totalReplies === 1 ? 'reply' : 'replies'
                   }`}
@@ -590,6 +509,7 @@ const Comment = () => {
           </TouchableOpacity>
         )}
 
+        {/* Expanded nested replies list */}
         {isExpanded && hasReplies && (
           <View style={styles.repliesContainer}>
             {item.replies!.map(reply =>
@@ -601,297 +521,241 @@ const Comment = () => {
     );
   };
 
-  const InputWrapper = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
-  const inputWrapperProps =
-    Platform.OS === 'ios' ? {behavior: 'padding' as const} : {};
+  // Header showing post author caption (Instagram format)
+  const renderListHeader = () => {
+    if (!postAuthor || !postAuthor.postDetail?.trim()) return null;
+    return (
+      <View style={[styles.postAuthorSection, {borderBottomColor: borderColor}]}>
+        <View style={styles.commentRow}>
+          {renderAvatar(postAuthor.userImage, postAuthor.userName, 36)}
+          <View style={styles.commentBody}>
+            <Text style={styles.commentTextWrap}>
+              <Text style={[styles.usernameText, {color: textColor}]}>
+                {postAuthor.userName}{' '}
+              </Text>
+              <Text style={[styles.commentBodyText, {color: textColor}]}>
+                {postAuthor.postDetail}
+              </Text>
+            </Text>
+            <View style={styles.metaRow}>
+              <Text style={[styles.metaTime, {color: subtextColor}]}>
+                {getInstagramTime(postAuthor.dateCreated)}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <Modal transparent visible animationType="none">
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: bgColor}]}
+      edges={['top', 'left', 'right']}>
       <StatusBar
-        translucent
-        backgroundColor="transparent"
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={bgColor}
       />
-      <View style={styles.overlay}>
-        {/* Backdrop */}
-        <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]}>
-          <TouchableOpacity style={{flex: 1}} onPress={closeSheet} />
-        </Animated.View>
 
-        {/* Bottom Sheet */}
-        <Animated.View
-          style={[
-            styles.sheet,
-            {backgroundColor: sheetBg, transform: [{translateY}]},
-          ]}>
-          {/* Sheet Header */}
-          <View
-            {...panResponder.panHandlers}
-            style={[
-              styles.header,
-              {
-                backgroundColor: sheetBg,
-                borderBottomColor: borderColor,
-                paddingTop: insets.top,
-              },
-            ]}>
-            <View style={styles.dragHandle} />
-            <Text style={[styles.headerTitle, {color: textColor}]}>
-              Comments
-            </Text>
-            <TouchableOpacity onPress={closeSheet} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={textColor} />
-            </TouchableOpacity>
-          </View>
+      {/* 1. Instagram Top Bar (Back Arrow, "Comments", Share) */}
+      <View style={[styles.topBar, {borderBottomColor: borderColor}]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          style={styles.backButton}>
+          <Feather name="arrow-left" size={24} color={textColor} />
+        </TouchableOpacity>
 
-          {/* Comments List */}
-          <FlatList
-            data={comments}
-            renderItem={renderItem}
-            keyExtractor={i => i.commentID}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => fetchComments(true)}
-                colors={[StyleGuide.color.primary]}
-                tintColor={StyleGuide.color.primary}
-              />
-            }
-            contentContainerStyle={{
-              paddingTop: HEADER_HEIGHT + insets.top + 8,
-              paddingBottom: 120,
-            }}
-            keyboardDismissMode="interactive"
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              loading ? (
+        <Text style={[styles.topBarTitle, {color: textColor}]}>Comments</Text>
+
+        <TouchableOpacity
+          onPress={() => Alert.alert('Share', 'Share options')}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          style={styles.topRightButton}>
+          <Feather name="send" size={20} color={textColor} />
+        </TouchableOpacity>
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+        {/* 2. Full-Screen Comments List */}
+        <FlatList
+          data={comments}
+          renderItem={renderItem}
+          keyExtractor={i => i.commentID}
+          ListHeaderComponent={renderListHeader}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => fetchComments(true)}
+              colors={[StyleGuide.color.primary]}
+              tintColor={StyleGuide.color.primary}
+            />
+          }
+          contentContainerStyle={[
+            styles.listContent,
+            comments.length === 0 && styles.listContentEmpty,
+          ]}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.loadingContainer}>
                 <ActivityIndicator
-                  style={{marginTop: 80}}
+                  size="small"
                   color={StyleGuide.color.primary}
                 />
-              ) : (
-                <View style={styles.emptyContainer}>
-                  <View style={styles.emptyIconCircle}>
-                    <Feather
-                      name="message-circle"
-                      size={36}
-                      color={StyleGuide.color.primary}
-                    />
-                  </View>
-                  <Text style={[styles.empty, {color: textColor}]}>
-                    No comments yet
-                  </Text>
-                  <Text style={[styles.emptySubtext, {color: subtextColor}]}>
-                    Be the first to share your thoughts!
-                  </Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <Feather
+                    name="message-circle"
+                    size={40}
+                    color={textColor}
+                  />
                 </View>
-              )
-            }
-          />
-
-          {/* Replying Banner */}
-          {replyingTo && (
-            <View
-              style={[
-                styles.replyIndicator,
-                {
-                  backgroundColor: StyleGuide.color.primaryLight,
-                  borderTopColor: borderColor,
-                },
-              ]}>
-              <View style={styles.replyIndicatorLeft}>
-                <MaterialCommunityIcons
-                  name="reply"
-                  size={16}
-                  color={StyleGuide.color.primaryDark}
-                />
-                <Text
-                  style={[
-                    styles.replyingText,
-                    {color: StyleGuide.color.primaryDark},
-                  ]}>
-                  Replying to{' '}
-                  <Text style={{fontWeight: '700'}}>
-                    @{replyingTo.userName}
-                  </Text>
+                <Text style={[styles.emptyTitle, {color: textColor}]}>
+                  No comments yet
+                </Text>
+                <Text style={[styles.emptySubtitle, {color: subtextColor}]}>
+                  Start the conversation.
                 </Text>
               </View>
-              <TouchableOpacity onPress={cancelReply} activeOpacity={0.7}>
-                <Ionicons
-                  name="close-circle"
-                  size={20}
-                  color={StyleGuide.color.primaryDark}
-                />
-              </TouchableOpacity>
-            </View>
-          )}
+            )
+          }
+        />
 
-          {/* Input Footer */}
+        {/* 3. Replying Indicator */}
+        {replyingTo && (
           <View
             style={[
-              styles.inputContainer,
+              styles.replyingBanner,
               {
-                backgroundColor: sheetBg,
+                backgroundColor: isDarkMode ? '#1E1E1E' : '#F8FAFC',
                 borderTopColor: borderColor,
-                paddingBottom: Platform.OS === 'ios' ? insets.bottom + 8 : 12,
               },
             ]}>
-            <InputWrapper {...inputWrapperProps}>
-              <View style={styles.inputRow}>
-                {renderAvatar(user?.image, user?.name, 36)}
-
-                <View
-                  style={[
-                    styles.inputFieldContainer,
-                    {backgroundColor: inputBg, borderColor: borderColor},
-                  ]}>
-                  <TextInput
-                    ref={inputRef}
-                    value={newComment}
-                    onChangeText={setNewComment}
-                    placeholder={
-                      replyingTo ? 'Write a reply…' : 'Add a comment…'
-                    }
-                    placeholderTextColor={subtextColor}
-                    multiline
-                    maxLength={500}
-                    style={[styles.input, {color: textColor}]}
-                  />
-
-                  {newComment.trim().length > 0 && (
-                    <TouchableOpacity
-                      onPress={postComment}
-                      disabled={posting}
-                      activeOpacity={0.8}
-                      style={styles.sendButtonCircle}>
-                      {posting ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <Ionicons name="arrow-up" size={18} color="#FFFFFF" />
-                      )}
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            </InputWrapper>
+            <Text style={[styles.replyingBannerText, {color: subtextColor}]}>
+              Replying to{' '}
+              <Text style={{fontWeight: '700', color: textColor}}>
+                @{replyingTo.userName}
+              </Text>
+            </Text>
+            <TouchableOpacity onPress={cancelReply} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Feather name="x" size={18} color={subtextColor} />
+            </TouchableOpacity>
           </View>
-        </Animated.View>
+        )}
 
-        {/* Delete Confirmation Modal */}
-        <Modal
-          transparent
-          visible={deleteModal.visible}
-          animationType="fade"
-          onRequestClose={() =>
-            setDeleteModal({visible: false, type: 'comment', commentID: ''})
-          }>
-          <Pressable
-            style={styles.deleteModalOverlay}
-            onPress={() =>
-              setDeleteModal({visible: false, type: 'comment', commentID: ''})
-            }>
-            <Pressable style={styles.deleteModalContent}>
-              <View
-                style={[
-                  styles.deleteModalCard,
-                  {backgroundColor: cardBg, borderColor: borderColor},
-                ]}>
-                <View style={styles.deleteIconContainer}>
-                  <Ionicons name="trash-outline" size={36} color="#EF4444" />
-                </View>
-                <Text style={[styles.deleteModalTitle, {color: textColor}]}>
-                  Delete {deleteModal.type === 'comment' ? 'Comment' : 'Reply'}?
-                </Text>
-                <Text
-                  style={[
-                    styles.deleteModalMessage,
-                    {color: subtextColor},
-                  ]}>
-                  Are you sure you want to delete this {deleteModal.type}? This
-                  action cannot be undone.
-                </Text>
+        {/* 4. Instagram Quick Emoji Reaction Row */}
+        <View style={[styles.quickEmojiBar, {borderTopColor: borderColor}]}>
+          {QUICK_EMOJIS.map(emoji => (
+            <TouchableOpacity
+              key={emoji}
+              activeOpacity={0.7}
+              onPress={() => setNewComment(prev => prev + emoji)}
+              style={styles.emojiButton}>
+              <Text style={styles.emojiText}>{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-                <View style={styles.deleteModalButtons}>
-                  <TouchableOpacity
-                    style={[
-                      styles.deleteModalButton,
-                      {
-                        backgroundColor: isDarkMode ? '#334155' : '#F1F5F9',
-                        marginRight: 10,
-                      },
-                    ]}
-                    onPress={() =>
-                      setDeleteModal({
-                        visible: false,
-                        type: 'comment',
-                        commentID: '',
-                      })
-                    }>
-                    <Text
-                      style={[styles.cancelButtonText, {color: textColor}]}>
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.deleteModalButton, styles.deleteButton]}
-                    onPress={confirmDelete}>
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      </View>
-    </Modal>
+        {/* 5. Instagram Bottom Comment Input Capsule */}
+        <View
+          style={[
+            styles.inputFooter,
+            {
+              borderTopColor: borderColor,
+              backgroundColor: bgColor,
+              paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 10) : 10,
+            },
+          ]}>
+          {renderAvatar(user?.image, user?.name, 34)}
+
+          <View
+            style={[
+              styles.inputCapsule,
+              {
+                backgroundColor: inputBg,
+              },
+            ]}>
+            <TextInput
+              ref={inputRef}
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder={
+                replyingTo
+                  ? `Reply to @${replyingTo.userName}...`
+                  : 'Add a comment...'
+              }
+              placeholderTextColor={subtextColor}
+              multiline
+              maxLength={500}
+              style={[styles.textInputField, {color: textColor}]}
+            />
+
+            {newComment.trim().length > 0 && (
+              <TouchableOpacity
+                onPress={postComment}
+                disabled={posting}
+                activeOpacity={0.7}
+                style={styles.postActionButton}>
+                {posting ? (
+                  <ActivityIndicator size="small" color="#0095F6" />
+                ) : (
+                  <Text style={styles.postActionButtonText}>Post</Text>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  safeArea: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+  keyboardContainer: {
+    flex: 1,
   },
-  sheet: {
-    height: SHEET_HEIGHT,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    overflow: 'hidden',
-  },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: HEADER_HEIGHT,
+  topBar: {
+    height: 48,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    zIndex: 50,
-    elevation: 50,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
   },
-  dragHandle: {
-    position: 'absolute',
-    top: 10,
-    width: 38,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#CBD5E1',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontFamily: StyleGuide.fontFamily.bold,
-  },
-  closeBtn: {
-    position: 'absolute',
-    right: 16,
-    bottom: 12,
+  backButton: {
     padding: 4,
+  },
+  topBarTitle: {
+    fontSize: 16,
+    fontFamily: StyleGuide.fontFamily.bold,
+    letterSpacing: 0.1,
+  },
+  topRightButton: {
+    padding: 4,
+  },
+  listContent: {
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  postAuthorSection: {
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 0.5,
   },
   commentContainer: {
     marginBottom: 8,
@@ -905,113 +769,83 @@ const styles = StyleSheet.create({
   commentBody: {
     flex: 1,
     marginLeft: 12,
+    marginRight: 8,
   },
-  messageBubble: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 4,
+  commentTextWrap: {
+    fontSize: 13.5,
+    lineHeight: 18,
   },
-  username: {
+  usernameText: {
     fontFamily: StyleGuide.fontFamily.bold,
     fontSize: 13.5,
-    marginBottom: 3,
   },
-  messageText: {
+  commentBodyText: {
     fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13.5,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    marginTop: 2,
+    marginTop: 4,
   },
-  metaText: {
+  metaTime: {
     fontSize: 12,
     fontFamily: StyleGuide.fontFamily.regular,
   },
-  replyBtnText: {
+  replyActionBtn: {
+    marginLeft: 16,
+  },
+  replyActionText: {
     fontSize: 12,
     fontFamily: StyleGuide.fontFamily.bold,
   },
   likeBtn: {
-    paddingLeft: 10,
-    paddingTop: 10,
+    paddingTop: 4,
+    paddingLeft: 6,
   },
   viewRepliesBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 60,
-    marginTop: 2,
-    marginBottom: 4,
+    paddingLeft: 64,
+    marginTop: 4,
+    marginBottom: 6,
   },
-  replyLineContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 6,
-  },
-  replyLine: {
-    width: 22,
-    height: 2,
-    borderRadius: 1,
+  replyDash: {
+    width: 24,
+    height: 1,
+    marginRight: 10,
+    opacity: 0.6,
   },
   viewRepliesText: {
-    fontSize: 12.5,
+    fontSize: 12,
     fontFamily: StyleGuide.fontFamily.bold,
   },
-  viewNestedRepliesBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-    marginBottom: 4,
-  },
   repliesContainer: {
-    paddingLeft: 12,
-    paddingTop: 2,
+    paddingLeft: 44,
   },
   nestedReplyWrap: {
-    marginTop: 6,
+    marginBottom: 4,
   },
   replyRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingRight: 16,
     paddingVertical: 4,
     alignItems: 'flex-start',
-    position: 'relative',
   },
   replyBody: {
     flex: 1,
     marginLeft: 10,
+    marginRight: 6,
   },
-  replyMetaRow: {
+  viewNestedRepliesBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingLeft: 38,
     marginTop: 2,
+    marginBottom: 4,
   },
-  connectionLine: {
-    position: 'absolute',
-    left: -10,
-    top: 0,
-    bottom: 0,
-    width: 20,
-  },
-  verticalLine: {
-    position: 'absolute',
-    left: 10,
-    top: 0,
-    width: 1.5,
-    height: '100%',
-  },
-  horizontalLine: {
-    position: 'absolute',
-    left: 10,
-    top: 18,
-    width: 10,
-    height: 1.5,
+  subRepliesList: {
+    paddingLeft: 20,
   },
   avatarFallback: {
     justifyContent: 'center',
@@ -1020,150 +854,94 @@ const styles = StyleSheet.create({
   avatarFallbackText: {
     fontFamily: StyleGuide.fontFamily.bold,
   },
-  replyIndicator: {
-    flexDirection: 'row',
+  loadingContainer: {
+    paddingTop: 80,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-  },
-  replyIndicatorLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  replyingText: {
-    fontSize: 13,
-    fontFamily: StyleGuide.fontFamily.medium,
-    marginLeft: 6,
-  },
-  inputContainer: {
-    borderTopWidth: 1,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  inputFieldContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 10,
-    borderRadius: 24,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    minHeight: 44,
-  },
-  input: {
-    flex: 1,
-    fontFamily: StyleGuide.fontFamily.regular,
-    fontSize: 14,
-    paddingVertical: 8,
-    maxHeight: 90,
-  },
-  sendButtonCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: StyleGuide.color.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 6,
   },
   emptyContainer: {
     alignItems: 'center',
-    marginTop: 80,
+    justifyContent: 'center',
     paddingHorizontal: 32,
+    paddingVertical: 60,
   },
   emptyIconCircle: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: StyleGuide.color.primaryLight,
+    borderWidth: 2,
+    borderColor: '#737373',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 16,
+    opacity: 0.8,
   },
-  empty: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontFamily: StyleGuide.fontFamily.bold,
-    marginBottom: 4,
-  },
-  emptySubtext: {
-    fontSize: 13,
-    fontFamily: StyleGuide.fontFamily.regular,
-    textAlign: 'center',
-  },
-  deleteModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  deleteModalContent: {
-    width: '100%',
-    maxWidth: 340,
-  },
-  deleteModalCard: {
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#0F172A',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  deleteIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FEE2E2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  deleteModalTitle: {
+  emptyTitle: {
     fontSize: 18,
     fontFamily: StyleGuide.fontFamily.bold,
     marginBottom: 6,
-    textAlign: 'center',
   },
-  deleteModalMessage: {
-    fontSize: 13,
+  emptySubtitle: {
+    fontSize: 13.5,
     fontFamily: StyleGuide.fontFamily.regular,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
-    paddingHorizontal: 6,
   },
-  deleteModalButtons: {
+  replyingBanner: {
     flexDirection: 'row',
-    width: '100%',
-  },
-  deleteModalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 14,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopWidth: 0.5,
   },
-  cancelButtonText: {
-    fontSize: 14,
+  replyingBannerText: {
+    fontSize: 12.5,
+    fontFamily: StyleGuide.fontFamily.regular,
+  },
+  quickEmojiBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderTopWidth: 0.5,
+  },
+  emojiButton: {
+    padding: 6,
+  },
+  emojiText: {
+    fontSize: 22,
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    borderTopWidth: 0.5,
+  },
+  inputCapsule: {
+    flex: 1,
+    marginLeft: 10,
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 7 : 3,
+  },
+  textInputField: {
+    flex: 1,
+    fontSize: 13.5,
+    fontFamily: StyleGuide.fontFamily.regular,
+    paddingVertical: 4,
+    maxHeight: 80,
+  },
+  postActionButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    marginLeft: 6,
+  },
+  postActionButtonText: {
+    color: '#0095F6',
     fontFamily: StyleGuide.fontFamily.bold,
-  },
-  deleteButton: {
-    backgroundColor: '#EF4444',
-  },
-  deleteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: StyleGuide.fontFamily.bold,
+    fontSize: 13.5,
   },
 });
 

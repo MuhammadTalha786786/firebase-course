@@ -11421,11 +11421,11 @@ __metadata:
 
 "react-native-devlens@file:/Users/arvo/Documents/antigravity/keen-oppenheimer::locator=practicapp%40workspace%3A.":
   version: 1.0.0
-  resolution: "react-native-devlens@file:/Users/arvo/Documents/antigravity/keen-oppenheimer#/Users/arvo/Documents/antigravity/keen-oppenheimer::hash=bef976&locator=practicapp%40workspace%3A."
+  resolution: "react-native-devlens@file:/Users/arvo/Documents/antigravity/keen-oppenheimer#/Users/arvo/Documents/antigravity/keen-oppenheimer::hash=d73db8&locator=practicapp%40workspace%3A."
   peerDependencies:
     react: ">=16.8.0"
     react-native: ">=0.60.0"
-  checksum: 0b2ced5aeaaa0871296fc05ce77c3bc3c607a175bc756df0dff76817692d0b8b9ce24babe247aaa1908b2696f37d1a3fe07d6ed6ad60da331abcacb7e48d0f7e
+  checksum: d86fd8965276f7b8cb8019f45ab6584362ee37a5332083f53a3516700c725a27bb4adcd65a166eed26884258c4dee5c8cc4649243159c9353f94cc8a5ee8e6cb
   languageName: node
   linkType: hard
 
