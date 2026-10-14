@@ -93,7 +93,7 @@ const App = () => {
               <AppStack.Screen
                 name="ChatsScreen"
                 component={ChatScreen}
-                options={{headerShown: true}}
+                options={{headerShown: false}}
               />
               <AppStack.Screen
                 name="UserProfile"

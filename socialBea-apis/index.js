@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const friendRoutes = require('./routes/friendRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check routes
 app.get('/', (req, res) => {
@@ -61,11 +63,18 @@ app.use((req, res) => {
   });
 });
 
+// Server and WebSocket initialization
+const http = require('http');
+const { initChatSocket } = require('./socket/chatSocket');
+
+const server = http.createServer(app);
+initChatSocket(server);
+
 // Only listen on port in development
 if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  const PORT = process.env.PORT || 8080;
+  server.listen(PORT, () => {
+    console.log(`Server and WebSocket running on port ${PORT}`);
   });
 }
 

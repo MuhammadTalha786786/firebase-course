@@ -16,8 +16,10 @@ const ApiCall = async (
     state?.userAuthReducer?.uid ||
     '';
 
-  const Base = 'https://social-bea-apis.vercel.app/';
-  const BaseUrl = Base + url;
+// const Base = 'https://social-bea-apis.vercel.app/';
+export const BASE_API_URL = 'https://firebase-course-pi.vercel.app/';
+const Base = BASE_API_URL;
+const BaseUrl = Base + url;
 
   const body = isMultipart
     ? obj
