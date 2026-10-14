@@ -8,6 +8,8 @@ if (!cached) {
 }
 
 async function connectDB() {
+  mongoose.set('autoIndex', false);
+
   // If we have a cached connection, return it
   if (cached.conn) {
     console.log('Using cached database connection');

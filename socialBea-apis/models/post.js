@@ -31,6 +31,8 @@ const replySchema = new mongoose.Schema({
     default: Date.now
   },
   replies: [] // Will be populated recursively
+}, {
+  autoIndex: false
 });
 
 // Allow recursive nesting
@@ -66,6 +68,8 @@ const commentSchema = new mongoose.Schema({
     required: true
   },
   replies: [replySchema]
+}, {
+  autoIndex: false
 });
 
 const postSchema = new mongoose.Schema({
@@ -111,7 +115,8 @@ const postSchema = new mongoose.Schema({
   }],
   comments: [commentSchema]
 }, {
-  timestamps: true
+  timestamps: true,
+  autoIndex: false
 });
 
 // Virtual for likes count
