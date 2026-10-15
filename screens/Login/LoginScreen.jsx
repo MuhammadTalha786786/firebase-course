@@ -44,6 +44,7 @@ const LoginScreen = ({ navigation }) => {
     otp,
     setOtp,
     setLoader,
+    isLoginFormValid,
   } = useLogin();
   const { onGoogleButtonPress, loading } = useGoogleSignIn({ setLoader });
 
@@ -130,11 +131,13 @@ const LoginScreen = ({ navigation }) => {
 
             {/* Primary Action Button */}
             <ButtonComponent
-              disabled={loader || loading}
+              disabled={!isLoginFormValid || loader || loading}
               buttonTitle="Sign In"
               color="#FFFFFF"
               backgroundColor={
-                loader ? '#94A3B8' : StyleGuide.color.primary
+                !isLoginFormValid || loader || loading
+                  ? '#CBD5E1'
+                  : StyleGuide.color.primary
               }
               onPress={email.includes('+92') ? phoneLogin : login}
               uploading={loader || loading}

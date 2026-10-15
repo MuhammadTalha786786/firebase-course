@@ -42,6 +42,8 @@ const RegisterScreen = ({ navigation }: { navigation: any }) => {
     loading,
     registerLoading,
     userProfieImage,
+    isFormValid,
+    validationHint,
   } = useRegister();
 
   const handleOpenPicker = () => {
@@ -163,18 +165,20 @@ const RegisterScreen = ({ navigation }: { navigation: any }) => {
               />
             </View>
 
-            {/* Error Message */}
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {/* Real-time Validation / Error Message */}
+            {error || validationHint ? (
+              <Text style={styles.errorText}>{error || validationHint}</Text>
+            ) : null}
 
             {/* Primary Register Button */}
             <View style={{ marginTop: 6 }}>
               <ButtonComponent
-                disabled={registerLoading || loading}
+                disabled={!isFormValid || registerLoading || loading}
                 buttonTitle="Create Account"
                 color="#FFFFFF"
                 backgroundColor={
-                  registerLoading || loading
-                    ? '#94A3B8'
+                  !isFormValid || registerLoading || loading
+                    ? '#CBD5E1'
                     : StyleGuide.color.primary
                 }
                 onPress={createNewAccount}

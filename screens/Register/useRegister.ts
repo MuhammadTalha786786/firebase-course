@@ -136,64 +136,95 @@ export const useRegister = () => {
     setPassword('');
   };
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const isNameValid = name.trim().length >= 2;
+  const isEmailValid = emailRegex.test(email.trim());
+  const isPasswordValid = Password.length >= 6;
+
+  const isFormValid =
+    isNameValid &&
+    isEmailValid &&
+    isPasswordValid &&
+    !loading &&
+    !registerLoading;
+
+  // Real-time dynamic helper text
+  const validationHint = (() => {
+    if (email.length > 0 && !isEmailValid) {
+      return 'Please enter a valid email address';
+    }
+    if (Password.length > 0 && !isPasswordValid) {
+      return 'Password must be at least 6 characters';
+    }
+    if (name.length > 0 && !isNameValid) {
+      return 'Name must be at least 2 characters';
+    }
+    return '';
+  })();
+
   const createNewAccount = async () => {
+    if (!isFormValid) {
+      if (!isNameValid) {
+        setError('Please Enter the Name (at least 2 characters)');
+      } else if (!isEmailValid) {
+        setError('Please Enter the Valid Email');
+      } else if (!isPasswordValid) {
+        setError('Password must be at least 6 characters');
+      }
+      return;
+    }
+
     setRegisterLoading(true);
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (image === '' || image === undefined) {
-      setError('Please Select an Image');
-    } else if (email === '') {
-      setError('Please Enter the Email');
-    } else if (!reg.test(email)) {
-      setError('Please Enter the Valid Email');
-    } else if (name === '') {
-      setError('Please Enter the Name');
-    } else if (Password === '') {
-      setError('Please Enter the Password');
-    } else {
-      try {
-        let body = {
-          email: email,
-          name: name,
-          uid: uuid.v4() as string,
-          image: userProfieImage,
-          password: Password,
-          isLogin: false,
-        };
-        console.log(body);
-        const response = await ApiCall(
-          'post',
-          'api/users',
-          body,
-          dispatch,
-          false,
-        );
-        console.log(response);
-        setRegisterLoading(false);
-        if (response?.data) {
-          Toast.show({
-            text2: response?.message,
-            type: 'success',
-            position: 'bottom',
-          });
-          clearData()
-        } else {
-          Toast.show({
-            text2: 'Something Went Wrong',
-            type: 'error',
-            position: 'bottom',
-          });
-        }
-      } catch (error) {
-        setRegisterLoading(false);
-        console.log(error.message);
+    setError('');
+
+    try {
+      const defaultAvatar =
+        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80';
+
+      const body = {
+        email: email.trim().toLowerCase(),
+        name: name.trim(),
+        uid: uuid.v4() as string,
+        image: userProfieImage || defaultAvatar,
+        password: Password,
+        isLogin: false,
+      };
+
+      const response = await ApiCall(
+        'post',
+        'api/users',
+        body,
+        dispatch,
+        false,
+      );
+
+      if (response?.data) {
         Toast.show({
-          text2: error?.message,
+          text1: 'Account Created!',
+          text2: response?.message || 'You can now sign in',
+          type: 'success',
+          position: 'bottom',
+        });
+        clearData();
+      } else {
+        const errorMsg =
+          response?.message || 'Registration failed. Please check your details.';
+        setError(errorMsg);
+        Toast.show({
+          text1: 'Registration Failed',
+          text2: errorMsg,
           type: 'error',
           position: 'bottom',
         });
       }
+    } catch (err: any) {
+      setError(err?.message || 'An error occurred during registration');
+    } finally {
+      setRegisterLoading(false);
     }
   };
+
   return {
     userProfieImage,
     name,
@@ -219,5 +250,10 @@ export const useRegister = () => {
     handleCamera,
     loading,
     registerLoading,
+    isFormValid,
+    validationHint,
+    isNameValid,
+    isEmailValid,
+    isPasswordValid,
   };
 };

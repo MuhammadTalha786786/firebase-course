@@ -99,24 +99,19 @@ export const useLogin = () => {
       });
   };
   console.log(photoUrl, 'photos....');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email.trim());
+  const isPasswordValid = Password.length >= 6;
+  const isLoginFormValid = email.includes('+92')
+    ? otp.length >= 4
+    : isEmailValid && isPasswordValid;
+
   const login = async () => {
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (email === '') {
-      Toast.show({
-        text2: 'Enter your email',
-        type: 'error',
-        position: 'bottom',
-      });
-    } else if (Password == '') {
-      Toast.show({
-        text2: 'Enter your Password',
-        type: 'error',
-        position: 'bottom',
-      });
-    } else {
-      setLoader(true);
+    if (!isLoginFormValid || loader) return;
+    setLoader(true);
+    try {
       let body = {
-        email: email,
+        email: email.trim().toLowerCase(),
         password: Password,
       };
       const response = await ApiCall(
@@ -126,12 +121,26 @@ export const useLogin = () => {
         dispatch,
         false,
       );
-      console.log(response)
-      setLoader(false);
+      console.log(response);
       if (response?.data) {
         dispatch(setSignIn(response.data));
+      } else {
+        Toast.show({
+          text1: 'Sign In Failed',
+          text2: response?.message || 'Invalid email or password',
+          type: 'error',
+          position: 'bottom',
+        });
       }
-     
+    } catch (e: any) {
+      Toast.show({
+        text1: 'Sign In Error',
+        text2: e?.message || 'Failed to sign in',
+        type: 'error',
+        position: 'bottom',
+      });
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -315,5 +324,6 @@ export const useLogin = () => {
     otp,
     setOtp,
     setLoader,
+    isLoginFormValid,
   };
 };
