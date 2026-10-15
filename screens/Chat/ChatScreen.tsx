@@ -23,6 +23,7 @@ import moment from 'moment';
 import {StyleGuide} from '../../Utils/StyleGuide';
 import {useChat} from './useChat';
 import {ChatMessage} from '../../services/chatSocketService';
+import {ChatScreenShimmer} from '../components/AppShimmers';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -384,12 +385,7 @@ export default function ChatScreen() {
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {loading && messages.length === 0 ? (
-          <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, {color: colors.textSecondary}]}>
-              Loading messages...
-            </Text>
-          </View>
+          <ChatScreenShimmer isDarkMode={isDarkMode} />
         ) : (
           <FlatList
             inverted

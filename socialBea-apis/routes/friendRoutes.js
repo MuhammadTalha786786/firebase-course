@@ -4,12 +4,16 @@ const {
   getSuggestions,
   getRequests,
   getFriends,
+  getAllFriendData,
   sendFriendRequest,
   acceptFriendRequest,
   rejectFriendRequest,
   cancelFriendRequest,
   removeFriend,
 } = require('../controllers/friendController');
+
+// Consolidated quick load
+router.get('/all', getAllFriendData);
 
 // Friend lists & suggestions
 router.get('/suggestions', getSuggestions);

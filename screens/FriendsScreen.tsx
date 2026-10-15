@@ -25,6 +25,7 @@ import {StyleGuide} from '../Utils/StyleGuide';
 import {StackParamList} from '../Utils/routes';
 import {reducerType} from '../Utils/types';
 import ApiCall from '../services/services';
+import {FriendCardShimmer} from './components/AppShimmers';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -104,18 +105,46 @@ const FriendsScreen = () => {
   );
 
   const fetchAllData = async (isPullRefresh = false) => {
+    const hasExistingData =
+      suggestions.length > 0 ||
+      incomingRequests.length > 0 ||
+      friendsList.length > 0;
+
     if (isPullRefresh) {
       setRefreshing(true);
-    } else {
+    } else if (!hasExistingData) {
       setLoading(true);
     }
 
     try {
-      await Promise.all([
-        fetchSuggestions(),
-        fetchRequests(),
-        fetchFriends(),
-      ]);
+      // 1. Try fast consolidated endpoint first
+      const allRes = await ApiCall(
+        'get',
+        `api/friends/all?userID=${currentUserId}`,
+        null,
+        dispatch,
+        false,
+      );
+
+      if (allRes?.success && allRes?.data) {
+        if (Array.isArray(allRes.data.suggestions)) {
+          setSuggestions(allRes.data.suggestions);
+        }
+        if (allRes.data.requests) {
+          setIncomingRequests(allRes.data.requests.received || []);
+          setOutgoingRequests(allRes.data.requests.sent || []);
+        }
+        if (Array.isArray(allRes.data.friends)) {
+          setFriendsList(allRes.data.friends);
+        }
+      } else {
+        // Fallback to individual requests if /all not available
+        await Promise.all([
+          fetchSuggestions(),
+          fetchRequests(),
+          fetchFriends(),
+        ]);
+      }
     } catch (err) {
       console.error('Error fetching friends data:', err);
     } finally {
@@ -802,12 +831,9 @@ const FriendsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* 4. Content List */}
-      {loading && !refreshing ? (
-        <View style={styles.loadingWrapper}>
-          <ActivityIndicator size="large" color={StyleGuide.color.primary} />
-          <Text style={[styles.loadingText, {color: subtextColor}]}>Loading friends...</Text>
-        </View>
+      {/* 4. Content List (Shimmer on initial load) */}
+      {loading && !refreshing && suggestions.length === 0 && friendsList.length === 0 ? (
+        <FriendCardShimmer isDarkMode={isDarkMode} count={7} />
       ) : (
         <FlatList
           data={filteredData as any}

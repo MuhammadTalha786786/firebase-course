@@ -12,7 +12,7 @@ import {StyleGuide} from '../../Utils/StyleGuide';
 import Feather from 'react-native-vector-icons/Feather';
 import CardUI from '../Post/CardUI';
 import {useNavigation} from '@react-navigation/native';
-import SkeletonPlaceHolder from '../components/SkeletonPlaceHolder';
+import {PostFeedShimmer} from '../components/AppShimmers';
 import {useHome} from './useHome';
 
 const Home = () => {
@@ -65,13 +65,13 @@ const Home = () => {
       <SafeAreaView
         style={[styles.safeArea, {backgroundColor: bgColor}]}
         edges={['left', 'right']}>
-        <FlatList
-          data={data}
-          contentContainerStyle={styles.listContent}
-          renderItem={({item}) =>
-            getData ? (
-              <SkeletonPlaceHolder />
-            ) : (
+        {getData && (!data || data.length === 0) ? (
+          <PostFeedShimmer isDarkMode={isDarkMode} count={3} />
+        ) : (
+          <FlatList
+            data={data}
+            contentContainerStyle={styles.listContent}
+            renderItem={({item}) => (
               <CardUI
                 item={item}
                 mode={mode}
@@ -81,16 +81,16 @@ const Home = () => {
                 PostedUser={item.userID}
                 getDataofUserPost={getDataofUserPost}
               />
-            )
-          }
-          onRefresh={getPostData}
-          refreshing={getData}
-          colors={[StyleGuide.color.primary]}
-          tintColor={StyleGuide.color.primary}
-          keyExtractor={item => item.postID || Math.random().toString()}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={renderEmptyState}
-        />
+            )}
+            onRefresh={getPostData}
+            refreshing={getData}
+            colors={[StyleGuide.color.primary]}
+            tintColor={StyleGuide.color.primary}
+            keyExtractor={item => item.postID || Math.random().toString()}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmptyState}
+          />
+        )}
       </SafeAreaView>
     </>
   );

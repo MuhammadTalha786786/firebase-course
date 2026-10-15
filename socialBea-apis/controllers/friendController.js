@@ -562,10 +562,129 @@ const removeFriend = async (req, res) => {
   }
 };
 
+// @desc    Get all friend data (suggestions, requests, friends) in one single query
+// @route   GET /api/friends/all
+// @access  Public / Private
+const getAllFriendData = async (req, res) => {
+  try {
+    await connectDB();
+    const currentUserId = await resolveUserId(req);
+
+    if (!currentUserId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current user identification is required',
+      });
+    }
+
+    // Run both queries in parallel with lean() for maximum speed
+    const [users, allFriendships] = await Promise.all([
+      User.find({ _id: { $ne: currentUserId } })
+        .select('name email image uid isLogin createdAt')
+        .lean(),
+      Friendship.find({
+        $or: [{ requester: currentUserId }, { recipient: currentUserId }],
+      })
+        .populate('requester', 'name email image uid isLogin createdAt')
+        .populate('recipient', 'name email image uid isLogin createdAt')
+        .sort({ updatedAt: -1 })
+        .lean(),
+    ]);
+
+    // 1. Process Friends & Requests in a single pass
+    const friends = [];
+    const receivedRequests = [];
+    const sentRequests = [];
+    const relationshipMap = new Map();
+
+    for (const f of allFriendships) {
+      const requesterId = (f.requester?._id || f.requester).toString();
+      const recipientId = (f.recipient?._id || f.recipient).toString();
+      const otherUserId =
+        requesterId === currentUserId.toString() ? recipientId : requesterId;
+
+      relationshipMap.set(otherUserId, f);
+
+      if (f.status === 'accepted') {
+        const isRequester = requesterId === currentUserId.toString();
+        const friendUser = isRequester ? f.recipient : f.requester;
+        friends.push({
+          friendshipId: f._id,
+          friendsSince: f.updatedAt,
+          ...friendUser,
+        });
+      } else if (f.status === 'pending') {
+        if (recipientId === currentUserId.toString()) {
+          receivedRequests.push({
+            requestId: f._id,
+            createdAt: f.createdAt,
+            user: f.requester,
+          });
+        } else {
+          sentRequests.push({
+            requestId: f._id,
+            createdAt: f.createdAt,
+            user: f.recipient,
+          });
+        }
+      }
+    }
+
+    // 2. Process Suggestions (users not already accepted friends)
+    const suggestions = [];
+    for (const u of users) {
+      const uIdStr = u._id.toString();
+      const rel = relationshipMap.get(uIdStr);
+
+      let friendshipStatus = 'none';
+      let friendshipId = null;
+
+      if (rel) {
+        friendshipId = rel._id;
+        if (rel.status === 'accepted') {
+          friendshipStatus = 'friends';
+        } else if (rel.status === 'pending') {
+          const reqId = (rel.requester?._id || rel.requester).toString();
+          friendshipStatus =
+            reqId === currentUserId.toString() ? 'sent' : 'received';
+        }
+      }
+
+      if (friendshipStatus !== 'friends') {
+        suggestions.push({
+          ...u,
+          friendshipStatus,
+          friendshipId,
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        suggestions,
+        requests: {
+          received: receivedRequests,
+          sent: sentRequests,
+        },
+        friends,
+      },
+    });
+  } catch (error) {
+    console.error('Error in getAllFriendData:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching all friend data',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getSuggestions,
   getRequests,
   getFriends,
+  getAllFriendData,
   sendFriendRequest,
   acceptFriendRequest,
   rejectFriendRequest,

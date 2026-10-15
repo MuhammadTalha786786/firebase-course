@@ -30,24 +30,8 @@ async function connectDB() {
     }
 
     console.log('Creating new database connection...');
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then(async (mongooseInstance) => {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongooseInstance) => {
       console.log('MongoDB connected successfully');
-      try {
-        const postsCollection = mongooseInstance.connection.collection('posts');
-        const indexes = await postsCollection.indexes();
-        for (const idx of indexes) {
-          if (
-            idx.name === 'comments.replies.replyID_1' ||
-            idx.name === 'comments.commentID_1'
-          ) {
-            console.log(`Dropping problematic subdocument unique index: ${idx.name}`);
-            await postsCollection.dropIndex(idx.name);
-            console.log(`Successfully dropped index: ${idx.name}`);
-          }
-        }
-      } catch (idxErr) {
-        // Ignore if collection not yet created or already dropped
-      }
       return mongooseInstance;
     });
   }

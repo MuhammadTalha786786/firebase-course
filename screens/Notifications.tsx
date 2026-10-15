@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Lottie from 'lottie-react-native';
 import NotificationCard from './components/NotificationCard';
 import { StyleGuide } from '../Utils/StyleGuide';
+import { NotificationShimmer } from './components/AppShimmers';
 type AppState =
 {    userAuthReducer:{
         uid:string
@@ -60,16 +61,9 @@ const Notifications = () => {
                 flex: 1,
                 backgroundColor: mode ? StyleGuide.color.dark : StyleGuide.color.light,
             }}>
-            <View>
+            <View style={{ flex: 1 }}>
                 {visible ? (
-                    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                        <Lottie
-                            style={{ height: 100 }}
-                            source={require('../9764-loader.json')}
-                            autoPlay
-                            loop
-                        />
-                    </View>
+                    <NotificationShimmer isDarkMode={Boolean(mode)} count={7} />
                 ) : flatArray.length === 0 ? (
                     <Text
                         style={[
