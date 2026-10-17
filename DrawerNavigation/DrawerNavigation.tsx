@@ -15,6 +15,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import GoogleMaps from '../screens/GoogleMaps';
 import VideoComponent from '../screens/VideoComponent';
+import ReelsScreen from '../screens/Reels/ReelsScreen';
+import Notifications from '../screens/Notifications';
 import {setSignOut} from '../Redux/Auth/AuthReducer';
 import {reducerType} from '../Utils/types';
 
@@ -171,6 +173,12 @@ const DrawerNavigation = () => {
         headerRight: () => (
           <View style={{flexDirection: 'row', alignItems: 'center', marginRight: 14}}>
             <TouchableOpacity
+              onPress={() => navigation.navigate('Notifications')}
+              style={[styles.headerIconButton, {backgroundColor: buttonBg, marginRight: 8}]}
+              activeOpacity={0.7}>
+              <Feather size={18} color={textColor} name="bell" />
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => {
                 dispatch(setDarkMode({mode: !mode}));
               }}
@@ -195,20 +203,29 @@ const DrawerNavigation = () => {
         }}
       />
       <Drawer.Screen
+        name="Reels"
+        component={ReelsScreen}
+        options={{
+          drawerIcon: ({color, size}) => (
+            <Feather name="video" color={color} size={20} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Notifications"
+        component={Notifications}
+        options={{
+          drawerIcon: ({color, size}) => (
+            <Feather name="bell" color={color} size={20} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="Google Map"
         component={GoogleMaps}
         options={{
           drawerIcon: ({color, size}) => (
             <Feather name="map-pin" color={color} size={20} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Video"
-        component={VideoComponent}
-        options={{
-          drawerIcon: ({color, size}) => (
-            <Feather name="video" color={color} size={20} />
           ),
         }}
       />

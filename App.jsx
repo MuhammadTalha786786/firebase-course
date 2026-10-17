@@ -13,6 +13,8 @@ import ChatScreen from './screens/Chat/ChatScreen';
 import ProfileScreen from './screens/Profile/ProfileScreen';
 import UserProfile from './screens/UserProfile';
 import RegisterScreen from './screens/Register/RegisterScreen';
+import Notifications from './screens/Notifications';
+import ReelsScreen from './screens/Reels/ReelsScreen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 
@@ -99,6 +101,16 @@ const App = () => {
                 name="UserProfile"
                 component={UserProfile}
                 options={{headerShown: true}}
+              />
+              <AppStack.Screen
+                name="Notifications"
+                component={Notifications}
+                options={{headerShown: true, title: 'Notifications'}}
+              />
+              <AppStack.Screen
+                name="Reels"
+                component={ReelsScreen}
+                options={{headerShown: false}}
               />
             </>
           ) : (

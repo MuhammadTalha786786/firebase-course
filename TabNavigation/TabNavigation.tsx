@@ -3,7 +3,9 @@ import Post from '../screens/Post/Post';
 import FriendsScreen from '../screens/FriendsScreen';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import DrawerNavigation from '../DrawerNavigation/DrawerNavigation';
+import ReelsScreen from '../screens/Reels/ReelsScreen';
 import {StyleGuide} from '../Utils/StyleGuide';
 import {Platform, View} from 'react-native';
 import {useSelector} from 'react-redux';
@@ -30,6 +32,14 @@ const TabNavigation = () => {
               <AntDesign
                 name="home"
                 size={22}
+                color={focused ? activeColor : inactiveColor}
+              />
+            );
+          } else if (route.name === 'Reels') {
+            return (
+              <Ionicons
+                name={focused ? 'film' : 'film-outline'}
+                size={23}
                 color={focused ? activeColor : inactiveColor}
               />
             );
@@ -65,7 +75,7 @@ const TabNavigation = () => {
           } else if (route.name === 'Profile') {
             return (
               <AntDesign
-                name="profile"
+                name="user"
                 size={22}
                 color={focused ? activeColor : inactiveColor}
               />
@@ -109,8 +119,8 @@ const TabNavigation = () => {
         options={{headerShown: false}}
       />
       <Tab.Screen
-        name="Friends"
-        component={FriendsScreen}
+        name="Reels"
+        component={ReelsScreen}
         options={{headerShown: false}}
       />
       <Tab.Screen
@@ -119,14 +129,14 @@ const TabNavigation = () => {
         options={{headerShown: false}}
       />
       <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{headerShown: false}}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{headerShown: true, title: 'My Profile'}}
-      />
-      <Tab.Screen
-        name="Notifications"
-        component={Notifications}
-        options={{headerShown: true, title: 'Notifications'}}
       />
     </Tab.Navigator>
   );

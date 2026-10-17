@@ -1,14 +1,8 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import CameraComponent from './components/CameraComponent'
+import React from 'react';
+import ReelsScreen from './Reels/ReelsScreen';
 
 const VideoComponent = () => {
-  return (
-    <>
-      <CameraComponent>
-    </CameraComponent>
-    </>
-  )
-}
+  return <ReelsScreen />;
+};
 
-export default VideoComponent
+export default VideoComponent;
